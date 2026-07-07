@@ -1,0 +1,136 @@
+"use client";
+import { useEffect, useState } from "react";
+
+type Edu = { id?: string; institution: string; degree: string; startYear: number | null; endYear: number | null; score: string };
+const EMPTY: Edu = { institution: "", degree: "", startYear: null, endYear: null, score: "" };
+const input = "mt-1 w-full rounded-lg border border-[#1E2C52] bg-[#111A36] px-4 py-2.5 text-sm outline-none focus:border-[#4DA6FF]";
+const label = "mt-4 block font-mono text-xs uppercase tracking-wider text-[#8B98B8]";
+
+const THIS_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: THIS_YEAR + 6 - 1980 }, (_, i) => THIS_YEAR + 5 - i);
+
+export default function EducationPage() {
+  const [rows, setRows] = useState<Edu[]>([]);
+  const [editing, setEditing] = useState<Edu | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    const r = await fetch("/api/educations");
+    if (!r.ok) {
+      setError(`Could not load education (HTTP ${r.status}) — is app/api/educations/route.ts in place? Restart npm run dev after adding API files.`);
+      return;
+    }
+    setRows(await r.json());
+  };
+  useEffect(() => { load(); }, []);
+
+  async function save(e: Edu) {
+    setError(null);
+    setSaving(true);
+    const isNew = !e.id;
+    const res = await fetch(isNew ? "/api/educations" : `/api/educations/${e.id}`, {
+      method: isNew ? "POST" : "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        institution: e.institution.trim(),
+        degree: e.degree,
+        startYear: e.startYear,
+        endYear: e.endYear,
+        score: e.score,
+      }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(`Save failed (HTTP ${res.status}): ${JSON.stringify(body.error ?? body)}`);
+      return; // keep the form open so nothing is lost
+    }
+    setEditing(null);
+    load();
+  }
+
+  async function remove(id: string) {
+    const res = await fetch(`/api/educations/${id}`, { method: "DELETE" });
+    if (!res.ok) setError(`Delete failed (HTTP ${res.status})`);
+    load();
+  }
+
+  return (
+    <div className="max-w-2xl">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Education</h1>
+        <button onClick={() => { setError(null); setEditing({ ...EMPTY }); }}
+          className="rounded-lg bg-[#4DA6FF] px-4 py-2 text-sm font-semibold text-[#04101F]">+ Add</button>
+      </div>
+
+      {error && (
+        <p className="mt-4 rounded-lg border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">
+          {error}
+        </p>
+      )}
+
+      <div className="mt-6 space-y-3">
+        {rows.map((e) => (
+          <div key={e.id} className="flex items-center justify-between rounded-lg border border-[#1E2C52] bg-[#111A36] px-4 py-3">
+            <div>
+              <p className="font-semibold">{e.institution}</p>
+              <p className="text-sm text-[#8B98B8]">
+                {[e.degree, [e.startYear, e.endYear].filter(Boolean).join("–"), e.score].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+            <div className="flex gap-3 font-mono text-xs">
+              <button className="text-[#8FC4FF]" onClick={() => setEditing(e)}>edit</button>
+              <button className="text-[#FF6B6B]" onClick={() => remove(e.id!)}>delete</button>
+            </div>
+          </div>
+        ))}
+        {rows.length === 0 && !error && <p className="text-sm text-[#8B98B8]">No education yet.</p>}
+      </div>
+
+      {editing && (
+        <div className="mt-8 rounded-xl border border-[#1E2C52] bg-[#0F1730] p-6">
+          <label className={label}>Institution</label>
+          <input className={input} value={editing.institution}
+            onChange={(ev) => setEditing({ ...editing, institution: ev.target.value })} />
+
+          <label className={label}>Degree</label>
+          <input className={input} value={editing.degree} placeholder="Diploma in Computer Science"
+            onChange={(ev) => setEditing({ ...editing, degree: ev.target.value })} />
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className={label}>Start year</label>
+              <select className={input} value={editing.startYear ?? ""}
+                onChange={(ev) => setEditing({ ...editing, startYear: ev.target.value ? Number(ev.target.value) : null })}>
+                <option value="">—</option>
+                {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={label}>End year</label>
+              <select className={input} value={editing.endYear ?? ""}
+                onChange={(ev) => setEditing({ ...editing, endYear: ev.target.value ? Number(ev.target.value) : null })}>
+                <option value="">—</option>
+                {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={label}>Score</label>
+              <input className={input} value={editing.score} placeholder="8.4 CGPA"
+                onChange={(ev) => setEditing({ ...editing, score: ev.target.value })} />
+            </div>
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <button onClick={() => save(editing)} disabled={!editing.institution.trim() || saving}
+              className="rounded-lg bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
+              {saving ? "Saving…" : "Save"}
+            </button>
+            <button onClick={() => setEditing(null)} className="text-sm text-[#8B98B8]">Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

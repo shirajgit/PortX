@@ -8,19 +8,28 @@ export default async function Overview() {
   if (!userId) redirect("/sign-in");
   const profile = await db.profile.findUnique({
     where: { clerkId: userId },
-    include: { _count: { select: { projects: true, experiences: true, skills: true } } },
+    include: {
+      _count: {
+        select: { projects: true, experiences: true, skills: true, links: true, educations: true },
+      },
+    },
   });
   if (!profile) redirect("/dashboard/onboarding");
 
-  const views = await db.pageView.count({ where: { profileId: profile.id, kind: "view" } });
-  const downloads = await db.pageView.count({ where: { profileId: profile.id, kind: "pdf_download" } });
+  const [views, downloads] = await Promise.all([
+    db.pageView.count({ where: { profileId: profile.id, kind: "view" } }),
+    db.pageView.count({ where: { profileId: profile.id, kind: "pdf_download" } }),
+  ]);
 
   const checklist = [
     { done: !!profile.headline && !!profile.summary, label: "Fill your profile", href: "/dashboard/profile" },
+    { done: profile._count.links > 0, label: "Add your links (GitHub, LinkedIn)", href: "/dashboard/links" },
     { done: profile._count.projects > 0, label: "Add at least one project", href: "/dashboard/projects" },
     { done: profile._count.experiences > 0, label: "Add experience", href: "/dashboard/experience" },
     { done: profile._count.skills > 0, label: "Add skills", href: "/dashboard/skills" },
+    { done: profile._count.educations > 0, label: "Add education", href: "/dashboard/education" },
     { done: profile.isPublished, label: "Publish your portfolio", href: "/dashboard/template" },
+    { done: profile.isPublished, label: "Export your GitHub README", href: "/dashboard/readme" },
   ];
 
   return (

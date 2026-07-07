@@ -1,14 +1,16 @@
 import { notFound } from "next/navigation";
 import { getPortfolioData } from "@/lib/data";
 import { Minimal } from "@/components/templates/minimal/Minimal";
+import { Cli } from "@/components/templates/cli/Cli";
+import { Glass } from "@/components/templates/glass/Glass";
 import { ViewTracker } from "@/components/ViewTracker";
 
 export const revalidate = 60;
 
 const TEMPLATES: Record<string, typeof Minimal> = {
   minimal: Minimal,
-  // cli: Cli,     // week 9-10
-  // glass: Glass, // week 9-10
+  cli: Cli,
+  glass: Glass,
 };
 
 type Props = { params: Promise<{ username: string }> };
@@ -32,7 +34,7 @@ export default async function PortfolioPage({ params }: Props) {
   const Template = TEMPLATES[result.template] ?? Minimal;
   return (
     <>
-      <Template data={result.data} />
+      <Template data={result.data} username={username.toLowerCase()} />
       <ViewTracker username={username.toLowerCase()} />
     </>
   );

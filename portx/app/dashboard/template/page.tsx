@@ -2,65 +2,148 @@
 import { useEffect, useState } from "react";
 
 export default function TemplatePage() {
-  const [template, setTemplate] = useState("minimal");
+  const [savedTemplate, setSavedTemplate] = useState("minimal"); // what's live in the DB
+  const [selected, setSelected] = useState("minimal");           // what's picked in the UI
   const [published, setPublished] = useState(false);
   const [username, setUsername] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/profile").then(async (r) => {
+      if (!r.ok) { setError(`Could not load profile (HTTP ${r.status})`); return; }
       const p = await r.json();
-      setTemplate(p.template ?? "minimal");
+      setSavedTemplate(p.template ?? "minimal");
+      setSelected(p.template ?? "minimal");
       setPublished(p.isPublished ?? false);
       setUsername(p.username ?? "");
     });
   }, []);
 
-  async function save(next: { template?: string; isPublished?: boolean }) {
+  async function patch(body: { template?: string; isPublished?: boolean }): Promise<boolean> {
+    setError(null);
     setSaving(true);
-    await fetch("/api/profile", {
+    const res = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next),
+      body: JSON.stringify(body),
     });
     setSaving(false);
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}));
+      setError(`Save failed (HTTP ${res.status}): ${JSON.stringify(b.error ?? b)}`);
+      return false;
+    }
+    return true;
+  }
+
+  /** Apply the selected template (and publish if not yet published). */
+  async function applyAndPublish() {
+    const ok = await patch({ template: selected, isPublished: true });
+    if (ok) { setSavedTemplate(selected); setPublished(true); }
+  }
+
+  async function applyOnly() {
+    const ok = await patch({ template: selected });
+    if (ok) setSavedTemplate(selected);
+  }
+
+  async function unpublish() {
+    const ok = await patch({ isPublished: false });
+    if (ok) setPublished(false);
   }
 
   const options = [
-    { id: "minimal", name: "Minimal", note: "Blue-black, fast, readable — live now" },
-    { id: "cli", name: "CLI Terminal", note: "Coming in week 9-10", disabled: true },
-    { id: "glass", name: "Glassmorphism", note: "Coming in week 9-10", disabled: true },
+    { id: "minimal", name: "Minimal", note: "Blue-black, fast, readable." },
+    { id: "cli", name: "CLI Terminal", note: "Interactive command-line — visitors type to explore. The shareable one." },
+    { id: "glass", name: "Glassmorphism", note: "Frosted cards over gradient orbs. The premium look." },
   ];
+
+  const dirty = selected !== savedTemplate;
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-bold">Template & Publish</h1>
+      <h1 className="text-2xl font-bold">Template &amp; Publish</h1>
+      <p className="mt-1 text-sm text-[#8B98B8]">
+        Pick a template, preview it with your data, then apply. Nothing changes on your live page until you do.
+      </p>
+
+      {error && (
+        <p className="mt-4 rounded-lg border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">
+          {error}
+        </p>
+      )}
 
       <div className="mt-6 space-y-3">
-        {options.map((o) => (
-          <button key={o.id} disabled={o.disabled}
-            onClick={() => { setTemplate(o.id); save({ template: o.id }); }}
-            className={`w-full rounded-xl border p-4 text-left disabled:opacity-40 ${
-              template === o.id ? "border-[#4DA6FF] bg-[#111A36]" : "border-[#1E2C52]"}`}>
-            <p className="font-semibold">{o.name} {template === o.id && <span className="font-mono text-xs text-[#39D98A]">● selected</span>}</p>
-            <p className="text-sm text-[#8B98B8]">{o.note}</p>
-          </button>
-        ))}
+        {options.map((o) => {
+          const isSelected = selected === o.id;
+          const isLive = savedTemplate === o.id;
+          return (
+            <div key={o.id}
+              onClick={() => setSelected(o.id)}
+              className={`w-full cursor-pointer rounded-xl border p-4 text-left transition ${
+                isSelected ? "border-[#4DA6FF] bg-[#111A36]" : "border-[#1E2C52] hover:border-[#2A3E6E]"}`}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">
+                    {o.name}{" "}
+                    {isLive && published && <span className="font-mono text-xs text-[#39D98A]">● live</span>}
+                    {isSelected && !isLive && <span className="font-mono text-xs text-[#FFB454]">○ selected</span>}
+                  </p>
+                  <p className="text-sm text-[#8B98B8]">{o.note}</p>
+                </div>
+                <a href={`/dashboard/preview/${o.id}`} target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  className="shrink-0 rounded-lg border border-[#1E2C52] px-3 py-1.5 font-mono text-xs text-[#8FC4FF] hover:border-[#4DA6FF]">
+                  preview ↗
+                </a>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="mt-10 rounded-xl border border-[#1E2C52] bg-[#0F1730] p-5">
-        <div className="flex items-center justify-between">
+      {/* apply / publish */}
+      <div className="mt-8 rounded-xl border border-[#1E2C52] bg-[#0F1730] p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="font-semibold">{published ? "Published" : "Unpublished"}</p>
+            <p className="font-semibold">
+              {published ? "Published" : "Unpublished"}
+              {dirty && <span className="ml-2 font-mono text-xs text-[#FFB454]">unsaved template change</span>}
+            </p>
             <p className="text-sm text-[#8B98B8]">
-              {published ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">portx.in/{username}</a></> : "Your page returns 404 until you publish."}
+              {published
+                ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">portx.in/{username}</a>{" "}
+                    with the <span className="font-mono text-[#8FC4FF]">{savedTemplate}</span> template.</>
+                : "Your page returns 404 until you publish."}
             </p>
           </div>
-          <button onClick={() => { const next = !published; setPublished(next); save({ isPublished: next }); }}
-            disabled={saving}
-            className={`rounded-lg px-5 py-2 text-sm font-semibold ${published ? "border border-[#1E2C52]" : "bg-[#39D98A] text-[#04101F]"}`}>
-            {published ? "Unpublish" : "Publish"}
-          </button>
+          <div className="flex gap-3">
+            {published && dirty && (
+              <button onClick={applyOnly} disabled={saving}
+                className="rounded-lg bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
+                {saving ? "Applying…" : "Apply template"}
+              </button>
+            )}
+            {!published && (
+              <button onClick={applyAndPublish} disabled={saving}
+                className="rounded-lg bg-[#39D98A] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
+                {saving ? "Publishing…" : dirty ? "Apply & publish" : "Publish"}
+              </button>
+            )}
+            {published && !dirty && (
+              <button onClick={unpublish} disabled={saving}
+                className="rounded-lg border border-[#1E2C52] px-5 py-2 text-sm font-semibold disabled:opacity-40">
+                Unpublish
+              </button>
+            )}
+            {published && dirty && (
+              <button onClick={() => setSelected(savedTemplate)} disabled={saving}
+                className="rounded-lg border border-[#1E2C52] px-4 py-2 text-sm text-[#8B98B8]">
+                Discard
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

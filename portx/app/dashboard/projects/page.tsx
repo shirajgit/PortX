@@ -21,30 +21,64 @@ const EMPTY: Project = { name: "", tagline: "", bullets: [], tech: [], liveUrl: 
 const input = "mt-1 w-full rounded-lg border border-[#1E2C52] bg-[#111A36] px-4 py-2.5 text-sm outline-none focus:border-[#4DA6FF]";
 const label = "mt-4 block font-mono text-xs uppercase tracking-wider text-[#8B98B8]";
 
+/** "workmax-os.vercel.app" → "https://workmax-os.vercel.app"; empty → null */
+function normalizeUrl(v: string | null): string | null {
+  const s = (v ?? "").trim();
+  if (!s) return null;
+  return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+}
+
+/** normalize, then verify it's actually parseable — junk becomes null instead of failing the save */
+function safeUrl(v: string | null): string | null {
+  const n = normalizeUrl(v);
+  if (!n) return null;
+  try { new URL(n); return n; } catch { return null; }
+}
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [editing, setEditing] = useState<Project | null>(null);
   const [ghOpen, setGhOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const load = () => fetch("/api/projects").then(async (r) => setProjects(await r.json()));
+  const load = async () => {
+    const r = await fetch("/api/projects");
+    if (!r.ok) { setError(`Could not load projects (HTTP ${r.status})`); return; }
+    setProjects(await r.json());
+  };
   useEffect(() => { load(); }, []);
 
   async function save(p: Project) {
+    setError(null);
+    setSaving(true);
     const isNew = !p.id;
-    await fetch(isNew ? "/api/projects" : `/api/projects/${p.id}`, {
+    const res = await fetch(isNew ? "/api/projects" : `/api/projects/${p.id}`, {
       method: isNew ? "POST" : "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: p.name, tagline: p.tagline, bullets: p.bullets.filter(Boolean),
-        tech: p.tech, liveUrl: p.liveUrl || null, repoUrl: p.repoUrl || null, featured: p.featured,
+        name: p.name.trim().slice(0, 80),
+        tagline: p.tagline.slice(0, 140),
+        bullets: p.bullets.filter(Boolean).map((b) => b.slice(0, 300)),
+        tech: p.tech.map((t) => t.slice(0, 30)),
+        liveUrl: safeUrl(p.liveUrl),
+        repoUrl: safeUrl(p.repoUrl),
+        featured: p.featured,
       }),
     });
+    setSaving(false);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(`Save failed (HTTP ${res.status}): ${JSON.stringify(body.error ?? body)}`);
+      return; // keep the form open — nothing lost
+    }
     setEditing(null);
     load();
   }
 
   async function remove(id: string) {
-    await fetch(`/api/projects/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+    if (!res.ok) setError(`Delete failed (HTTP ${res.status})`);
     load();
   }
 
@@ -57,12 +91,18 @@ export default function ProjectsPage() {
             className="rounded-lg border border-[#1E2C52] px-4 py-2 font-mono text-xs hover:border-[#4DA6FF]">
             ⇣ import from GitHub
           </button>
-          <button onClick={() => setEditing({ ...EMPTY })}
+          <button onClick={() => { setError(null); setEditing({ ...EMPTY }); }}
             className="rounded-lg bg-[#4DA6FF] px-4 py-2 text-sm font-semibold text-[#04101F]">
             + Add project
           </button>
         </div>
       </div>
+
+      {error && (
+        <p className="mt-4 rounded-lg border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">
+          {error}
+        </p>
+      )}
 
       {/* list */}
       <div className="mt-6 space-y-3">
@@ -78,7 +118,7 @@ export default function ProjectsPage() {
             </div>
           </div>
         ))}
-        {projects.length === 0 && <p className="text-sm text-[#8B98B8]">No projects yet — add one or import from GitHub.</p>}
+        {projects.length === 0 && !error && <p className="text-sm text-[#8B98B8]">No projects yet — add one or import from GitHub.</p>}
       </div>
 
       {/* editor */}
@@ -109,12 +149,12 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={label}>Live URL</label>
-              <input className={input} value={editing.liveUrl ?? ""}
+              <input className={input} value={editing.liveUrl ?? ""} placeholder="myapp.vercel.app"
                 onChange={(e) => setEditing({ ...editing, liveUrl: e.target.value })} />
             </div>
             <div>
               <label className={label}>Repo URL</label>
-              <input className={input} value={editing.repoUrl ?? ""}
+              <input className={input} value={editing.repoUrl ?? ""} placeholder="github.com/you/repo"
                 onChange={(e) => setEditing({ ...editing, repoUrl: e.target.value })} />
             </div>
           </div>
@@ -126,9 +166,9 @@ export default function ProjectsPage() {
           </label>
 
           <div className="mt-6 flex gap-3">
-            <button onClick={() => save(editing)} disabled={!editing.name.trim()}
+            <button onClick={() => save(editing)} disabled={!editing.name.trim() || saving}
               className="rounded-lg bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
-              Save
+              {saving ? "Saving…" : "Save"}
             </button>
             <button onClick={() => setEditing(null)} className="text-sm text-[#8B98B8]">Cancel</button>
           </div>
@@ -145,8 +185,10 @@ function GithubImport({ onClose, onDone }: { onClose: () => void; onDone: () => 
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function fetchDrafts() {
+    setError(null);
     setBusy(true);
     const res = await fetch("/api/import/github", {
       method: "POST",
@@ -154,31 +196,47 @@ function GithubImport({ onClose, onDone }: { onClose: () => void; onDone: () => 
       body: JSON.stringify({ username }),
     });
     setBusy(false);
-    if (res.ok) setDrafts((await res.json()).drafts);
+    if (!res.ok) { setError(`GitHub fetch failed (HTTP ${res.status}) — check the username.`); return; }
+    setDrafts((await res.json()).drafts);
   }
 
   async function importSelected() {
     if (!drafts) return;
+    setError(null);
     setBusy(true);
+    const failures: string[] = [];
     for (const d of drafts.filter((d) => selected.has(d.githubRepo))) {
-      await fetch("/api/projects", {
+      const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: d.name, tagline: d.tagline, tech: d.tech,
-          repoUrl: d.repoUrl, liveUrl: d.liveUrl,
-          source: "github", githubRepo: d.githubRepo,
+          name: d.name.slice(0, 80),
+          tagline: (d.tagline ?? "").slice(0, 140),   // GitHub descriptions can exceed the API's limit
+          tech: d.tech.map((t) => t.slice(0, 30)),
+          repoUrl: safeUrl(d.repoUrl),
+          liveUrl: safeUrl(d.liveUrl),
+          source: "github",
+          githubRepo: d.githubRepo,
         }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        failures.push(`${d.name}: ${JSON.stringify(body.error ?? res.status)}`);
+      }
     }
     setBusy(false);
+    if (failures.length > 0) {
+      setError(`Failed: ${failures.join(" | ").slice(0, 400)}`);
+      onDone();
+      return;
+    }
     onDone();
     onClose();
   }
 
   const toggle = (repo: string) => {
     const next = new Set(selected);
-    next.has(repo) ? next.delete(repo) : next.add(repo);
+    if (next.has(repo)) next.delete(repo); else next.add(repo);
     setSelected(next);
   };
 
@@ -186,6 +244,13 @@ function GithubImport({ onClose, onDone }: { onClose: () => void; onDone: () => 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-lg rounded-xl border border-[#1E2C52] bg-[#0F1730] p-6">
         <h2 className="font-semibold">Import from GitHub</h2>
+
+        {error && (
+          <p className="mt-3 rounded-lg border border-[#5C2B2B] bg-[#2A1414] px-3 py-2 font-mono text-xs text-[#FF9B9B]">
+            {error}
+          </p>
+        )}
+
         {!drafts ? (
           <>
             <p className="mt-1 text-sm text-[#8B98B8]">We fetch your public repos — you pick which become projects.</p>

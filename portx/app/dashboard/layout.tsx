@@ -10,8 +10,11 @@ const NAV = [
   { href: "/dashboard/projects", label: "Projects" },
   { href: "/dashboard/experience", label: "Experience" },
   { href: "/dashboard/skills", label: "Skills" },
+  { href: "/dashboard/education", label: "Education" },
+  { href: "/dashboard/links", label: "Links" },
   { href: "/dashboard/template", label: "Template & Publish" },
   { href: "/dashboard/resume", label: "Resume PDF" },
+  { href: "/dashboard/readme", label: "GitHub README" },
 ];
 
 export default async function DashboardLayout({
