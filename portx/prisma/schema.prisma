@@ -1,0 +1,121 @@
+// portX — Prisma schema (PostgreSQL)
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id          String   @id @default(uuid()) @db.Uuid
+  clerkId     String   @unique @map("clerk_id")
+  username    String   @unique
+  fullName    String   @map("full_name")
+  headline    String?
+  summary     String?
+  location    String?
+  email       String?
+  phone       String?
+  avatarUrl   String?  @map("avatar_url")
+  openToWork  Boolean  @default(true) @map("open_to_work")
+  template    String   @default("minimal")
+  themeConfig Json     @default("{}") @map("theme_config")
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  links       Link[]
+  experiences Experience[]
+  projects    Project[]
+  skills      Skill[]
+  educations  Education[]
+  pageViews   PageView[]
+
+  @@map("profiles")
+}
+
+model Link {
+  id        String  @id @default(uuid()) @db.Uuid
+  profileId String  @map("profile_id") @db.Uuid
+  kind      String
+  label     String?
+  url       String
+  sort      Int     @default(0)
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("links")
+}
+
+model Experience {
+  id           String    @id @default(uuid()) @db.Uuid
+  profileId    String    @map("profile_id") @db.Uuid
+  title        String
+  organization String
+  location     String?
+  startDate    DateTime? @map("start_date") @db.Date
+  endDate      DateTime? @map("end_date") @db.Date
+  bullets      Json      @default("[]")
+  sort         Int       @default(0)
+  profile      Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("experiences")
+}
+
+model Project {
+  id          String  @id @default(uuid()) @db.Uuid
+  profileId   String  @map("profile_id") @db.Uuid
+  name        String
+  tagline     String?
+  description String?
+  bullets     Json    @default("[]")
+  tech        Json    @default("[]")
+  liveUrl     String? @map("live_url")
+  repoUrl     String? @map("repo_url")
+  imageUrl    String? @map("image_url")
+  featured    Boolean @default(false)
+  source      String  @default("manual")
+  githubRepo  String? @map("github_repo")
+  sort        Int     @default(0)
+  profile     Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("projects")
+}
+
+model Skill {
+  id        String  @id @default(uuid()) @db.Uuid
+  profileId String  @map("profile_id") @db.Uuid
+  category  String
+  items     Json    @default("[]")
+  sort      Int     @default(0)
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("skills")
+}
+
+model Education {
+  id          String  @id @default(uuid()) @db.Uuid
+  profileId   String  @map("profile_id") @db.Uuid
+  institution String
+  degree      String?
+  startYear   Int?    @map("start_year")
+  endYear     Int?    @map("end_year")
+  score       String?
+  sort        Int     @default(0)
+  profile     Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("educations")
+}
+
+model PageView {
+  id        BigInt   @id @default(autoincrement())
+  profileId String   @map("profile_id") @db.Uuid
+  kind      String
+  ref       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, kind])
+  @@map("page_views")
+}
