@@ -15,6 +15,7 @@ const NAV = [
   { href: "/dashboard/template", label: "Template & Publish" },
   { href: "/dashboard/resume", label: "Resume PDF" },
   { href: "/dashboard/readme", label: "GitHub README" },
+  { href: "/dashboard/review", label: "AI Review" },
 ];
 
 export default async function DashboardLayout({

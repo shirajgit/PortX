@@ -20,31 +20,40 @@ const Input = z.object({
 export async function POST(req: Request) {
   try {
     await requireProfile();
-    if (!process.env.ANTHROPIC_API_KEY)
+    if (!process.env.OPENROUTER_API_KEY)
       return Response.json({ error: "ai_not_configured" }, { status: 501 });
 
     const body = Input.safeParse(await req.json());
     if (!body.success)
       return Response.json({ error: body.error.flatten() }, { status: 400 });
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+       model: "nvidia/nemotron-3-nano-30b-a3b:free",
         max_tokens: 300,
-        system: `${SYSTEM}\n${MODES[body.data.mode]}`,
-        messages: [{ role: "user", content: body.data.text }],
+        messages: [
+          { role: "system", content: `${SYSTEM}\n${MODES[body.data.mode]}` },
+          { role: "user", content: body.data.text },
+        ],
       }),
     });
-    if (!res.ok) return Response.json({ error: "ai_failed" }, { status: 502 });
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.error("OpenRouter error:", res.status, errBody);
+      return Response.json(
+        { error: `openrouter_${res.status}`, detail: errBody.slice(0, 300) },
+        { status: 502 }
+      );
+    }
     const data = await res.json();
     const suggestion: string =
-      data.content?.filter((c: any) => c.type === "text").map((c: any) => c.text).join("\n").trim() ?? "";
+      data.choices?.[0]?.message?.content?.trim() ?? "";
+    if (!suggestion) return Response.json({ error: "ai_empty_response" }, { status: 502 });
     return Response.json({ suggestion });
   } catch (e) {
     return handleAuthError(e);
