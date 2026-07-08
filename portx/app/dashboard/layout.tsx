@@ -6,7 +6,7 @@ import { DashboardNav } from "@/components/DashboardNav";
 export default async function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode;cxzcxcvbcvcxz
 }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
