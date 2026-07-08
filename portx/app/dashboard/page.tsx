@@ -29,7 +29,6 @@ export default async function Overview() {
     { done: profile._count.skills > 0, label: "Add skills", href: "/dashboard/skills" },
     { done: profile._count.educations > 0, label: "Add education", href: "/dashboard/education" },
     { done: profile.isPublished, label: "Publish your portfolio", href: "/dashboard/template" },
-    { done: profile.isPublished, label: "Export your GitHub README", href: "/dashboard/readme" },
   ];
 
   return (

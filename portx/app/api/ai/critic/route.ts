@@ -1,6 +1,8 @@
+import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
 import { getOwnPortfolioData } from "@/lib/data";
 import { buildCriticPrompt, parseCriticResponse } from "@/lib/critic";
+import { isPro } from "@/lib/billing";
 
 export const maxDuration = 30;
 
@@ -9,6 +11,12 @@ export async function POST() {
     const profile = await requireProfile();
     if (!process.env.OPENROUTER_API_KEY)
       return Response.json({ error: "ai_not_configured" }, { status: 501 });
+
+    if (!isPro(profile))
+      return Response.json(
+        { error: "pro_required", upgrade: "/dashboard/billing" },
+        { status: 403 }
+      );
 
     const result = await getOwnPortfolioData(profile.id);
     if (!result) return Response.json({ error: "no_profile" }, { status: 404 });
@@ -46,6 +54,9 @@ export async function POST() {
     const parsed = parseCriticResponse(raw);
     if (!parsed) return Response.json({ error: "ai_bad_response" }, { status: 502 });
 
+    await db.pageView.create({
+      data: { profileId: profile.id, kind: "ai_critic", ref: String(parsed.score) },
+    });
     return Response.json(parsed);
   } catch (e) {
     return handleAuthError(e);

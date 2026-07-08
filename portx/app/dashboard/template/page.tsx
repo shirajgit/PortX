@@ -1,7 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
+import { usePlan } from "@/lib/usePlan";
+import { PlanChip } from "@/components/PlanChip";
 
 export default function TemplatePage() {
+  const { pro, expiresAt } = usePlan();
   const [savedTemplate, setSavedTemplate] = useState("minimal"); // what's live in the DB
   const [selected, setSelected] = useState("minimal");           // what's picked in the UI
   const [published, setPublished] = useState(false);
@@ -31,7 +34,11 @@ export default function TemplatePage() {
     setSaving(false);
     if (!res.ok) {
       const b = await res.json().catch(() => ({}));
-      setError(`Save failed (HTTP ${res.status}): ${JSON.stringify(b.error ?? b)}`);
+      setError(
+        b.error === "pro_required"
+          ? "That template is a Pro feature — upgrade from ₹149 on the Billing page."
+          : `Save failed (HTTP ${res.status}): ${JSON.stringify(b.error ?? b)}`
+      );
       return false;
     }
     return true;
@@ -54,16 +61,19 @@ export default function TemplatePage() {
   }
 
   const options = [
-    { id: "minimal", name: "Minimal", note: "Blue-black, fast, readable." },
-    { id: "cli", name: "CLI Terminal", note: "Interactive command-line — visitors type to explore. The shareable one." },
-    { id: "glass", name: "Glassmorphism", note: "Frosted cards over gradient orbs. The premium look." },
+    { id: "minimal", name: "Minimal", note: "Blue-black, fast, readable.", proOnly: false },
+    { id: "cli", name: "CLI Terminal", note: "Interactive command-line — visitors type to explore. The shareable one.", proOnly: true },
+    { id: "glass", name: "Glassmorphism", note: "Frosted cards over gradient orbs. The premium look.", proOnly: true },
   ];
 
   const dirty = selected !== savedTemplate;
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-bold">Template &amp; Publish</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold">Template &amp; Publish</h1>
+        <PlanChip pro={pro} expiresAt={expiresAt} />
+      </div>
       <p className="mt-1 text-sm text-[#8B98B8]">
         Pick a template, preview it with your data, then apply. Nothing changes on your live page until you do.
       </p>
@@ -87,6 +97,7 @@ export default function TemplatePage() {
                 <div>
                   <p className="font-semibold">
                     {o.name}{" "}
+                    {o.proOnly && !pro && <span className="rounded bg-[#FFB454]/15 px-1.5 py-0.5 font-mono text-[10px] text-[#FFB454]">PRO</span>}{" "}
                     {isLive && published && <span className="font-mono text-xs text-[#39D98A]">● live</span>}
                     {isSelected && !isLive && <span className="font-mono text-xs text-[#FFB454]">○ selected</span>}
                   </p>

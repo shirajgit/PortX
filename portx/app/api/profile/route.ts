@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
 import { isValidUsername } from "@/lib/reserved-usernames";
+import { isPro, PRO_TEMPLATES } from "@/lib/billing";
 
 export async function GET() {
   try {
@@ -69,6 +70,8 @@ export async function PATCH(req: Request) {
     const body = PatchInput.safeParse(await req.json());
     if (!body.success)
       return Response.json({ error: body.error.flatten() }, { status: 400 });
+    if (body.data.template && PRO_TEMPLATES.has(body.data.template) && !isPro(profile))
+      return Response.json({ error: "pro_required" }, { status: 403 });
     const updated = await db.profile.update({
       where: { id: profile.id },
       data: body.data,

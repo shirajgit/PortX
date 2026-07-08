@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { EnhanceButton } from "@/components/editor/EnhanceButton";
+import { usePlan } from "@/lib/usePlan";
+import { PlanChip } from "@/components/PlanChip";
 
 type ProfileForm = {
   fullName: string;
@@ -17,6 +19,7 @@ const EMPTY: ProfileForm = {
 };
 
 export default function ProfilePage() {
+  const { pro, expiresAt } = usePlan();
   const [form, setForm] = useState<ProfileForm>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,7 +56,10 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-bold">Profile</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold">Profile</h1>
+        <PlanChip pro={pro} expiresAt={expiresAt} />
+      </div>
       <p className="mt-1 text-sm text-[#8B98B8]">Shared by your portfolio and your resume.</p>
 
       <label className={label}>Full name</label>

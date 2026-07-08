@@ -24,8 +24,10 @@ export default function ReviewPage() {
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       setError(
-        body.error === "ai_not_configured"
-          ? "AI is not configured — add ANTHROPIC_API_KEY to your environment."
+        body.error === "pro_required"
+          ? "AI Review is a Pro feature — upgrade from ₹149 on the Billing page."
+          : body.error === "ai_not_configured"
+          ? "AI is not configured — add the API key to your environment."
           : `Review failed (HTTP ${res.status}): ${JSON.stringify(body.error ?? body)}`
       );
       return;
@@ -37,7 +39,7 @@ export default function ReviewPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold">AI Portfolio Review</h1>
+      <h1 className="text-2xl font-bold">AI Portfolio Review <span className="ml-1 rounded bg-[#FFB454]/15 px-2 py-0.5 font-mono text-xs text-[#FFB454]">PRO</span></h1>
       <p className="mt-1 text-sm text-[#8B98B8]">
         A strict rubric review of your whole profile — projects, impact, completeness — with specific fixes.
         It only judges what you've entered; it never invents facts.

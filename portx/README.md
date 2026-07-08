@@ -37,7 +37,6 @@ Sign up → you'll land on /dashboard → it redirects to onboarding → claim y
 
 ## Optional features
 - **AI enhance button**: add `ANTHROPIC_API_KEY=` to `.env.local`
-- **GitHub import rate limit** (60/hr → 5000/hr): add `GITHUB_TOKEN=` (a classic token, no scopes needed)
 - **PDF download in local dev**: Puppeteer needs Chrome — add `CHROME_PATH=` pointing at your Chrome binary, e.g.
   - Windows: `C:\Program Files\Google\Chrome\Application\chrome.exe`
   - Mac: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
@@ -46,7 +45,6 @@ Sign up → you'll land on /dashboard → it redirects to onboarding → claim y
 ## What's implemented (Phase 1 core)
 - Clerk auth + onboarding with live username availability check + reserved-word blocklist
 - Profile / Projects / Experience / Skills CRUD (zod-validated, owner-scoped)
-- GitHub one-click import with review-and-select modal (drafts, never auto-publishes)
 - AI enhance button (bullet / summary / tagline modes, grounded — never invents facts)
 - Public portfolio at `/{username}` — server-rendered, ISR (60s), SEO metadata, 404 when unpublished
 - Minimal template (blue-black) + ATS Resume template

@@ -14,8 +14,8 @@ const NAV = [
   { href: "/dashboard/links", label: "Links" },
   { href: "/dashboard/template", label: "Template & Publish" },
   { href: "/dashboard/resume", label: "Resume PDF" },
-  { href: "/dashboard/readme", label: "GitHub README" },
   { href: "/dashboard/review", label: "AI Review" },
+  { href: "/dashboard/billing", label: "Billing" },
 ];
 
 export default async function DashboardLayout({
@@ -27,6 +27,7 @@ export default async function DashboardLayout({
   if (!userId) redirect("/sign-in");
 
   const profile = await db.profile.findUnique({ where: { clerkId: userId } });
+  const isAdmin = userId === process.env.ADMIN_CLERK_ID;
 
   return (
     <div className="flex min-h-screen bg-[#0A0F1E] text-[#E8EDF7]">
@@ -41,6 +42,12 @@ export default async function DashboardLayout({
               {n.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link href="/dashboard/admin/payments"
+              className="rounded-lg px-3 py-2 text-[#FFB454] hover:bg-[#111A36]">
+              Payments admin
+            </Link>
+          )}
         </nav>
         <div className="mt-auto flex items-center gap-3 pt-6">
           <UserButton />

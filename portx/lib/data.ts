@@ -25,7 +25,7 @@ export async function getPortfolioData(
   return assemble(p);
 }
 
-/** Own data for dashboard tools (README export etc.) — no publish check. */
+/** Own data for dashboard tools — no publish check. */
 export async function getOwnPortfolioData(
   profileId: string
 ): Promise<{ template: string; data: PortfolioData; profileId: string; username: string } | null> {

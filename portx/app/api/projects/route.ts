@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
+import { isPro, FREE_LIMITS } from "@/lib/billing";
 
 export const ProjectInput = z.object({
   name: z.string().min(1).max(80),
@@ -31,6 +32,14 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const profile = await requireProfile();
+    if (!isPro(profile)) {
+      const count = await db.project.count({ where: { profileId: profile.id } });
+      if (count >= FREE_LIMITS.projects)
+        return Response.json(
+          { error: "free_limit_reached", limit: FREE_LIMITS.projects, upgrade: "/dashboard/billing" },
+          { status: 403 }
+        );
+    }
     const body = ProjectInput.safeParse(await req.json());
     if (!body.success)
       return Response.json({ error: body.error.flatten() }, { status: 400 });

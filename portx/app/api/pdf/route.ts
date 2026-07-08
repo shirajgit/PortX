@@ -1,6 +1,7 @@
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import { db } from "@/lib/db";
+import { isPro } from "@/lib/billing";
 
 export const maxDuration = 30;
 
@@ -8,10 +9,12 @@ export async function GET(req: Request) {
   const username = new URL(req.url).searchParams.get("username")?.toLowerCase() ?? "";
   const profile = await db.profile.findUnique({
     where: { username },
-    select: { id: true, isPublished: true },
+    select: { id: true, isPublished: true, plan: true, planExpiresAt: true },
   });
   if (!profile?.isPublished)
     return Response.json({ error: "not_found" }, { status: 404 });
+  if (!isPro(profile))
+    return Response.json({ error: "pro_required" }, { status: 403 });
 
   // Local dev: set CHROME_PATH to your Chrome binary. Prod (Vercel): @sparticuz/chromium.
   const executablePath =

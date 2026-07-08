@@ -23,6 +23,8 @@ model Profile {
   template    String   @default("minimal")
   themeConfig Json     @default("{}") @map("theme_config")
   isPublished Boolean  @default(false) @map("is_published")
+  plan          String    @default("free")
+  planExpiresAt DateTime? @map("plan_expires_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -32,8 +34,24 @@ model Profile {
   skills      Skill[]
   educations  Education[]
   pageViews   PageView[]
+  paymentRequests PaymentRequest[]
 
   @@map("profiles")
+}
+
+model PaymentRequest {
+  id         String   @id @default(uuid()) @db.Uuid
+  profileId  String   @map("profile_id") @db.Uuid
+  plan       String   // "month" | "halfyear" | "year"
+  amount     Int      // rupees, denormalized at claim time
+  utr        String   // UPI transaction reference entered by user
+  status     String   @default("pending") // pending | approved | rejected
+  createdAt  DateTime @default(now()) @map("created_at")
+  reviewedAt DateTime? @map("reviewed_at")
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("payment_requests")
 }
 
 model Link {
