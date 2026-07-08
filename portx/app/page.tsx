@@ -30,7 +30,7 @@ export default function Landing() {
       <section className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 pt-16 text-center sm:pt-24">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#1E2C52] bg-[#0F1730]/80 px-4 py-1.5 font-mono text-xs text-[#4DA6FF] backdrop-blur">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#39D98A]" />
-          portx.in/you — claim yours
+          Portzx.in/you — claim yours
         </span>
 
         <h1 className="max-w-3xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
@@ -119,7 +119,7 @@ export default function Landing() {
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 py-8 sm:flex-row">
           <span className="font-bold">port<span className="text-[#4DA6FF]">X</span></span>
           <p className="font-mono text-xs text-[#6B7A99]">
-            © {new Date().getFullYear()} portX · one profile, always in sync
+            © {new Date().getFullYear()} Portzx · one profile, always in sync
           </p>
         </div>
       </footer>

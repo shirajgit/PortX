@@ -1,4 +1,4 @@
-# portX — Phase 1
+# Portzx — Phase 1
 
 One profile → live portfolio + ATS resume PDF, always in sync.
 
@@ -14,7 +14,7 @@ npm install
 ### 2. Database
 Create a Postgres database, then set the connection string in `.env`:
 ```
-DATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/portx"
+DATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/Portzx"
 ```
 Create the tables and generate the client:
 ```bash

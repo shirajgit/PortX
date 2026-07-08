@@ -118,9 +118,9 @@ export function DashboardNav({ username, isAdmin }: Props) {
   return (
     <>
       {/* ── desktop sidebar ── */}
-      <aside className="hidden w-60 flex-col border-r border-[#1E2C52] p-5 sm:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 flex-col overflow-y-auto border-r border-[#1E2C52] p-5 sm:flex">
         <Link href="/" className="mb-8 text-xl font-bold">
-          port<span className="text-[#4DA6FF]">X</span>
+          Portx<span className="text-[#4DA6FF]">Z</span>
         </Link>
         <NavLinks isAdmin={isAdmin} />
         {footer}

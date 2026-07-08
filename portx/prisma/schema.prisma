@@ -1,4 +1,4 @@
-// portX — Prisma schema (PostgreSQL)
+// Portzx — Prisma schema (PostgreSQL)
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"

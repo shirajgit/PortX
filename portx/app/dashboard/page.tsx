@@ -62,7 +62,7 @@ export default async function Overview() {
       <p className="mt-1 text-[#8B98B8]">
         Your page:{" "}
         <a className="font-mono text-[#8FC4FF] hover:text-white" href={`/${profile.username}`} target="_blank">
-          portx.in/{profile.username} ↗
+          Portzx.in/{profile.username} ↗
         </a>
         {!profile.isPublished && <span className="ml-2 font-mono text-xs text-[#FFB454]">(unpublished)</span>}
       </p>
@@ -117,7 +117,7 @@ export default async function Overview() {
         <div className="mt-6 rounded-xl border border-[#1E3A2E] bg-[#0E2018] p-5">
           <p className="font-semibold text-[#39D98A]">You're fully launched 🚀</p>
           <p className="mt-1 text-sm text-[#8B98B8]">
-            Share <span className="font-mono text-[#8FC4FF]">portx.in/{profile.username}</span> on
+            Share <span className="font-mono text-[#8FC4FF]">Portzx.in/{profile.username}</span> on
             LinkedIn and X — every view shows up in your stats above.
           </p>
         </div>

@@ -27,8 +27,8 @@ export async function POST() {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://portx.in",
-        "X-Title": "portX",
+        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://Portzx.in",
+        "X-Title": "Portzx",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
