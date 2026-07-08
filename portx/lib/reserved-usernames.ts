@@ -1,7 +1,7 @@
 export const RESERVED = new Set([
   "api","admin","app","www","dashboard","pricing","login","logout","sign-in",
   "sign-up","settings","about","blog","docs","help","support","terms","privacy",
-  "static","assets","public","Portzx","resume","templates","onboarding",
+  "static","assets","public","Portxz","resume","templates","onboarding",
 ]);
 
 export const USERNAME_RE = /^[a-z0-9-]{3,30}$/;

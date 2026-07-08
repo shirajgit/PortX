@@ -145,7 +145,7 @@ export function Glass({ data }: TemplateProps) {
           </Section>
         )}
 
-        <footer className="mt-14 text-center text-xs text-white/35">built with Portzx</footer>
+        <footer className="mt-14 text-center text-xs text-white/35">built with Portxz</footer>
       </div>
     </main>
   );

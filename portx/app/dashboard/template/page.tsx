@@ -113,7 +113,7 @@
               </p>
               <p className="text-sm text-[#8B98B8]">
                 {published
-                  ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">Portzx.in/{username}</a>{" "}
+                  ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">Portxz.in/{username}</a>{" "}
                       with the <span className="font-mono text-[#8FC4FF]">{savedTemplate}</span> template.</>
                   : "Your page returns 404 until you publish."}
               </p>

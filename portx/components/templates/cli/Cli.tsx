@@ -296,7 +296,7 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
         </div>
 
         <p className="mt-6 text-center text-xs" style={{ color: C.dim }}>
-          ↑↓ history · tab complete · built with Portzx
+          ↑↓ history · tab complete · built with Portxz
         </p>
       </div>
     </main>

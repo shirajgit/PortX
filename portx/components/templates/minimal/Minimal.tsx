@@ -109,7 +109,7 @@ export function Minimal({ data }: TemplateProps) {
         )}
 
         <footer className="mt-16 border-t border-[#1E2C52] pt-6 font-mono text-xs text-[#8B98B8]">
-          built with Portzx
+          built with Portxz
         </footer>
       </div>
     </main>
