@@ -39,4 +39,4 @@ export type PortfolioData = {
   }[];
 };
 
-export type TemplateProps = { data: PortfolioData };
+export type TemplateProps = { data: PortfolioData; username?: string };
