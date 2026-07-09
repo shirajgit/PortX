@@ -11,6 +11,7 @@ const input = "mt-1 w-full rounded-lg border border-[#1E2C52] bg-[#111A36] px-4 
 const label = "mt-4 block font-mono text-xs uppercase tracking-wider text-[#8B98B8]";
 
 const STEPS = [
+  { n: 0, title: "Claim your username", sub: "This becomes your public link — choose wisely." },
   { n: 1, title: "About you", sub: "This becomes your headline everywhere." },
   { n: 2, title: "Your best project", sub: "Just one for now — add the rest later." },
   { n: 3, title: "Experience", sub: "A job, internship, or freelance gig. Skip if you're just starting." },
@@ -22,8 +23,12 @@ const STEPS = [
 
 export default function SetupWizard() {
   const router = useRouter();
-  const [step, setStep] = useState<number | null>(null);
+  const [step, setStep] = useState<number | null>(null); // 0 = claim username
   const [username, setUsername] = useState("");
+  // step 0 (claim)
+  const [claimName, setClaimName] = useState("");
+  const [claimUser, setClaimUser] = useState("");
+  const [avail, setAvail] = useState<"idle" | "checking" | "free" | "taken" | "invalid">("idle");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,7 +60,7 @@ export default function SetupWizard() {
 
   useEffect(() => {
     fetch("/api/profile").then(async (r) => {
-      if (r.status === 404) { router.replace("/dashboard/onboarding"); return; }
+      if (r.status === 404) { setStep(0); return; }
       if (!r.ok) { setError("Could not load your profile — refresh to retry."); return; }
       const p = await r.json();
       if (p.onboardingStep >= 8) { router.replace("/dashboard"); return; }
@@ -72,6 +77,35 @@ export default function SetupWizard() {
     if (!s) return null;
     return /^https?:\/\//i.test(s) ? s : `https://${s}`;
   };
+
+  async function checkAvail(u: string) {
+    setClaimUser(u);
+    const clean = u.toLowerCase().trim();
+    if (clean.length < 3) return setAvail("idle");
+    setAvail("checking");
+    const res = await fetch(`/api/username/check?u=${encodeURIComponent(clean)}`);
+    const data = await res.json();
+    setAvail(data.available ? "free" : data.reason === "invalid" ? "invalid" : "taken");
+  }
+
+  async function claim() {
+    setError(null);
+    setBusy(true);
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: claimUser.toLowerCase().trim(), fullName: claimName.trim() }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      setAvail("taken");
+      setError("That username just got taken — try another.");
+      return;
+    }
+    const p = await res.json();
+    setUsername(p.username);
+    setStep(1);
+  }
 
   async function setServerStep(n: number) {
     await fetch("/api/profile", {
@@ -199,8 +233,9 @@ export default function SetupWizard() {
       </main>
     );
 
-  const meta = STEPS[step - 1];
-  const pct = Math.round(((step - 1) / STEPS.length) * 100);
+  const meta = STEPS[step]; // index aligns: 0 = claim, 1-7 = content steps
+  const displayStep = step + 1; // 1..8 for humans
+  const pct = Math.round((step / STEPS.length) * 100);
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-[#0A0F1E] px-4 py-10 text-[#E8EDF7]">
@@ -208,7 +243,9 @@ export default function SetupWizard() {
         {/* header */}
         <div className="flex items-center justify-between">
           <span className="text-xl font-bold">Port<span className="text-[#4DA6FF]">xz</span></span>
-          <span className="font-mono text-xs text-[#8B98B8]">step {step}/7 · portxz.in/{username}</span>
+          <span className="font-mono text-xs text-[#8B98B8]">
+            step {displayStep}/8{username ? ` · portxz.in/${username}` : ""}
+          </span>
         </div>
         <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#111A36]">
           <div className="h-full rounded-full bg-gradient-to-r from-[#4DA6FF] to-[#39D98A] transition-all"
@@ -222,6 +259,25 @@ export default function SetupWizard() {
 
           {error && (
             <p className="mt-4 rounded-lg border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">{error}</p>
+          )}
+
+          {step === 0 && (
+            <>
+              <label className={label}>Full name</label>
+              <input className={input} value={claimName} placeholder="Shiraj Mujawar"
+                onChange={(e) => setClaimName(e.target.value)} />
+              <label className={label}>Username</label>
+              <div className="mt-1 flex items-center rounded-lg border border-[#1E2C52] bg-[#111A36] focus-within:border-[#4DA6FF]">
+                <span className="pl-4 font-mono text-sm text-[#8B98B8]">portxz.in/</span>
+                <input value={claimUser} onChange={(e) => checkAvail(e.target.value)}
+                  className="w-full bg-transparent px-1 py-2.5 font-mono text-sm outline-none" placeholder="shiraj" />
+              </div>
+              <p className={`mt-1 h-5 font-mono text-xs ${
+                avail === "free" ? "text-[#39D98A]" : avail === "checking" ? "text-[#8B98B8]" : "text-[#FF6B6B]"}`}>
+                {{ idle: "", checking: "checking…", free: "✓ available", taken: "✗ taken",
+                   invalid: "✗ 3–30 chars, a-z 0-9 - only" }[avail]}
+              </p>
+            </>
           )}
 
           {step === 1 && (
@@ -335,14 +391,23 @@ export default function SetupWizard() {
 
           {/* actions */}
           <div className="mt-8 flex items-center justify-between">
-            <button onClick={skip} disabled={busy}
-              className="text-sm text-[#8B98B8] hover:text-white disabled:opacity-40">
-              Skip for now
-            </button>
-            <button onClick={submitStep} disabled={busy}
-              className="rounded-lg bg-[#4DA6FF] px-6 py-2.5 text-sm font-semibold text-[#04101F] disabled:opacity-40">
-              {busy ? "Saving…" : step === 7 ? "Publish & finish 🚀" : "Continue →"}
-            </button>
+            {step === 0 ? <span /> : (
+              <button onClick={skip} disabled={busy}
+                className="text-sm text-[#8B98B8] hover:text-white disabled:opacity-40">
+                Skip for now
+              </button>
+            )}
+            {step === 0 ? (
+              <button onClick={claim} disabled={avail !== "free" || !claimName.trim() || busy}
+                className="rounded-lg bg-[#4DA6FF] px-6 py-2.5 text-sm font-semibold text-[#04101F] disabled:opacity-40">
+                {busy ? "Creating…" : "Claim & continue →"}
+              </button>
+            ) : (
+              <button onClick={submitStep} disabled={busy}
+                className="rounded-lg bg-[#4DA6FF] px-6 py-2.5 text-sm font-semibold text-[#04101F] disabled:opacity-40">
+                {busy ? "Saving…" : step === 7 ? "Publish & finish 🚀" : "Continue →"}
+              </button>
+            )}
           </div>
         </div>
 
