@@ -27,7 +27,7 @@ export default function Onboarding() {
       body: JSON.stringify({ username: username.toLowerCase().trim(), fullName }),
     });
     setSaving(false);
-    if (res.ok) router.push("/dashboard");
+    if (res.ok) router.push("/setup");
     else setStatus("taken");
   }
 
@@ -35,7 +35,7 @@ export default function Onboarding() {
   const color = status === "free" ? "text-[#39D98A]" : status === "checking" ? "text-[#8B98B8]" : "text-[#FF6B6B]";
 
   return (
-    <div className="max-w-md">
+    <div className="w-full max-w-xl">
       <h1 className="text-2xl font-bold">Claim your username</h1>
       <p className="mt-1 text-[#8B98B8]">This becomes your public link.</p>
 
@@ -46,7 +46,7 @@ export default function Onboarding() {
 
       <label className="mt-5 block font-mono text-xs uppercase tracking-wider text-[#8B98B8]">Username</label>
       <div className="mt-1 flex items-center rounded-lg border border-[#1E2C52] bg-[#111A36] focus-within:border-[#4DA6FF]">
-        <span className="pl-4 font-mono text-sm text-[#8B98B8]">Portxz.in/</span>
+        <span className="pl-4 font-mono text-sm text-[#8B98B8]">portx.in/</span>
         <input value={username} onChange={(e) => check(e.target.value)}
           className="w-full bg-transparent px-1 py-2.5 font-mono outline-none" placeholder="shiraj" />
       </div>

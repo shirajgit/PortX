@@ -55,7 +55,7 @@ export default function ProfilePage() {
   const label = "mt-5 block font-mono text-xs uppercase tracking-wider text-[#8B98B8]";
 
   return (
-    <div className="max-w-xl">
+    <div className="w-full max-w-none">
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">Profile</h1>
         <PlanChip pro={pro} expiresAt={expiresAt} />

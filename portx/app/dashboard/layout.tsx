@@ -6,12 +6,13 @@ import { DashboardNav } from "@/components/DashboardNav";
 export default async function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
   const profile = await db.profile.findUnique({ where: { clerkId: userId } });
+  if (profile && profile.onboardingStep < 8) redirect("/setup");
   const isAdmin = userId === process.env.ADMIN_CLERK_ID;
 
   return (

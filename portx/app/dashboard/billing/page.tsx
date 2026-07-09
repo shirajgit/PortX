@@ -18,7 +18,7 @@ const PERKS = [
 type PayReq = { id: string; plan: string; amount: number; utr: string; status: string; createdAt: string };
 
 const UPI_ID = process.env.NEXT_PUBLIC_UPI_ID ?? "";
-const UPI_NAME = process.env.NEXT_PUBLIC_UPI_NAME ?? "Portxz";
+const UPI_NAME = process.env.NEXT_PUBLIC_UPI_NAME ?? "portX";
 const QR_OVERRIDE = process.env.NEXT_PUBLIC_UPI_QR_URL ?? "";
 
 export default function BillingPage() {
@@ -45,7 +45,7 @@ export default function BillingPage() {
 
   const pro = plan === "pro" && expires && new Date(expires) > new Date();
   const pending = requests.find((r) => r.status === "pending");
-  const note = `Portxz-${username || "user"}`;
+  const note = `PORTX-${username || "user"}`;
   const upiLink = selected
     ? `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_NAME)}&am=${selected.price}&cu=INR&tn=${encodeURIComponent(note)}`
     : "";
@@ -79,7 +79,7 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full max-w-none">
       <h1 className="text-2xl font-bold">Billing</h1>
 
       {/* current status */}

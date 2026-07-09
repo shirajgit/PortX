@@ -20,7 +20,7 @@ export default function ResumePage() {
   }, []);
 
   return (
-    <div className="max-w-xl">
+    <div className="w-full max-w-none">
       <h1 className="text-2xl font-bold">Resume PDF <span className="ml-1 rounded bg-[#FFB454]/15 px-2 py-0.5 font-mono text-xs text-[#FFB454]">PRO</span></h1>
       <p className="mt-1 text-sm text-[#8B98B8]">
         Generated from the same data as your portfolio — always in sync.

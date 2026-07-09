@@ -38,7 +38,7 @@ export default function ReviewPage() {
   const scoreColor = (s: number) => (s >= 75 ? "#39D98A" : s >= 40 ? "#FFB454" : "#FF6B6B");
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full max-w-none">
       <h1 className="text-2xl font-bold">AI Portfolio Review <span className="ml-1 rounded bg-[#FFB454]/15 px-2 py-0.5 font-mono text-xs text-[#FFB454]">PRO</span></h1>
       <p className="mt-1 text-sm text-[#8B98B8]">
         A strict rubric review of your whole profile — projects, impact, completeness — with specific fixes.
@@ -84,7 +84,7 @@ export default function ReviewPage() {
               const v = VERDICT[c.verdict] ?? VERDICT.needs_work;
               return (
                 <div key={c.name} className="rounded-xl border border-[#1E2C52] bg-[#111A36] p-5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="font-semibold">{c.name}</p>
                     <p className="font-mono text-xs" style={{ color: v.color }}>
                       {v.label} · {c.score}

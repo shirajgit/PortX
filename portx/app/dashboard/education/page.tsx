@@ -33,8 +33,8 @@ export default function EducationPage() {
   const yearOf = (v: string) => (v ? parseInt(v, 10) || null : null);
 
   return (
-    <div className="max-w-2xl">
-      <div className="flex items-center justify-between">
+    <div className="w-full max-w-none">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">Education</h1>
         <button onClick={() => setEditing({ ...EMPTY })}
           className="rounded-lg bg-[#4DA6FF] px-4 py-2 text-sm font-semibold text-[#04101F]">+ Add</button>

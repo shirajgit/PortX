@@ -123,7 +123,7 @@ export function DashboardNav({ username, isAdmin }: Props) {
           Portx<span className="text-[#4DA6FF]">Z</span>
         </Link>
         <NavLinks isAdmin={isAdmin} />
-        {footer}
+        {footer} 
       </aside>
 
       {/* ── mobile top bar ── */}

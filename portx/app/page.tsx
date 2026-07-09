@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Landing() {
   return (
@@ -13,9 +14,10 @@ export default function Landing() {
       {/* nav */}
       <nav className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
         <span className="text-xl font-bold">
-          port<span className="text-[#4DA6FF]">X</span>
+          Port<span className="text-[#4DA6FF]">xz</span>
         </span>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <Link href="/sign-in" className="text-sm text-[#8B98B8] hover:text-white">
             Sign in
           </Link>
@@ -30,7 +32,7 @@ export default function Landing() {
       <section className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 pt-16 text-center sm:pt-24">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#1E2C52] bg-[#0F1730]/80 px-4 py-1.5 font-mono text-xs text-[#4DA6FF] backdrop-blur">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#39D98A]" />
-          Portxz.in/you — claim yours
+          portxz.in/you — claim yours
         </span>
 
         <h1 className="max-w-3xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
@@ -82,7 +84,7 @@ export default function Landing() {
         </p>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { icon: "🖥", title: "3 live templates", desc: "Minimal, an interactive CLI terminal, and glassmorphism. Switch anytime — same data." },
+            { icon: "🖥️", title: "3 live templates", desc: "Minimal, an interactive CLI terminal, and glassmorphism. Switch anytime — same data." },
             { icon: "📄", title: "ATS resume PDF", desc: "A recruiter-ready resume rendered from the same profile. Edit once, both update." },
             { icon: "🐙", title: "GitHub README", desc: "One-click profile README with badges, projects, and stats. Paste and push." },
             { icon: "⚡", title: "GitHub import", desc: "Pull your repos in one click, pick your best, polish with AI." },
@@ -117,7 +119,7 @@ export default function Landing() {
       {/* footer */}
       <footer className="relative z-10 border-t border-[#1E2C52]">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 py-8 sm:flex-row">
-          <span className="font-bold">port<span className="text-[#4DA6FF]">X</span></span>
+          <span className="font-bold">Port<span className="text-[#4DA6FF]">xz</span></span>
           <p className="font-mono text-xs text-[#6B7A99]">
             © {new Date().getFullYear()} Portxz · one profile, always in sync
           </p>

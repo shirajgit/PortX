@@ -42,7 +42,7 @@ export default function AdminPaymentsPage() {
   const done = rows?.filter((r) => r.status !== "pending") ?? [];
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full max-w-none">
       <h1 className="text-2xl font-bold">Payments admin</h1>
       <p className="mt-1 text-sm text-[#8B98B8]">
         Match the UTR + amount in your UPI app before approving. Approve extends the user's Pro expiry.

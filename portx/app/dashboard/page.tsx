@@ -44,7 +44,7 @@ export default async function Overview() {
   const pct = Math.round((doneCount / checklist.length) * 100);
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full max-w-none">
       {/* header */}
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">Welcome, {profile.fullName.split(" ")[0]} 👋</h1>
@@ -62,7 +62,7 @@ export default async function Overview() {
       <p className="mt-1 text-[#8B98B8]">
         Your page:{" "}
         <a className="font-mono text-[#8FC4FF] hover:text-white" href={`/${profile.username}`} target="_blank">
-          Portxz.in/{profile.username} ↗
+          portxz.in/{profile.username} ↗
         </a>
         {!profile.isPublished && <span className="ml-2 font-mono text-xs text-[#FFB454]">(unpublished)</span>}
       </p>
@@ -83,7 +83,7 @@ export default async function Overview() {
       </div>
 
       {/* checklist with progress */}
-      <div className="mb-3 mt-10 flex items-center justify-between">
+      <div className="mb-3 mt-10 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-mono text-sm uppercase tracking-widest text-[#4DA6FF]">Launch checklist</h2>
         <span className="font-mono text-xs text-[#8B98B8]">
           {doneCount}/{checklist.length} {pct === 100 && "🎉"}
@@ -117,7 +117,7 @@ export default async function Overview() {
         <div className="mt-6 rounded-xl border border-[#1E3A2E] bg-[#0E2018] p-5">
           <p className="font-semibold text-[#39D98A]">You're fully launched 🚀</p>
           <p className="mt-1 text-sm text-[#8B98B8]">
-            Share <span className="font-mono text-[#8FC4FF]">Portxz.in/{profile.username}</span> on
+            Share <span className="font-mono text-[#8FC4FF]">portxz.in/{profile.username}</span> on
             LinkedIn and X — every view shows up in your stats above.
           </p>
         </div>

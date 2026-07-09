@@ -3,7 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Portxz — your developer identity, one link",
+  title: "portX — your developer identity, one link",
   description:
     "One profile → live portfolio + ATS resume PDF, always in sync. Built for developers.",
 };
@@ -11,8 +11,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className="antialiased">{children}</body>
+      <html lang="en" suppressHydrationWarning>
+        <body className="antialiased">
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `try{if(localStorage.getItem('portx-theme')==='light')document.documentElement.classList.add('light')}catch(e){}`,
+            }}
+          />
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );
