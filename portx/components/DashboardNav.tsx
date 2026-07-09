@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 /* ── inline SVG icon set (no deps) ─────────────────────────────────── */
 const ICONS: Record<string, React.ReactNode> = {
@@ -106,6 +107,7 @@ export function DashboardNav({ username, isAdmin }: Props) {
   const footer = (
     <div className="mt-auto flex items-center gap-3 pt-6">
       <UserButton />
+      <ThemeToggle />
       {username && (
         <a href={`/${username}`} target="_blank"
           className="font-mono text-xs text-[#8FC4FF] hover:text-white">
@@ -120,10 +122,10 @@ export function DashboardNav({ username, isAdmin }: Props) {
       {/* ── desktop sidebar ── */}
       <aside className="sticky top-0 hidden h-screen w-60 flex-col overflow-y-auto border-r border-[#1E2C52] p-5 sm:flex">
         <Link href="/" className="mb-8 text-xl font-bold">
-          Portx<span className="text-[#4DA6FF]">Z</span>
+          port<span className="text-[#4DA6FF]">X</span>
         </Link>
         <NavLinks isAdmin={isAdmin} />
-        {footer} 
+        {footer}
       </aside>
 
       {/* ── mobile top bar ── */}
@@ -131,6 +133,8 @@ export function DashboardNav({ username, isAdmin }: Props) {
         <Link href="/" className="text-lg font-bold">
           port<span className="text-[#4DA6FF]">X</span>
         </Link>
+        <div className="flex items-center gap-2">
+        <ThemeToggle />
         <button onClick={() => setOpen(true)} aria-label="Open menu"
           className="rounded-lg border border-[#1E2C52] p-2 text-[#8B98B8] hover:border-[#4DA6FF] hover:text-white">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -138,6 +142,7 @@ export function DashboardNav({ username, isAdmin }: Props) {
             <path d="M3 6h18M3 12h18M3 18h18" />
           </svg>
         </button>
+        </div>
       </div>
 
       {/* ── mobile drawer ── */}

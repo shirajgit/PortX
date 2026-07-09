@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     }
     const body = ProjectInput.safeParse(await req.json());
     if (!body.success)
-      return Response.json({ error: body.error.flatten() }, { status: 400 });
+      return Response.json({ error: body.error.flatten(), message: "Invalid user input" }, { status: 400 });
     const project = await db.project.create({
       data: { profileId: profile.id, ...body.data },
     });

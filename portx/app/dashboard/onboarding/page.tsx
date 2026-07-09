@@ -27,7 +27,7 @@ export default function Onboarding() {
       body: JSON.stringify({ username: username.toLowerCase().trim(), fullName }),
     });
     setSaving(false);
-    if (res.ok) router.push("/setup");
+    if (res.ok) router.push("/dashboard");
     else setStatus("taken");
   }
 
