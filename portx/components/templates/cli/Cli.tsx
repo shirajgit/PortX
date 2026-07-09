@@ -10,12 +10,12 @@ import type { PortfolioData, TemplateProps } from "../types";
 type Line = { html: string };
 
 const C = {
-  text: "#C9D6EE",
-  dim: "#6B7A99",
-  blue: "#4DA6FF",
-  green: "#39D98A",
-  amber: "#FFB454",
-  red: "#FF6B6B",
+  text: "#E2E8F0",
+  dim: "#64748B",
+  blue: "#38BDF8",
+  green: "#34D399",
+  amber: "#FBBF24",
+  red: "#F87171",
 };
 
 const esc = (s: string) =>
@@ -23,7 +23,7 @@ const esc = (s: string) =>
 
 const span = (color: string, s: string) => `<span style="color:${color}">${s}</span>`;
 const link = (url: string, label?: string) =>
-  `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:${C.blue};text-decoration:underline">${esc(label ?? url.replace(/^https?:\/\//, ""))}</a>`;
+  `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:${C.blue};text-decoration:underline;text-underline-offset:2px;font-weight:500;">${esc(label ?? url.replace(/^https?:\/\//, ""))}</a>`;
 
 function buildCommands(data: PortfolioData, username: string) {
   const { profile, links, experiences, projects, skills, educations } = data;
@@ -49,7 +49,7 @@ function buildCommands(data: PortfolioData, username: string) {
       if (p.tagline) out.push("    " + esc(p.tagline));
       if (p.tech.length) out.push("    " + span(C.dim, esc(p.tech.join(" · "))));
       const l = [p.liveUrl && link(p.liveUrl, "live"), p.repoUrl && link(p.repoUrl, "code")].filter(Boolean);
-      if (l.length) out.push("    " + l.join(span(C.dim, "  |  ")));
+      if (l.length) out.push("    " + l.join(span(C.dim, "  |   ")));
       out.push("");
     });
     return out;
@@ -134,7 +134,6 @@ function buildCommands(data: PortfolioData, username: string) {
       span(C.amber, "── education ───────"), ...educationOut(), "",
       span(C.amber, "── links ───────────"), ...linksOut(),
     ],
-    // easter eggs
     sudo: () => [span(C.red, `${esc(profile.fullName.split(" ")[0].toLowerCase())} is not in the sudoers file. This incident will be reported. 😄`)],
     pwd: () => [`/home/${esc(username)}/portfolio`],
     date: () => [new Date().toString()],
@@ -169,7 +168,6 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // boot sequence + auto-run whoami so crawlers & lurkers see content
   useEffect(() => {
     const boot: Line[] = [
       { html: span(C.dim, `portfolio-os v2.0 — ${esc(data.profile.fullName)}`) },
@@ -180,7 +178,6 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
       { html: "" },
     ];
     setLines(boot);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -241,30 +238,50 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
 
   return (
     <main
-      className="min-h-screen bg-[#070C1A] px-3 py-6 font-mono text-[13.5px] leading-relaxed sm:px-6 sm:py-10"
+      className="min-h-screen bg-[#040612] px-3 py-6 font-mono text-[13.5px] leading-relaxed sm:px-6 sm:py-12 relative overflow-hidden flex flex-col justify-center select-none"
       style={{ color: C.text }}
       onClick={() => inputRef.current?.focus()}
     >
-      <div className="mx-auto max-w-3xl">
-        {/* window frame */}
-        <div className="overflow-hidden rounded-xl border border-[#1E2C52] shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
-          <div className="flex items-center gap-2 border-b border-[#1E2C52] bg-[#0F1730] px-4 py-3">
-            <i className="block h-3 w-3 rounded-full bg-[#FF5F57]" />
-            <i className="block h-3 w-3 rounded-full bg-[#FFB454]" />
-            <i className="block h-3 w-3 rounded-full bg-[#39D98A]" />
-            <span className="ml-2 text-xs" style={{ color: C.dim }}>
-              visitor@{username} — portfolio
-            </span>
+      {/* Dynamic Animated Ambient Light Meshes */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-sky-500/10 blur-[130px] animate-[pulse_10s_ease-in-out_infinite]" />
+        <div className="absolute -bottom-1/4 -right-1/4 h-[600px] w-[600px] rounded-full bg-emerald-500/5 blur-[130px] animate-[pulse_7s_ease-in-out_infinite]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px]" />
+      </div>
+
+      <div className="mx-auto w-full max-w-3xl relative z-10 space-y-4">
+        
+        {/* Immersive Glassmorphism Terminal Window Frame */}
+        <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070d1e]/50 backdrop-blur-2xl shadow-[0_32px_64px_rgba(0,0,0,0.6)] transition-all duration-300 hover:border-white/[0.12]">
+          
+          {/* Top Title Bar with Interactive Status Signals */}
+          <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#0c142b]/70 px-4 py-3.5">
+            <div className="flex items-center gap-2">
+              <i className="block h-3 w-3 rounded-full bg-[#FF5F57] shadow-[0_0_8px_#FF5F57/50]" />
+              <i className="block h-3 w-3 rounded-full bg-[#FFB454] shadow-[0_0_8px_#FFB454/50]" />
+              <i className="block h-3 w-3 rounded-full bg-[#39D98A] shadow-[0_0_8px_#39D98A/50]" />
+              <span className="ml-2 text-xs font-medium tracking-wide" style={{ color: C.dim }}>
+                visitor@{username} — portfolio-os
+              </span>
+            </div>
+            
+            {/* High-Tech Equalizer Visualization Animation Block */}
+            <div className="flex items-end gap-[3px] h-3 px-1" aria-hidden="true">
+              <span className="w-[2px] bg-sky-400/60 rounded-full h-full animate-[pulse_0.8s_infinite_alternate]" />
+              <span className="w-[2px] bg-sky-400/60 rounded-full h-[60%] animate-[pulse_1.1s_infinite_alternate]" />
+              <span className="w-[2px] bg-sky-400/60 rounded-full h-[85%] animate-[pulse_0.9s_infinite_alternate]" />
+            </div>
           </div>
 
-          <div className="max-h-[70vh] min-h-[420px] overflow-y-auto bg-[#070C1A] p-4 sm:p-6">
+          {/* Core CLI Dynamic Output Log Viewport */}
+          <div className="max-h-[65vh] min-h-[440px] overflow-y-auto bg-transparent p-5 sm:p-7 custom-scrollbar select-text">
             {lines.map((l, i) => (
-              <div key={i} className="whitespace-pre-wrap break-words"
+              <div key={i} className="whitespace-pre-wrap break-words mb-1"
                 dangerouslySetInnerHTML={{ __html: l.html || "&nbsp;" }} />
             ))}
 
-            {/* prompt */}
-            <div className="flex items-center">
+            {/* Live Terminal Active Action Line */}
+            <div className="flex items-center mt-1">
               <span dangerouslySetInnerHTML={{ __html: prompt }} />
               <input
                 ref={inputRef}
@@ -276,7 +293,7 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
                 autoCapitalize="off"
                 spellCheck={false}
                 aria-label="terminal command input"
-                className="ml-1 flex-1 border-none bg-transparent outline-none"
+                className="ml-1 flex-1 border-none bg-transparent outline-none select-text"
                 style={{ color: C.text, caretColor: C.blue }}
               />
             </div>
@@ -284,19 +301,23 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
           </div>
         </div>
 
-        {/* clickable chips for non-typers / mobile */}
-        <div className="mt-4 flex flex-wrap gap-2">
+        {/* High-Fidelity Tactical Chip Shortcuts */}
+        <div className="flex flex-wrap gap-2 pt-1">
           {CHIPS.map((c) => (
-            <button key={c} onClick={(e) => { e.stopPropagation(); run(c); inputRef.current?.focus(); }}
-              className="rounded-md border border-[#1E2C52] bg-[#0F1730] px-3 py-1.5 text-xs hover:border-[#4DA6FF]"
-              style={{ color: C.blue }}>
+            <button 
+              key={c} 
+              onClick={(e) => { e.stopPropagation(); run(c); inputRef.current?.focus(); }}
+              className="rounded-xl border border-white/[0.05] bg-[#0c142b]/60 px-4 py-2 text-xs font-medium tracking-wide shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-500/40 hover:bg-[#111c3a]/80 active:translate-y-0"
+              style={{ color: C.blue }}
+            >
               {c}
             </button>
           ))}
         </div>
 
-        <p className="mt-6 text-center text-xs" style={{ color: C.dim }}>
-          ↑↓ history · tab complete · built with Portxz
+        {/* Operational System Footer Data */}
+        <p className="pt-2 text-center text-xs tracking-wider font-medium opacity-80" style={{ color: C.dim }}>
+          ↑↓ history  ·  tab complete  ·  built with Portxz
         </p>
       </div>
     </main>
