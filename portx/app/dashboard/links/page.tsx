@@ -6,7 +6,8 @@ import { PlanChip, LimitChip } from "@/components/PlanChip";
 
 type Link = { id?: string; kind: string; label: string; url: string };
 const KINDS = ["github", "linkedin", "x", "website", "custom"];
-const input = "mt-1 w-full rounded-lg border border-[#1E2C52] bg-[#111A36] px-4 py-2.5 text-sm outline-none focus:border-[#4DA6FF]";
+const KIND_ICON: Record<string, string> = { github: "🐙", linkedin: "💼", x: "𝕏", website: "🌐", custom: "🔗" };
+const input = "mt-1 w-full rounded-xl border border-[#1E2C52] bg-[#111A36] px-4 py-2.5 text-sm outline-none transition focus:border-[#4DA6FF] focus:shadow-[0_0_0_3px_rgba(77,166,255,0.12)]";
 const label = "mt-4 block font-mono text-xs uppercase tracking-wider text-[#8B98B8]";
 
 function normalizeUrl(v: string): string {
@@ -67,44 +68,59 @@ export default function LinksPage() {
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">Links</h1>
           <PlanChip pro={pro} expiresAt={expiresAt} />
-        </div>
-        <div className="flex items-center gap-3">
           <LimitChip used={rows.length} limit={FREE_UI_LIMITS.links} pro={pro} />
-          {atLimit ? (
-            <NextLink href="/dashboard/billing"
-              className="rounded-lg bg-[#39D98A] px-4 py-2 text-sm font-semibold text-[#04101F]">
-              Upgrade for more
-            </NextLink>
-          ) : (
-            <button onClick={() => { setError(null); setEditing({ kind: "github", label: "", url: "" }); }}
-              className="rounded-lg bg-[#4DA6FF] px-4 py-2 text-sm font-semibold text-[#04101F]">+ Add link</button>
-          )}
         </div>
+        {atLimit ? (
+          <NextLink href="/dashboard/billing"
+            className="rounded-xl bg-[#39D98A] px-4 py-2 text-sm font-semibold text-[#04101F]">
+            Upgrade for more
+          </NextLink>
+        ) : (
+          <button onClick={() => { setError(null); setEditing({ kind: "github", label: "", url: "" }); }}
+            className="rounded-xl bg-[#4DA6FF] px-4 py-2 text-sm font-semibold text-[#04101F] shadow-[0_4px_16px_rgba(77,166,255,0.25)] transition hover:bg-[#8FC4FF]">
+            + Add link
+          </button>
+        )}
       </div>
       <p className="mt-1 text-sm text-[#8B98B8]">Shown on your portfolio, resume, and README.</p>
 
       {error && (
-        <p className="mt-4 rounded-lg border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">{error}</p>
+        <p className="mt-4 rounded-xl border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">{error}</p>
       )}
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {rows.map((l) => (
-          <div key={l.id} className="flex items-center justify-between rounded-lg border border-[#1E2C52] bg-[#111A36] px-4 py-3">
-            <div>
-              <p className="font-mono text-xs uppercase text-[#4DA6FF]">{l.kind}</p>
-              <p className="text-sm">{l.label} · <span className="text-[#8B98B8]">{l.url}</span></p>
+          <div key={l.id}
+            className="group flex items-center justify-between gap-3 rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-4 transition hover:border-[#2A3E6E] hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#4DA6FF]/20 to-[#7C5CFF]/20 text-lg">
+                {KIND_ICON[l.kind] ?? "🔗"}
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold">{l.label || l.kind}</p>
+                <p className="truncate font-mono text-xs text-[#8B98B8]">{l.url}</p>
+              </div>
             </div>
-            <div className="flex gap-3 font-mono text-xs">
-              <button className="text-[#8FC4FF]" onClick={() => { setError(null); setEditing(l); }}>edit</button>
-              <button className="text-[#FF6B6B]" onClick={() => remove(l.id!)}>delete</button>
+            <div className="flex shrink-0 gap-2 opacity-60 transition group-hover:opacity-100">
+              <button onClick={() => { setError(null); setEditing(l); }}
+                className="rounded-lg border border-[#1E2C52] px-3 py-1.5 font-mono text-xs text-[#8FC4FF] transition hover:border-[#4DA6FF]">edit</button>
+              <button onClick={() => remove(l.id!)}
+                className="rounded-lg border border-[#1E2C52] px-3 py-1.5 font-mono text-xs text-[#FF6B6B] transition hover:border-[#FF6B6B]">delete</button>
             </div>
           </div>
         ))}
-        {rows.length === 0 && !error && <p className="text-sm text-[#8B98B8]">No links yet — add GitHub and LinkedIn first.</p>}
+        {rows.length === 0 && !error && (
+          <div className="rounded-2xl border border-dashed border-[#2A3E6E] p-10 text-center sm:col-span-2">
+            <p className="text-3xl">🔗</p>
+            <p className="mt-2 font-semibold">No links yet</p>
+            <p className="mt-1 text-sm text-[#8B98B8]">Add GitHub and LinkedIn first — recruiters look for them.</p>
+          </div>
+        )}
       </div>
 
       {editing && (
-        <div className="mt-8 rounded-xl border border-[#1E2C52] bg-[#0F1730] p-6">
+        <div className="mt-8 rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-6 shadow-[0_16px_48px_rgba(0,0,0,0.3)]">
+          <h2 className="font-semibold">{editing.id ? "Edit link" : "Add link"}</h2>
           <label className={label}>Kind</label>
           <select className={input} value={editing.kind}
             onChange={(e) => setEditing({ ...editing, kind: e.target.value })}>
@@ -118,10 +134,10 @@ export default function LinksPage() {
             onChange={(e) => setEditing({ ...editing, url: e.target.value })} />
           <div className="mt-6 flex gap-3">
             <button onClick={() => save(editing)} disabled={!editing.url.trim() || saving}
-              className="rounded-lg bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
+              className="rounded-xl bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] shadow-[0_4px_16px_rgba(77,166,255,0.25)] disabled:opacity-40">
               {saving ? "Saving…" : "Save"}
             </button>
-            <button onClick={() => setEditing(null)} className="text-sm text-[#8B98B8]">Cancel</button>
+            <button onClick={() => setEditing(null)} className="text-sm text-[#8B98B8] hover:text-white">Cancel</button>
           </div>
         </div>
       )}

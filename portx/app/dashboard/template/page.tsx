@@ -4,7 +4,7 @@ import { usePlan } from "@/lib/usePlan";
 import { PlanChip } from "@/components/PlanChip";
 
 /* ── Template & Publish — gallery edition ───────────────────────────────
-   3×2 grid of template cards, each with a hand-drawn CSS thumbnail
+   3-wide grid of template cards, each with a hand-drawn CSS thumbnail
    that mimics the template's real look. No screenshots needed.        */
 
 const OPTIONS = [
@@ -53,6 +53,21 @@ function Thumb({ id }: { id: string }) {
           <div className="relative mt-1.5 h-5 w-2/3 rounded-lg border border-white/15 bg-white/5 backdrop-blur" />
         </div>
       );
+    case "editorial":
+      return (
+        <div className={`${base} bg-[#FAF7F1] p-3`}>
+          <div className="h-2.5 w-20 rounded-sm bg-[#191714]" />
+          <div className="mt-1 h-1.5 w-14 rounded-sm bg-[#B4532A]/70" />
+          <div className="mt-2.5 border-t-2 border-[#191714] pt-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[7px] text-[#B4532A]">01</span>
+              <div className="h-1 w-16 rounded bg-[#8A8377]" />
+            </div>
+            <div className="mt-1 h-1 w-24 rounded bg-[#D8D2C6]" />
+            <div className="mt-0.5 h-1 w-20 rounded bg-[#D8D2C6]" />
+          </div>
+        </div>
+      );
     case "noir":
       return (
         <div className={`${base} flex flex-col items-center justify-center bg-[#0B0B0D] p-3`}>
@@ -63,6 +78,16 @@ function Thumb({ id }: { id: string }) {
             <div className="h-1 w-6 rounded bg-[#D4B36A]/70" />
             <div className="h-1 w-6 rounded bg-[#D4B36A]/70" />
           </div>
+        </div>
+      );
+    case "bento":
+      return (
+        <div className={`${base} grid grid-cols-3 gap-1 bg-[#0C0E14] p-2`}>
+          <div className="col-span-2 rounded-md bg-gradient-to-br from-[#182036] to-[#10131D]" />
+          <div className="rounded-md bg-[#11151F]" />
+          <div className="rounded-md bg-gradient-to-br from-[#1A2440] to-[#111524]" />
+          <div className="rounded-md bg-gradient-to-br from-[#241A3E] to-[#141021]" />
+          <div className="rounded-md bg-[#11151F]" />
         </div>
       );
     case "executive":
@@ -105,6 +130,7 @@ export default function TemplatePage() {
   const [username, setUsername] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [upgradeFor, setUpgradeFor] = useState<string | null>(null); // template name that triggered the popup
 
   useEffect(() => {
     fetch("/api/profile").then(async (r) => {
@@ -130,7 +156,7 @@ export default function TemplatePage() {
       const b = await res.json().catch(() => ({}));
       setError(
         b.error === "pro_required"
-          ? "That template is a Pro feature — unlock all premium templates from ₹49 on the Billing page."
+          ? "That template is a Pro feature — unlock all 7 premium templates from ₹49 on the Billing page."
           : `Save failed (HTTP ${res.status}): ${JSON.stringify(b.error ?? b)}`
       );
       return false;
@@ -169,13 +195,17 @@ export default function TemplatePage() {
         </p>
       )}
 
-      {/* gallery grid — 3×2 */}
+      {/* gallery grid */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {OPTIONS.map((o) => {
           const isSelected = selected === o.id;
           const isLive = savedTemplate === o.id && published;
           return (
-            <div key={o.id} onClick={() => setSelected(o.id)}
+            <div key={o.id}
+              onClick={() => {
+                if (o.proOnly && !pro) { setUpgradeFor(o.name); return; }
+                setSelected(o.id);
+              }}
               className={`group cursor-pointer overflow-hidden rounded-2xl border transition-all ${
                 isSelected
                   ? "border-[#4DA6FF] shadow-[0_0_0_1px_#4DA6FF,0_12px_32px_rgba(77,166,255,0.15)]"
@@ -185,7 +215,7 @@ export default function TemplatePage() {
                 <Thumb id={o.id} />
                 {/* hover overlay with preview */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
-                  <a href={`/dashboard/preview/${o.id}`} target="_blank"
+                  <a href={`/preview/${o.id}`} target="_blank"
                     onClick={(e) => e.stopPropagation()}
                     className="rounded-lg bg-white/95 px-4 py-2 text-sm font-semibold text-[#0A0F1E] shadow-lg">
                     Preview ↗
@@ -215,10 +245,10 @@ export default function TemplatePage() {
       </div>
 
       {/* apply / publish bar */}
-      <div className="sticky bottom-4 mt-8 rounded-2xl border border-[#0F1730] bg-[#0F1730]/95 light:bg-slate-100 p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.4)] backdrop-blur">
+      <div className="sticky bottom-4 mt-8 rounded-2xl border border-[#1E2C52] bg-[#0F1730]/95 p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.4)] backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="font-semibold text-[#8FC4FF]">
+            <p className="font-semibold">
               {published ? "Published" : "Unpublished"}
               {dirty && <span className="ml-2 font-mono text-xs text-[#FFB454]">unsaved template change</span>}
             </p>
@@ -244,19 +274,50 @@ export default function TemplatePage() {
             )}
             {published && !dirty && (
               <button onClick={unpublish} disabled={saving}
-                className="rounded-lg border px-5 py-2  bg-red-400 text-white text-sm font-semibold disabled:opacity-40">
+                className="rounded-lg bg-red-400 px-5 py-2 text-sm font-semibold text-white disabled:opacity-40">
                 Unpublish
               </button>
             )}
             {published && dirty && (
               <button onClick={() => setSelected(savedTemplate)} disabled={saving}
-                className="rounded-lg border border-[#1E2C52] px-4 py-2 text-sm text-[#FFB454] font-semibold disabled:opacity-40">
+                className="rounded-lg border border-[#1E2C52] px-4 py-2 text-sm text-[#8B98B8]">
                 Discard
               </button>
             )}
           </div>
         </div>
       </div>
+
+      {/* upgrade popup — free user tapped a PRO template */}
+      {upgradeFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          onClick={() => setUpgradeFor(null)}>
+          <div onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-[#4DA6FF] to-[#7C5CFF] text-xl shadow-[0_8px_24px_rgba(77,166,255,0.35)]">
+              ✨
+            </span>
+            <h2 className="mt-4 text-lg font-bold">{upgradeFor} is a Pro template</h2>
+            <p className="mt-2 text-sm leading-relaxed text-[#8B98B8]">
+              Unlock <span className="text-[#E8EDF7]">all premium templates</span>, the AI review,
+              resume PDF and unlimited everything.
+            </p>
+            <p className="mt-3 font-mono text-sm">
+              <span className="text-[#8B98B8] line-through">₹149</span>{" "}
+              <span className="text-2xl font-bold text-[#39D98A]">₹49</span>
+              <span className="text-xs text-[#FFB454]"> · launch offer, first 50 users</span>
+            </p>
+            <a href="/dashboard/billing"
+              className="mt-5 block rounded-xl bg-[#39D98A] px-5 py-2.5 text-sm font-semibold text-[#04101F] shadow-[0_8px_24px_rgba(57,217,138,0.3)]">
+              Upgrade for ₹49 →
+            </a>
+            <button onClick={() => setUpgradeFor(null)}
+              className="mt-3 text-sm text-[#8B98B8] hover:text-white">
+              Keep browsing
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

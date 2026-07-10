@@ -5,7 +5,10 @@ import { PASSES, LAUNCH_OFFER_LIMIT, type PassId } from "@/lib/billing";
 
 const Input = z.object({
   plan: z.enum(["launch", "month", "halfyear", "year"]),
-  utr: z.string().min(8).max(30).regex(/^[A-Za-z0-9]+$/, "utr must be alphanumeric"),
+  payer: z
+    .string()
+    .trim()
+    .regex(/^([6-9]\d{9}|[\w.\-]{2,}@[a-zA-Z]{2,})$/, "enter a 10-digit mobile number or UPI ID"),
 });
 
 export async function GET() {
@@ -39,11 +42,12 @@ export async function POST(req: Request) {
     if (pending)
       return Response.json({ error: "already_pending" }, { status: 409 });
 
-    const dupUtr = await db.paymentRequest.findFirst({
-      where: { utr: body.data.utr, status: { in: ["pending", "approved"] } },
+    // same payer can pay again later (extensions) — only block a duplicate PENDING claim
+    const dupPending = await db.paymentRequest.findFirst({
+      where: { utr: body.data.payer, status: "pending" },
     });
-    if (dupUtr)
-      return Response.json({ error: "utr_already_used" }, { status: 409 });
+    if (dupPending)
+      return Response.json({ error: "payer_pending" }, { status: 409 });
 
     if (body.data.plan === "launch") {
       const claimed = await db.paymentRequest.count({
@@ -64,7 +68,7 @@ export async function POST(req: Request) {
         profileId: profile.id,
         plan: pass.id,
         amount: pass.price,
-        utr: body.data.utr,
+        utr: body.data.payer,
       },
     });
     return Response.json(request, { status: 201 });

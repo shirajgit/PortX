@@ -45,7 +45,7 @@ export default function AdminPaymentsPage() {
     <div className="w-full max-w-none">
       <h1 className="text-2xl font-bold">Payments admin</h1>
       <p className="mt-1 text-sm text-[#8B98B8]">
-        Match the UTR + amount in your UPI app before approving. Approve extends the user's Pro expiry.
+        Match the Payer + amount in your UPI app before approving. Approve extends the user's Pro expiry.
       </p>
 
       {error && (
@@ -65,7 +65,7 @@ export default function AdminPaymentsPage() {
                   {r.profile.fullName} <span className="font-mono text-xs text-[#8FC4FF]">/{r.profile.username}</span>
                 </p>
                 <p className="text-[#8B98B8]">
-                  ₹{r.amount} · {r.plan} · UTR <span className="font-mono text-[#FFB454]">{r.utr}</span>
+                  ₹{r.amount} · {r.plan} · Payer <span className="font-mono text-[#FFB454]">{r.utr}</span>
                   {" · "}{new Date(r.createdAt).toLocaleString("en-IN")}
                 </p>
                 <p className="font-mono text-[11px] text-[#8B98B8]">
