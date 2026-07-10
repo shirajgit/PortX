@@ -244,7 +244,7 @@ export default function TemplatePage() {
             )}
             {published && !dirty && (
               <button onClick={unpublish} disabled={saving}
-                className="rounded-lg border border-[#1E2C52] px-5 py-2 text-sm font-semibold disabled:opacity-40">
+                className="rounded-lg border px-5 py-2  bg-red-400 text-white text-sm font-semibold disabled:opacity-40">
                 Unpublish
               </button>
             )}
