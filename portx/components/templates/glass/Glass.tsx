@@ -7,7 +7,7 @@ export function Glass({ data }: TemplateProps) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("portx-cyber-theme") as "light" | "dark" | null;
+    const savedTheme = localStorage.getItem("Portxz-cyber-theme") as "light" | "dark" | null;
     if (savedTheme) {
       setTheme(savedTheme);
       updateDOM(savedTheme);
@@ -27,7 +27,7 @@ export function Glass({ data }: TemplateProps) {
   const toggleTheme = () => {
     const nextTheme = theme === "light" ? "dark" : "light";
     setTheme(nextTheme);
-    localStorage.setItem("portx-cyber-theme", nextTheme);
+    localStorage.setItem("Portxz-cyber-theme", nextTheme);
     updateDOM(nextTheme);
   };
 
@@ -254,7 +254,7 @@ export function Glass({ data }: TemplateProps) {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             SYSTEM_NODE // DISPATCH_STABLE_OK
           </span>
-          <a href="https://portxz.in" className="text-slate-500 hover:text-indigo-600 dark:hover:text-[#4DA6FF] transition-colors">INITIALIZE_INSTANCE ↗</a>
+          <a href="https://Portxz.vercel.app" className="text-slate-500 hover:text-indigo-600 dark:hover:text-[#4DA6FF] transition-colors">INITIALIZE_INSTANCE ↗</a>
         </footer>
 
       </div>

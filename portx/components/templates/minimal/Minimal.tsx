@@ -9,7 +9,7 @@ export function Minimal({ data }: TemplateProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("portx-theme") as "light" | "dark" | null;
+    const savedTheme = localStorage.getItem("Portxz-theme") as "light" | "dark" | null;
     if (savedTheme) {
       setTheme(savedTheme);
       updateDOM(savedTheme);
@@ -32,7 +32,7 @@ export function Minimal({ data }: TemplateProps) {
   const toggleTheme = () => {
     const nextTheme = theme === "light" ? "dark" : "light";
     setTheme(nextTheme);
-    localStorage.setItem("portx-theme", nextTheme);
+    localStorage.setItem("Portxz-theme", nextTheme);
     updateDOM(nextTheme);
   };
 
@@ -121,7 +121,7 @@ export function Minimal({ data }: TemplateProps) {
               
               <div className="mt-8 hidden items-center justify-between border-t border-slate-200 dark:border-slate-800/60 pt-4 font-mono text-[10px] text-slate-400 dark:text-slate-600 lg:flex">
                 <span>SYSTEM: PORTXZ_V2</span>
-                <a href="https://portxz.in" className="hover:text-slate-900 dark:hover:text-white">CLAIM LINK ↗</a>
+                <a href="https://Portxz.vercel.app" className="hover:text-slate-900 dark:hover:text-white">CLAIM LINK ↗</a>
               </div>
             </div>
           </div>
@@ -250,7 +250,7 @@ export function Minimal({ data }: TemplateProps) {
             {/* Responsive Mobile Footer */}
             <footer className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800/40 pt-6 font-mono text-[10px] text-slate-400 dark:text-slate-600 lg:hidden">
               <span>SYSTEM // PORTXZ</span>
-              <a href="https://portxz.in" className="hover:text-[#4DA6FF]">CLAIM YOUR LINK ↗</a>
+              <a href="https://Portxz.vercel.app" className="hover:text-[#4DA6FF]">CLAIM YOUR LINK ↗</a>
             </footer>
 
           </div>

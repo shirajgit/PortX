@@ -244,7 +244,7 @@ export default function SetupWizard() {
         <div className="flex items-center justify-between">
           <span className="text-xl font-bold">Port<span className="text-[#4DA6FF]">xz</span></span>
           <span className="font-mono text-xs text-[#8B98B8]">
-            step {displayStep}/8{username ? ` · portxz.in/${username}` : ""}
+            step {displayStep}/8{username ? ` · Portxz.vercel.app/${username}` : ""}
           </span>
         </div>
         <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#111A36]">
@@ -268,7 +268,7 @@ export default function SetupWizard() {
                 onChange={(e) => setClaimName(e.target.value)} />
               <label className={label}>Username</label>
               <div className="mt-1 flex items-center rounded-lg border border-[#1E2C52] bg-[#111A36] focus-within:border-[#4DA6FF]">
-                <span className="pl-4 font-mono text-sm text-[#8B98B8]">portxz.in/</span>
+                <span className="pl-4 font-mono text-sm text-[#8B98B8]">Portxz.vercel.app/</span>
                 <input value={claimUser} onChange={(e) => checkAvail(e.target.value)}
                   className="w-full bg-transparent px-1 py-2.5 font-mono text-sm outline-none" placeholder="shiraj" />
               </div>
@@ -374,6 +374,11 @@ export default function SetupWizard() {
                 { id: "minimal", name: "Minimal", note: "Clean and fast. Free." },
                 { id: "cli", name: "CLI Terminal", note: "Interactive terminal — the shareable one. PRO" },
                 { id: "glass", name: "Glassmorphism", note: "Frosted premium look. PRO" },
+                { id: "editorial", name: "Editorial", note: "Serif magazine style, light. PRO" },
+                { id: "noir", name: "Noir", note: "Dark luxury, gold accents. PRO" },
+                { id: "bento", name: "Bento", note: "Modern tile grid. PRO" },
+                { id: "executive", name: "Executive", note: "Corporate-clean, light. PRO" },
+                { id: "aurora", name: "Aurora", note: "Glowing gradients. PRO" },
               ].map((o) => (
                 <button key={o.id} onClick={() => setTemplate(o.id)}
                   className={`w-full rounded-xl border p-4 text-left transition ${

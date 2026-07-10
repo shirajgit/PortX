@@ -93,7 +93,7 @@ export default function Onboarding() {
         <div>
           <label className="block font-mono text-xs uppercase tracking-wider text-slate-400">Username</label>
           <div className="mt-1 flex items-center rounded-lg border border-[#1E2C52] bg-[#111A36] transition focus-within:border-[#4DA6FF]">
-            <span className="pl-4 font-mono text-sm select-none text-slate-400">portx.in/</span>
+            <span className="pl-4 font-mono text-sm select-none text-slate-400">Portxz.vercel.app/</span>
             <input 
               value={username} 
               onChange={(e) => setUsername(e.target.value)}

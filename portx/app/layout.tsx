@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://portxz.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://Portxz.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -72,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <head>
           <script
             dangerouslySetInnerHTML={{
-              __html: `try{if(localStorage.getItem('portx-theme')==='light')document.documentElement.classList.add('light')}catch(e){}`,
+              __html: `try{if(localStorage.getItem('Portxz-theme')==='light')document.documentElement.classList.add('light')}catch(e){}`,
             }}
           />
           <script

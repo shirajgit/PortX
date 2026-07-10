@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://Portxz.in",
+        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://Portxz.vercel.app",
         "X-Title": "Portxz",
         "Content-Type": "application/json",
       },

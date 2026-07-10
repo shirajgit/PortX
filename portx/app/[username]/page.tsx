@@ -3,6 +3,11 @@ import { getPortfolioData } from "@/lib/data";
 import { Minimal } from "@/components/templates/minimal/Minimal";
 import { Cli } from "@/components/templates/cli/Cli";
 import { Glass } from "@/components/templates/glass/Glass";
+import { Editorial } from "@/components/templates/editorial/Editorial";
+import { Noir } from "@/components/templates/noir/Noir";
+import { Bento } from "@/components/templates/bento/Bento";
+import { Executive } from "@/components/templates/executive/Executive";
+import { Aurora } from "@/components/templates/aurora/Aurora";
 import { ViewTracker } from "@/components/ViewTracker";
 
 export const revalidate = 60;
@@ -11,6 +16,11 @@ const TEMPLATES: Record<string, typeof Minimal> = {
   minimal: Minimal,
   cli: Cli,
   glass: Glass,
+  editorial: Editorial,
+  noir: Noir,
+  bento: Bento,
+  executive: Executive,
+  aurora: Aurora,
 };
 
 type Props = { params: Promise<{ username: string }> };

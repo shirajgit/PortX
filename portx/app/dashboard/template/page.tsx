@@ -3,10 +3,104 @@ import { useEffect, useState } from "react";
 import { usePlan } from "@/lib/usePlan";
 import { PlanChip } from "@/components/PlanChip";
 
+/* ── Template & Publish — gallery edition ───────────────────────────────
+   3×2 grid of template cards, each with a hand-drawn CSS thumbnail
+   that mimics the template's real look. No screenshots needed.        */
+
+const OPTIONS = [
+  { id: "minimal", name: "Minimal", note: "Blue-black, fast, readable.", proOnly: false },
+  { id: "cli", name: "CLI Terminal", note: "Visitors type commands to explore. The shareable one.", proOnly: true },
+  { id: "glass", name: "Glassmorphism", note: "Frosted cards over gradient orbs.", proOnly: true },
+  { id: "noir", name: "Noir", note: "Black & gold quiet luxury.", proOnly: true },
+  { id: "executive", name: "Executive", note: "Corporate-clean & light. Interview-ready.", proOnly: true },
+  { id: "aurora", name: "Aurora", note: "Glowing gradient washes. Luminous.", proOnly: true },
+];
+
+/* miniature CSS previews per template */
+function Thumb({ id }: { id: string }) {
+  const base = "pointer-events-none h-full w-full overflow-hidden";
+  switch (id) {
+    case "minimal":
+      return (
+        <div className={`${base} bg-[#0A0F1E] p-3`}>
+          <div className="h-2 w-16 rounded bg-[#4DA6FF]" />
+          <div className="mt-1.5 h-1.5 w-24 rounded bg-[#3A4664]" />
+          <div className="mt-3 space-y-1.5">
+            <div className="h-6 rounded border border-[#1E2C52] bg-[#111A36]" />
+            <div className="h-6 rounded border border-[#1E2C52] bg-[#111A36]" />
+          </div>
+        </div>
+      );
+    case "cli":
+      return (
+        <div className={`${base} bg-[#070C1A] p-3 font-mono`}>
+          <div className="flex gap-1">
+            <i className="h-1.5 w-1.5 rounded-full bg-[#FF5F57]" />
+            <i className="h-1.5 w-1.5 rounded-full bg-[#FFB454]" />
+            <i className="h-1.5 w-1.5 rounded-full bg-[#39D98A]" />
+          </div>
+          <p className="mt-2 text-[8px] text-[#39D98A]">visitor@you:~$ <span className="text-[#E8EDF7]">whoami</span></p>
+          <div className="mt-1 h-1.5 w-20 rounded bg-[#2A3550]" />
+          <p className="mt-2 text-[8px] text-[#39D98A]">visitor@you:~$ <span className="inline-block h-2 w-1 animate-pulse bg-[#4DA6FF] align-middle" /></p>
+        </div>
+      );
+    case "glass":
+      return (
+        <div className={`${base} relative bg-[#0A0F1E] p-3`}>
+          <div className="absolute -left-3 -top-3 h-12 w-12 rounded-full bg-[#4DA6FF]/40 blur-lg" />
+          <div className="absolute -bottom-3 -right-3 h-12 w-12 rounded-full bg-[#7C5CFF]/40 blur-lg" />
+          <div className="relative mt-2 h-8 rounded-lg border border-white/20 bg-white/10 backdrop-blur" />
+          <div className="relative mt-1.5 h-5 w-2/3 rounded-lg border border-white/15 bg-white/5 backdrop-blur" />
+        </div>
+      );
+    case "noir":
+      return (
+        <div className={`${base} flex flex-col items-center justify-center bg-[#0B0B0D] p-3`}>
+          <div className="h-2.5 w-20 rounded-sm bg-[#EDEAE2]" />
+          <div className="mt-1.5 h-px w-10 bg-[#D4B36A]" />
+          <div className="mt-1.5 h-1 w-14 rounded bg-[#8F8A7E]/60" />
+          <div className="mt-2 flex gap-2">
+            <div className="h-1 w-6 rounded bg-[#D4B36A]/70" />
+            <div className="h-1 w-6 rounded bg-[#D4B36A]/70" />
+          </div>
+        </div>
+      );
+    case "executive":
+      return (
+        <div className={`${base} bg-[#F6F8FB]`}>
+          <div className="h-1.5 w-full bg-gradient-to-r from-[#1E3A5F] to-[#2563EB]" />
+          <div className="p-2.5">
+            <div className="rounded-md border border-[#E2E8F0] bg-white p-1.5 shadow-sm">
+              <div className="h-1.5 w-14 rounded bg-[#1E3A5F]" />
+              <div className="mt-1 h-1 w-10 rounded bg-[#2563EB]/60" />
+            </div>
+            <div className="mt-1.5 flex gap-1.5">
+              <div className="h-4 flex-1 rounded-md border border-[#E2E8F0] bg-white" />
+              <div className="h-4 flex-1 rounded-md border border-[#E2E8F0] bg-white" />
+            </div>
+          </div>
+        </div>
+      );
+    case "aurora":
+      return (
+        <div className={`${base} relative bg-[#070912] p-3`}>
+          <div className="absolute -left-2 -top-4 h-10 w-16 rotate-12 rounded-full bg-[#22D3EE]/30 blur-lg" />
+          <div className="absolute -right-2 top-2 h-10 w-12 rounded-full bg-[#8B5CF6]/30 blur-lg" />
+          <div className="absolute bottom-0 left-4 h-8 w-14 rounded-full bg-[#EC4899]/20 blur-lg" />
+          <div className="relative mt-1 h-2.5 w-20 rounded bg-gradient-to-r from-[#67E8F9] via-[#A78BFA] to-[#F472B6]" />
+          <div className="relative mt-1.5 h-1 w-14 rounded bg-[#3A4258]" />
+          <div className="relative mt-2 h-5 rounded-lg border border-white/10 bg-white/5" />
+        </div>
+      );
+    default:
+      return <div className={`${base} bg-[#0A0F1E]`} />;
+  }
+}
+
 export default function TemplatePage() {
   const { pro, expiresAt } = usePlan();
-  const [savedTemplate, setSavedTemplate] = useState("minimal"); // what's live in the DB
-  const [selected, setSelected] = useState("minimal");           // what's picked in the UI
+  const [savedTemplate, setSavedTemplate] = useState("minimal");
+  const [selected, setSelected] = useState("minimal");
   const [published, setPublished] = useState(false);
   const [username, setUsername] = useState("");
   const [saving, setSaving] = useState(false);
@@ -36,7 +130,7 @@ export default function TemplatePage() {
       const b = await res.json().catch(() => ({}));
       setError(
         b.error === "pro_required"
-          ? "That template is a Pro feature — upgrade from ₹149 on the Billing page."
+          ? "That template is a Pro feature — unlock all premium templates from ₹49 on the Billing page."
           : `Save failed (HTTP ${res.status}): ${JSON.stringify(b.error ?? b)}`
       );
       return false;
@@ -44,38 +138,29 @@ export default function TemplatePage() {
     return true;
   }
 
-  /** Apply the selected template (and publish if not yet published). */
   async function applyAndPublish() {
     const ok = await patch({ template: selected, isPublished: true });
     if (ok) { setSavedTemplate(selected); setPublished(true); }
   }
-
   async function applyOnly() {
     const ok = await patch({ template: selected });
     if (ok) setSavedTemplate(selected);
   }
-
   async function unpublish() {
     const ok = await patch({ isPublished: false });
     if (ok) setPublished(false);
   }
 
-  const options = [
-    { id: "minimal", name: "Minimal", note: "Blue-black, fast, readable.", proOnly: false },
-    { id: "cli", name: "CLI Terminal", note: "Interactive command-line — visitors type to explore. The shareable one.", proOnly: true },
-    { id: "glass", name: "Glassmorphism", note: "Frosted cards over gradient orbs. The premium look.", proOnly: true },
-  ];
-
   const dirty = selected !== savedTemplate;
 
   return (
     <div className="w-full max-w-none">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">Template &amp; Publish</h1>
         <PlanChip pro={pro} expiresAt={expiresAt} />
       </div>
       <p className="mt-1 text-sm text-[#8B98B8]">
-        Pick a template, preview it with your data, then apply. Nothing changes on your live page until you do.
+        Pick a look, preview it, then apply. Nothing changes on your live page until you do.
       </p>
 
       {error && (
@@ -84,52 +169,67 @@ export default function TemplatePage() {
         </p>
       )}
 
-      <div className="mt-6 space-y-3">
-        {options.map((o) => {
+      {/* gallery grid — 3×2 */}
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {OPTIONS.map((o) => {
           const isSelected = selected === o.id;
-          const isLive = savedTemplate === o.id;
+          const isLive = savedTemplate === o.id && published;
           return (
-            <div key={o.id}
-              onClick={() => setSelected(o.id)}
-              className={`w-full cursor-pointer rounded-xl border p-4 text-left transition ${
-                isSelected ? "border-[#4DA6FF] bg-[#111A36]" : "border-[#1E2C52] hover:border-[#2A3E6E]"}`}>
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="font-semibold">
-                    {o.name}{" "}
-                    {o.proOnly && !pro && <span className="rounded bg-[#FFB454]/15 px-1.5 py-0.5 font-mono text-[10px] text-[#FFB454]">PRO</span>}{" "}
-                    {isLive && published && <span className="font-mono text-xs text-[#39D98A]">● live</span>}
-                    {isSelected && !isLive && <span className="font-mono text-xs text-[#FFB454]">○ selected</span>}
-                  </p>
-                  <p className="text-sm text-[#8B98B8]">{o.note}</p>
+            <div key={o.id} onClick={() => setSelected(o.id)}
+              className={`group cursor-pointer overflow-hidden rounded-2xl border transition-all ${
+                isSelected
+                  ? "border-[#4DA6FF] shadow-[0_0_0_1px_#4DA6FF,0_12px_32px_rgba(77,166,255,0.15)]"
+                  : "border-[#1E2C52] hover:border-[#2A3E6E] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]"}`}>
+              {/* thumbnail */}
+              <div className="relative aspect-[16/10]">
+                <Thumb id={o.id} />
+                {/* hover overlay with preview */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
+                  <a href={`/dashboard/preview/${o.id}`} target="_blank"
+                    onClick={(e) => e.stopPropagation()}
+                    className="rounded-lg bg-white/95 px-4 py-2 text-sm font-semibold text-[#0A0F1E] shadow-lg">
+                    Preview ↗
+                  </a>
                 </div>
-                <a href={`/dashboard/preview/${o.id}`} target="_blank"
-                  onClick={(e) => e.stopPropagation()}
-                  className="shrink-0 rounded-lg border border-[#1E2C52] px-3 py-1.5 font-mono text-xs text-[#8FC4FF] hover:border-[#4DA6FF]">
-                  preview ↗
-                </a>
+                {/* badges */}
+                <div className="absolute left-2 top-2 flex gap-1.5">
+                  {isLive && (
+                    <span className="rounded-full bg-[#0E2018]/90 px-2 py-0.5 font-mono text-[10px] text-[#39D98A] backdrop-blur">● live</span>
+                  )}
+                  {isSelected && !isLive && (
+                    <span className="rounded-full bg-[#1F1A08]/90 px-2 py-0.5 font-mono text-[10px] text-[#FFB454] backdrop-blur">○ selected</span>
+                  )}
+                </div>
+                {o.proOnly && !pro && (
+                  <span className="absolute right-2 top-2 rounded-full bg-[#FFB454]/90 px-2 py-0.5 font-mono text-[10px] font-bold text-[#1F1A08]">PRO</span>
+                )}
+              </div>
+              {/* meta */}
+              <div className="border-t border-[#1E2C52] bg-[#0F1730] p-4">
+                <p className="font-semibold">{o.name}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-[#8B98B8]">{o.note}</p>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* apply / publish */}
-      <div className="mt-8 rounded-xl border border-[#1E2C52] bg-[#0F1730] p-5">
+      {/* apply / publish bar */}
+      <div className="sticky bottom-4 mt-8 rounded-2xl border border-[#0F1730] bg-[#0F1730]/95 light:bg-slate-100 p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.4)] backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="font-semibold">
+            <p className="font-semibold text-[#8FC4FF]">
               {published ? "Published" : "Unpublished"}
               {dirty && <span className="ml-2 font-mono text-xs text-[#FFB454]">unsaved template change</span>}
             </p>
             <p className="text-sm text-[#8B98B8]">
               {published
-                ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">portx.in/{username}</a>{" "}
-                    with the <span className="font-mono text-[#8FC4FF]">{savedTemplate}</span> template.</>
+                ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">portxz.in/{username}</a>{" "}
+                    with <span className="font-mono text-[#8FC4FF]">{savedTemplate}</span>.</>
                 : "Your page returns 404 until you publish."}
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             {published && dirty && (
               <button onClick={applyOnly} disabled={saving}
                 className="rounded-lg bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
@@ -150,7 +250,7 @@ export default function TemplatePage() {
             )}
             {published && dirty && (
               <button onClick={() => setSelected(savedTemplate)} disabled={saving}
-                className="rounded-lg border border-[#1E2C52] px-4 py-2 text-sm text-[#8B98B8]">
+                className="rounded-lg border border-[#1E2C52] px-4 py-2 text-sm text-[#FFB454] font-semibold disabled:opacity-40">
                 Discard
               </button>
             )}

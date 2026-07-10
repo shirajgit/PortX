@@ -7,7 +7,7 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("portx-theme");
+    const saved = localStorage.getItem("Portxz-theme");
 
     if (saved === "dark") {
       document.documentElement.classList.remove("light");
@@ -27,10 +27,10 @@ export function ThemeToggle() {
 
     if (isLight) {
       document.documentElement.classList.add("light");
-      localStorage.setItem("portx-theme", "light");
+      localStorage.setItem("Portxz-theme", "light");
     } else {
       document.documentElement.classList.remove("light");
-      localStorage.setItem("portx-theme", "dark");
+      localStorage.setItem("Portxz-theme", "dark");
     }
   }
 

@@ -122,7 +122,7 @@ export function DashboardNav({ username, isAdmin }: Props) {
       {/* ── desktop sidebar ── */}
       <aside className="sticky top-0 hidden h-screen w-60 flex-col overflow-y-auto border-r border-[#1E2C52] p-5 sm:flex">
         <Link href="/" className="mb-8 text-xl font-bold">
-          port<span className="text-[#4DA6FF]">X</span>
+          Port<span className="text-[#4DA6FF]">xz</span>
         </Link>
         <NavLinks isAdmin={isAdmin} />
         {footer}
@@ -131,7 +131,7 @@ export function DashboardNav({ username, isAdmin }: Props) {
       {/* ── mobile top bar ── */}
       <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-[#1E2C52] bg-[#0A0F1E]/90 px-4 py-3 backdrop-blur sm:hidden">
         <Link href="/" className="text-lg font-bold">
-          port<span className="text-[#4DA6FF]">X</span>
+          Port<span className="text-[#4DA6FF]">xz</span>
         </Link>
         <div className="flex items-center gap-2">
         <ThemeToggle />
@@ -152,7 +152,7 @@ export function DashboardNav({ username, isAdmin }: Props) {
           <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-[#1E2C52] bg-[#0A0F1E] p-5">
             <div className="mb-6 flex items-center justify-between">
               <Link href="/" onClick={() => setOpen(false)} className="text-xl font-bold">
-                port<span className="text-[#4DA6FF]">X</span>
+                Port<span className="text-[#4DA6FF]">xz</span>
               </Link>
               <button onClick={() => setOpen(false)} aria-label="Close menu"
                 className="rounded-lg border border-[#1E2C52] p-2 text-[#8B98B8] hover:border-[#4DA6FF] hover:text-white">
