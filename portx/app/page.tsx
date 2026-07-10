@@ -223,7 +223,7 @@ const FAQ = [
 
 export default function Landing() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0A0F1E] text-[#E8EDF7]">
+    <main className="relative min-h-screen   overflow-hidden bg-[#0A0F1E] text-[#E8EDF7]">
       <style>{`
         @keyframes drift { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-30px) scale(1.08)} }
         @keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-40px,20px) scale(1.1)} }
