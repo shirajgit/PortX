@@ -2,35 +2,59 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://portxz.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Portxz — Your developer identity, one link",
+    default: "Portxz — Developer Portfolio Builder with ATS Resume & GitHub README",
     template: "%s | Portxz",
   },
   description:
-    "One profile → live portfolio + ATS resume PDF, always in sync. Built for developers who ship.",
+    "Free developer portfolio builder. One profile generates your live portfolio website, ATS-friendly resume PDF, and GitHub README — always in sync. 3 templates including an interactive CLI terminal. Built for developers who ship.",
   keywords: [
-    "developer portfolio",
+    "portfolio builder",
+    "developer portfolio builder",
+    "free portfolio website for developers",
     "ATS resume builder",
-    "developer identity",
-    "github readme sync",
-    "portfolio website",
+    "ATS friendly resume for developers",
+    "GitHub profile README generator",
+    "developer portfolio templates",
+    "portfolio and resume in sync",
+    "CLI terminal portfolio",
+    "portfolio builder India",
   ],
   authors: [{ name: "Portxz" }],
   creator: "Portxz",
+  publisher: "Portxz",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://portxz.in", // Replace with your actual domain
-    title: "Portxz — Your developer identity, one link",
-    description: "One profile → live portfolio + ATS resume PDF, always in sync.",
+    url: SITE_URL,
+    title: "Portxz — Developer Portfolio Builder with ATS Resume & GitHub README",
+    description:
+      "One profile → live portfolio + ATS resume PDF + GitHub README, always in sync. Free to start.",
     siteName: "Portxz",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Portxz — Your developer identity, one link",
-    description: "One profile → live portfolio + ATS resume PDF, always in sync.",
-    creator: "@portxz", // Replace with your Twitter handle if you have one
+    title: "Portxz — Developer Portfolio Builder",
+    description:
+      "One profile → portfolio + ATS resume + GitHub README, always in sync. Free to start.",
+    creator: "@portxz",
   },
   icons: {
     icon: [
@@ -46,10 +70,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <head>
-          {/* Fallback theme initialization script */}
           <script
             dangerouslySetInnerHTML={{
               __html: `try{if(localStorage.getItem('portx-theme')==='light')document.documentElement.classList.add('light')}catch(e){}`,
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: "Portxz",
+                applicationCategory: "DeveloperApplication",
+                operatingSystem: "Web",
+                description:
+                  "Developer portfolio builder that generates a live portfolio, ATS resume PDF, and GitHub README from one profile.",
+                url: SITE_URL,
+                offers: {
+                  "@type": "Offer",
+                  price: "0",
+                  priceCurrency: "INR",
+                },
+              }),
             }}
           />
         </head>
