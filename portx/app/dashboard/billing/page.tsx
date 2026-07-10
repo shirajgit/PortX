@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 type Pass = { id: string; label: string; price: number; days: number };
 const PASSES: Pass[] = [
+  { id: "launch", label: "🚀 Launch Offer — 1 Month", price: 49, days: 30 },
   { id: "month", label: "Pro — 1 Month", price: 149, days: 30 },
   { id: "halfyear", label: "Pro — 6 Months", price: 649, days: 180 },
   { id: "year", label: "Pro — 1 Year", price: 999, days: 365 },
@@ -18,7 +19,7 @@ const PERKS = [
 type PayReq = { id: string; plan: string; amount: number; utr: string; status: string; createdAt: string };
 
 const UPI_ID = process.env.NEXT_PUBLIC_UPI_ID ?? "";
-const UPI_NAME = process.env.NEXT_PUBLIC_UPI_NAME ?? "portX";
+const UPI_NAME = process.env.NEXT_PUBLIC_UPI_NAME ?? "Portxz";
 const QR_OVERRIDE = process.env.NEXT_PUBLIC_UPI_QR_URL ?? "";
 
 export default function BillingPage() {
@@ -45,6 +46,10 @@ export default function BillingPage() {
 
   const pro = plan === "pro" && expires && new Date(expires) > new Date();
   const pending = requests.find((r) => r.status === "pending");
+  const daysLeft = expires
+    ? Math.ceil((new Date(expires).getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+    : 0;
+  const showPasses = !pending && (!pro || daysLeft <= 7);
   const note = `PORTX-${username || "user"}`;
   const upiLink = selected
     ? `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_NAME)}&am=${selected.price}&cu=INR&tn=${encodeURIComponent(note)}`
@@ -67,7 +72,9 @@ export default function BillingPage() {
     if (!res.ok) {
       const b = await res.json().catch(() => ({}));
       const msg =
-        b.error === "already_pending" ? "You already have a request awaiting verification."
+        b.error === "launch_offer_over" ? "The launch offer is sold out 🎉 — regular passes are below."
+        : b.error === "launch_once_per_user" ? "The launch offer is once per user — grab a regular pass to extend."
+        : b.error === "already_pending" ? "You already have a request awaiting verification."
         : b.error === "utr_already_used" ? "That transaction ID has already been submitted."
         : `Submit failed (HTTP ${res.status}): ${JSON.stringify(b.error ?? b)}`;
       setError(msg);
@@ -98,6 +105,12 @@ export default function BillingPage() {
         </ul>
       </div>
 
+      {pro && daysLeft > 7 && !pending && (
+        <p className="mt-4 rounded-lg border border-[#1E3A2E] bg-[#0E2018] px-4 py-3 font-mono text-xs text-[#39D98A]">
+          ✓ You&apos;re all set — {daysLeft} days of Pro remaining. Passes will reappear here near expiry.
+        </p>
+      )}
+
       {pending && (
         <p className="mt-4 rounded-lg border border-[#3A2E10] bg-[#1F1A08] px-4 py-3 font-mono text-xs text-[#FFB454]">
           ⏳ Payment of ₹{pending.amount} submitted (UTR {pending.utr}) — verification usually takes a few hours.
@@ -108,13 +121,13 @@ export default function BillingPage() {
         <p className="mt-4 rounded-lg border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">{error}</p>
       )}
 
-      {/* pass cards */}
-      {!pending && (
+      {/* pass cards — hidden for active Pro until the last 7 days */}
+      {showPasses && (
         <>
           <h2 className="mb-3 mt-8 font-mono text-sm uppercase tracking-widest text-[#4DA6FF]">
-            {pro ? "Extend your pass" : "Go Pro"}
+            {pro ? `Your Pro ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — extend now` : "Go Pro"}
           </h2>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {PASSES.map((p) => {
               const perMonth = Math.round(p.price / (p.days / 30));
               return (
@@ -126,6 +139,11 @@ export default function BillingPage() {
                   <p className="font-mono text-[11px] text-[#8B98B8]">
                     {p.id === "month" ? `${p.days} days` : `~₹${perMonth}/mo · ${p.days} days`}
                   </p>
+                  {p.id === "launch" && (
+                    <p className="mt-1 font-mono text-[11px] text-[#FFB454]">
+                      <span className="line-through opacity-60">₹149</span> · first 50 users only
+                    </p>
+                  )}
                   {p.id === "year" && <p className="mt-1 font-mono text-[11px] text-[#39D98A]">best value</p>}
                 </button>
               );
@@ -135,7 +153,7 @@ export default function BillingPage() {
       )}
 
       {/* payment instructions */}
-      {selected && !pending && (
+      {selected && showPasses && (
         <div className="mt-6 rounded-xl border border-[#1E2C52] bg-[#0F1730] p-6">
           <h3 className="font-semibold">Pay ₹{selected.price} via UPI</h3>
           {!UPI_ID ? (

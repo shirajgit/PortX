@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
-import { PASSES, type PassId } from "@/lib/billing";
+import { PASSES, LAUNCH_OFFER_LIMIT, type PassId } from "@/lib/billing";
 
 const Input = z.object({
-  plan: z.enum(["month", "halfyear", "year"]),
+  plan: z.enum(["launch", "month", "halfyear", "year"]),
   utr: z.string().min(8).max(30).regex(/^[A-Za-z0-9]+$/, "utr must be alphanumeric"),
 });
 
@@ -44,6 +44,19 @@ export async function POST(req: Request) {
     });
     if (dupUtr)
       return Response.json({ error: "utr_already_used" }, { status: 409 });
+
+    if (body.data.plan === "launch") {
+      const claimed = await db.paymentRequest.count({
+        where: { plan: "launch", status: { in: ["pending", "approved"] } },
+      });
+      if (claimed >= LAUNCH_OFFER_LIMIT)
+        return Response.json({ error: "launch_offer_over" }, { status: 410 });
+      const already = await db.paymentRequest.findFirst({
+        where: { profileId: profile.id, plan: "launch", status: { in: ["pending", "approved"] } },
+      });
+      if (already)
+        return Response.json({ error: "launch_once_per_user" }, { status: 409 });
+    }
 
     const pass = PASSES[body.data.plan as PassId];
     const request = await db.paymentRequest.create({
