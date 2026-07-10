@@ -13,7 +13,7 @@ export const DEMO_DATA: PortfolioData = {
       "I design and build digital products end-to-end — from research and wireframes to shipped, measurable features. 4+ years across fintech and SaaS, working with founders and cross-functional teams.",
     location: "Bengaluru, India",
     email: "hello@aarav.design",
-    phone: "",
+    phone: 8105369922,
     avatarUrl: null,
     openToWork: true,
     themeConfig: {},
