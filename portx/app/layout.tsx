@@ -7,7 +7,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://Portxz.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Portxz — Developer Portfolio Builder with ATS Resume & GitHub README",
+    default: "Portxz — Working Profitinal Portfolio Builder with ATS Resume & GitHub README",
     template: "%s | Portxz",
   },
   description:
