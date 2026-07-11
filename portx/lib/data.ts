@@ -1,5 +1,5 @@
 import { db } from "./db";
-import type { Prisma } from "@/lib/generatedd/prisma/client";
+import type { Prisma } from "@/lib/generated/prisma/client";
 import type { PortfolioData } from "@/components/templates/types";
 
 const fmtMonth = (d: Date | null) =>
