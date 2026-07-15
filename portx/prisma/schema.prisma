@@ -138,3 +138,11 @@ model PageView {
   @@index([profileId, kind])
   @@map("page_views")
 }
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("waitlist")
+}
