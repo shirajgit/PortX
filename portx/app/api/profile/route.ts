@@ -48,8 +48,18 @@ export async function POST(req: Request) {
       },
     });
     return Response.json(profile, { status: 201 });
-  } catch {
-    return Response.json({ error: "username_taken" }, { status: 409 });
+  } catch (e: unknown) {
+    const err = e as { code?: string; meta?: { target?: unknown }; message?: string };
+    console.error("profile create failed:", err?.code, err?.meta, err?.message);
+
+    if (err?.code === "P2002") {
+      const target = JSON.stringify(err?.meta?.target ?? "");
+      return Response.json(
+        { error: target.includes("username") ? "username_taken" : "conflict" },
+        { status: 409 }
+      );
+    }
+    return Response.json({ error: "create_failed" }, { status: 500 });
   }
 }
 
