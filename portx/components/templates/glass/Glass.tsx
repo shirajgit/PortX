@@ -1,316 +1,497 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import type { TemplateProps } from "../types";
+import {
+  Reveal,
+  Stagger,
+  Item,
+  TiltCard,
+  Magnetic,
+  GradientText,
+  Spotlight,
+} from "../tem_comps/Motion";
+
+/* ─────────────────────────────────────────────────────────────────────────
+   GLASS — "Apple-keynote" frosted glassmorphism.
+   A living animated color-mesh sits behind layered frosted-glass panels.
+   Every decorative keyframe is deterministic and respects reduced motion.
+   ──────────────────────────────────────────────────────────────────────── */
 
 export function Glass({ data }: TemplateProps) {
   const { profile, links, experiences, projects, skills, educations } = data;
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const savedTheme = localStorage.getItem("Portxz-cyber-theme") as "light" | "dark" | null;
-    const initialTheme = savedTheme || "dark";
-    setTheme(initialTheme);
-    updateDOM(initialTheme);
-  }, []);
-
-  const updateDOM = (mode: "light" | "dark") => {
-    if (mode === "light") {
-      document.documentElement.classList.remove("dark");
-    } else {
-      document.documentElement.classList.add("dark");
-    }
-  };
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    localStorage.setItem("Portxz-cyber-theme", nextTheme);
-    updateDOM(nextTheme);
-  };
+  const initials =
+    profile.fullName
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "•";
 
   return (
-    <main className="relative min-h-screen w-full overflow-x-hidden bg-[#FAFAFA] p-3 font-sans text-[#1E293B] antialiased selection:bg-indigo-500/20 selection:text-indigo-600 dark:bg-[#04060A] dark:text-[#E2E8F0] sm:p-6 md:p-8 transition-colors duration-500">
-      
-      {/* Decorative Technical Grid Background */}
-      <div 
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] dark:bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)]" 
-      />
+    <main className="relative min-h-screen w-full overflow-x-hidden bg-[#05060B] font-sans text-slate-100 antialiased selection:bg-fuchsia-500/30 selection:text-white">
+      <GlassStyles />
 
-      {/* Frame Accent Corners */}
-      <div aria-hidden className="pointer-events-none absolute left-4 top-4 h-8 w-8 border-l border-t border-slate-300 dark:border-slate-800/80 opacity-50" />
-      <div aria-hidden className="pointer-events-none absolute right-4 top-4 h-8 w-8 border-r border-t border-slate-300 dark:border-slate-800/80 opacity-50" />
-
-      {/* Luminous Glow Vector Backdrop */}
+      {/* ── Living animated color-mesh backdrop ── */}
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -right-[10%] -top-[10%] h-[600px] w-[600px] rounded-full bg-indigo-500/10 blur-[140px] dark:bg-indigo-600/10 animate-[pulse_10s_ease-in-out_infinite]" />
-        <div className="absolute -bottom-[5%] -left-[5%] h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[120px] dark:bg-blue-500/10 animate-[pulse_7s_ease-in-out_infinite]" />
+        <div className="pxz-blob pxz-blob-a absolute -left-[12%] -top-[10%] h-[46rem] w-[46rem] rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.55),transparent_60%)] blur-[90px]" />
+        <div className="pxz-blob pxz-blob-b absolute -right-[14%] top-[8%] h-[42rem] w-[42rem] rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.42),transparent_60%)] blur-[100px]" />
+        <div className="pxz-blob pxz-blob-c absolute bottom-[-16%] left-[22%] h-[44rem] w-[44rem] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.40),transparent_60%)] blur-[100px]" />
+        <div className="pxz-blob pxz-blob-d absolute bottom-[4%] right-[8%] h-[34rem] w-[34rem] rounded-full bg-[radial-gradient(circle,rgba(45,212,191,0.32),transparent_60%)] blur-[110px]" />
+        {/* Fine noise/grain veil for tactile frost */}
+        <div className="absolute inset-0 opacity-[0.5] bg-[linear-gradient(to_bottom,rgba(5,6,11,0.2),rgba(5,6,11,0.85))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_40%,rgba(5,6,11,0.6))]" />
       </div>
 
-      {/* Main Responsive Command Container */}
-      <div className="relative z-10 mx-auto max-w-7xl space-y-6">
-        
-        {/* INTERACTIVE HUD HEADER */}
-        <header className="group relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white/70 p-6 md:p-8 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.03)] transition-all duration-300 dark:border-slate-800/80 dark:bg-[#080C14]/80 dark:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] tracking-widest">
-                <span className="rounded bg-slate-900 px-2 py-0.5 font-bold text-white dark:bg-white dark:text-black">
-                  CORE_V3
-                </span>
-                <span className="font-semibold text-indigo-600 dark:text-[#4DA6FF]">
-                  // STATUS: OPERATIONAL
-                </span>
-                {profile.openToWork && (
-                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-600 dark:text-[#39D98A]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                    [OPEN_TO_WORK]
-                  </span>
-                )}
-              </div>
-              
-              <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl xl:text-6xl">
-                {profile.fullName}
-              </h1>
-              
-              {profile.headline && (
-                <div className="inline-block rounded-lg border border-slate-200/60 bg-slate-100/80 px-3 py-1 font-mono text-xs font-semibold text-slate-700 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
-                  &lambda; {profile.headline}
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
+        {/* ─────────────── HERO ─────────────── */}
+        <Reveal as="header" duration={0.8}>
+          <Spotlight
+            color="rgba(168,140,255,0.16)"
+            size={620}
+            className="group overflow-hidden rounded-[2rem] border border-white/12 bg-white/[0.055] p-7 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:p-10 lg:p-12"
+          >
+            {/* inner top-edge light refraction */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent"
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-[2rem] bg-gradient-to-b from-white/[0.08] to-transparent"
+            />
+
+            <div className="relative flex flex-col items-start gap-8 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-5 sm:gap-6">
+                {/* Avatar / monogram wafer */}
+                <div className="relative shrink-0">
+                  <span
+                    aria-hidden
+                    className="pxz-halo absolute -inset-1.5 rounded-[1.4rem] bg-[conic-gradient(from_0deg,#818cf8,#ec4899,#22d3ee,#818cf8)] opacity-70 blur-[6px]"
+                  />
+                  {profile.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profile.avatarUrl}
+                      alt={profile.fullName}
+                      className="relative h-20 w-20 rounded-[1.25rem] border border-white/20 object-cover shadow-lg sm:h-24 sm:w-24"
+                    />
+                  ) : (
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-[1.25rem] border border-white/20 bg-white/10 text-2xl font-black tracking-tight text-white shadow-lg backdrop-blur-xl sm:h-24 sm:w-24 sm:text-3xl">
+                      {initials}
+                    </div>
+                  )}
                 </div>
+
+                <div className="space-y-3">
+                  {profile.openToWork && (
+                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200 backdrop-blur-md">
+                      <span className="relative flex h-2 w-2">
+                        <span className="pxz-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                      </span>
+                      Open to work
+                    </span>
+                  )}
+                  <h1 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+                    <GradientText
+                      colors={["#c7d2fe", "#f0abfc", "#67e8f9", "#c7d2fe"]}
+                      duration={7}
+                    >
+                      {profile.fullName}
+                    </GradientText>
+                  </h1>
+                  {profile.headline && (
+                    <p className="max-w-xl text-base font-medium text-slate-300 sm:text-lg">
+                      {profile.headline}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-400">
+                    {profile.location && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Dot /> {profile.location}
+                      </span>
+                    )}
+                    {profile.email && (
+                      <a
+                        href={`mailto:${profile.email}`}
+                        className="inline-flex items-center gap-1.5 rounded-sm text-slate-300 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60"
+                      >
+                        <Dot /> {profile.email}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Magnetic primary CTA */}
+              {profile.email && (
+                <Magnetic as="span" strength={0.4} className="shrink-0">
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="group/cta relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_30px_-8px_rgba(168,140,255,0.6)] backdrop-blur-xl transition-colors hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/70"
+                  >
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-r from-indigo-500/25 via-fuchsia-500/25 to-cyan-500/25 opacity-0 transition-opacity duration-300 group-hover/cta:opacity-100"
+                    />
+                    <span className="relative">Get in touch</span>
+                    <span className="relative transition-transform duration-300 group-hover/cta:translate-x-0.5">
+                      →
+                    </span>
+                  </a>
+                </Magnetic>
               )}
             </div>
 
-            {/* Utility / Theme Controller Anchor */}
-            <div className="flex shrink-0 flex-wrap items-center gap-2.5 border-t border-slate-200/60 pt-4 md:border-t-0 md:pt-0 dark:border-slate-800/60">
-              {links.length > 0 && (
-                <div className="flex flex-wrap gap-2 font-mono text-xs">
-                  {links.map((l) => (
+            {profile.summary && (
+              <p className="relative mt-8 max-w-3xl border-t border-white/10 pt-6 text-base leading-relaxed text-slate-300">
+                {profile.summary}
+              </p>
+            )}
+
+            {/* Links row */}
+            {links.length > 0 && (
+              <div className="relative mt-6 flex flex-wrap gap-2.5">
+                {links.map((l) => (
+                  <Magnetic as="span" key={l.url} strength={0.25}>
                     <a
-                      key={l.url}
                       href={l.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group/link flex items-center gap-1 rounded-lg border border-slate-200/80 bg-white/80 px-3 py-2 font-semibold text-slate-600 shadow-sm backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-indigo-500 hover:text-indigo-600 dark:border-slate-800 dark:bg-[#0D121F]/80 dark:text-slate-400 dark:hover:border-indigo-400 dark:hover:text-white"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 text-sm font-medium text-slate-200 backdrop-blur-md transition-all hover:border-white/25 hover:bg-white/12 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60"
                     >
-                      <span>{l.label || l.kind}</span>
-                      <span className="text-[10px] opacity-40 transition-transform duration-200 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5">↗</span>
+                      {l.label || l.kind}
+                      <span aria-hidden className="text-xs opacity-60">
+                        ↗
+                      </span>
                     </a>
-                  ))}
-                </div>
-              )}
-              
-              {mounted && (
-                <button
-                  onClick={toggleTheme}
-                  aria-label="Toggle runtime mode"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur-md transition-all hover:bg-slate-50 dark:border-slate-800 dark:bg-[#0D121F]/80 dark:hover:bg-slate-800/80"
-                >
-                  {theme === "light" ? (
-                    <svg className="h-4 w-4 text-slate-700" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-                    </svg>
-                  ) : (
-                    <svg className="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m0 13.5V21M5.136 5.136l1.591 1.591m11.144 11.144l1.591 1.591M3 12h2.25m13.5 0H21M5.136 18.864l1.591-1.591M17.864 5.136l1.591-1.591M12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9z" />
-                    </svg>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-          
-          {profile.summary && (
-            <p className="mt-6 max-w-4xl border-t border-slate-200/60 pt-4 text-sm leading-relaxed text-slate-600 dark:border-slate-800/60 dark:text-slate-400">
-              {profile.summary}
-            </p>
-          )}
-        </header>
-
-        {/* ASYMMETRICAL 3-COLUMN CONTENT GRID */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          
-          {/* COLUMN 1 & 2: Primary Repos & Timeline Deployments */}
-          <div className="space-y-6 lg:col-span-2">
-            
-            {/* Projects Registry Grid */}
-            {projects.length > 0 && (
-              <Section method="init_projects()" title="Project Repositories">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {projects.map((p) => (
-                    <article 
-                      key={p.name} 
-                      className="group relative flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white/50 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/50 hover:bg-white hover:shadow-xl hover:shadow-indigo-500/5 dark:border-slate-800/80 dark:bg-[#080C14]/50 dark:hover:border-[#4DA6FF]/50 dark:hover:bg-[#0A101C] dark:hover:shadow-indigo-500/10"
-                    >
-                      <div>
-                        <div className="flex items-start justify-between gap-4">
-                          <h3 className="text-base font-bold text-slate-900 transition-colors group-hover:text-indigo-600 dark:text-white dark:group-hover:text-[#4DA6FF]">
-                            {p.name}
-                          </h3>
-                          {p.featured && (
-                            <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-widest text-indigo-600 dark:text-[#4DA6FF]">
-                              CRITICAL
-                            </span>
-                          )}
-                        </div>
-                        {p.tagline && (
-                          <p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                            {p.tagline}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div className="mt-6 space-y-4">
-                        {p.tech.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {p.tech.map((t) => (
-                              <span key={t} className="rounded border border-slate-200/50 bg-slate-100/80 px-2 py-0.5 font-mono text-[10px] font-medium text-slate-600 dark:border-slate-800/60 dark:bg-slate-900/80 dark:text-slate-400">
-                                {t}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-4 border-t border-slate-200/60 pt-3 font-mono text-[11px] font-bold dark:border-slate-800/60">
-                          {p.liveUrl && (
-                            <a className="text-indigo-600 transition-colors hover:underline dark:text-[#4DA6FF]" href={p.liveUrl} target="_blank" rel="noopener noreferrer">
-                              LIVE_DEMO ↗
-                            </a>
-                          )}
-                          {p.repoUrl && (
-                            <a className="text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-white" href={p.repoUrl} target="_blank" rel="noopener noreferrer">
-                              CODE ↗
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </Section>
+                  </Magnetic>
+                ))}
+              </div>
             )}
+          </Spotlight>
+        </Reveal>
 
-            {/* Experience Timeline Grid Track */}
-            {experiences.length > 0 && (
-              <Section method="get_experience_history()" title="Deployment Track">
-                <div className="space-y-4">
-                  {experiences.map((e, i) => (
-                    <div key={i} className="rounded-xl border border-slate-200/80 bg-white/50 p-5 backdrop-blur-xl transition-all duration-300 hover:border-slate-300 dark:border-slate-800/80 dark:bg-[#080C14]/50 dark:hover:border-slate-700">
-                      <div className="flex flex-col justify-between gap-x-4 gap-y-1 border-b border-slate-200/60 pb-3 dark:border-slate-800/60 sm:flex-row sm:items-baseline">
-                        <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                          {e.title} <span className="font-normal text-slate-400">@</span> <span className="text-indigo-600 dark:text-[#4DA6FF]">{e.organization}</span>
-                        </h4>
-                        <span className="shrink-0 font-mono text-xs text-slate-400 dark:text-slate-500">
-                          [{e.startDate ?? ""} — {e.endDate ?? "PRESENT"}]
+        {/* ─────────────── PROJECTS ─────────────── */}
+        {projects.length > 0 && (
+          <section className="mt-16 sm:mt-20">
+            <SectionHeading eyebrow="Selected work" title="Projects" />
+            <Stagger className="grid grid-cols-1 gap-6 md:grid-cols-2" stagger={0.1}>
+              {projects.map((p) => (
+                <Item as="article" key={p.name}>
+                  <TiltCard
+                    max={6}
+                    glareColor="rgba(255,255,255,0.16)"
+                    className="h-full"
+                  >
+                    <div className="relative flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-white/12 bg-white/[0.055] p-6 shadow-[0_18px_60px_-30px_rgba(0,0,0,0.9)] backdrop-blur-2xl transition-colors hover:border-white/22">
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"
+                      />
+                      {p.featured && (
+                        <span className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-fuchsia-200">
+                          ★ Featured
                         </span>
-                      </div>
-                      {e.bullets.length > 0 && (
-                        <ul className="mt-4 space-y-2 font-mono text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                          {e.bullets.map((b, j) => (
-                            <li key={j} className="flex items-start gap-2.5">
-                              <span className="shrink-0 font-bold text-indigo-500 dark:text-[#4DA6FF]">=&gt;</span>
-                              <span className="font-sans text-slate-600 dark:text-slate-400">{b}</span>
+                      )}
+                      <h3 className="text-lg font-bold tracking-tight text-white">
+                        {p.name}
+                      </h3>
+                      {p.tagline && (
+                        <p className="mt-1.5 text-sm font-medium text-indigo-200/80">
+                          {p.tagline}
+                        </p>
+                      )}
+                      {p.description && (
+                        <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                          {p.description}
+                        </p>
+                      )}
+
+                      {p.bullets.length > 0 && (
+                        <ul className="mt-4 space-y-2">
+                          {p.bullets.map((b, j) => (
+                            <li
+                              key={j}
+                              className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-300"
+                            >
+                              <span
+                                aria-hidden
+                                className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-fuchsia-400 to-cyan-400"
+                              />
+                              <span>{b}</span>
                             </li>
                           ))}
                         </ul>
                       )}
+
+                      {p.tech.length > 0 && (
+                        <div className="mt-5 flex flex-wrap gap-1.5">
+                          {p.tech.map((t) => (
+                            <Chip key={t}>{t}</Chip>
+                          ))}
+                        </div>
+                      )}
+
+                      {(p.liveUrl || p.repoUrl) && (
+                        <div className="mt-6 flex items-center gap-4 border-t border-white/10 pt-4 text-sm font-semibold">
+                          {p.liveUrl && (
+                            <a
+                              href={p.liveUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-sm text-cyan-200 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
+                            >
+                              Live demo <span aria-hidden>↗</span>
+                            </a>
+                          )}
+                          {p.repoUrl && (
+                            <a
+                              href={p.repoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-sm text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60"
+                            >
+                              Code <span aria-hidden>↗</span>
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              </Section>
-            )}
+                  </TiltCard>
+                </Item>
+              ))}
+            </Stagger>
+          </section>
+        )}
 
-          </div>
-
-          {/* COLUMN 3: Capabilities, Stack Modules & Education */}
-          <div className="space-y-6">
-            
-            {/* Core Capability Inventory Panels */}
-            {skills.length > 0 && (
-              <Section method="load_capabilities()" title="Technical Stack">
-                <div className="space-y-3">
-                  {skills.map((s) => (
-                    <div key={s.category} className="rounded-xl border border-slate-200/80 bg-white/50 p-4 backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#080C14]/50">
-                      <span className="mb-2.5 block font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#4DA6FF]">
-                        :: {s.category}
+        {/* ─────────────── EXPERIENCE (frosted timeline) ─────────────── */}
+        {experiences.length > 0 && (
+          <section className="mt-16 sm:mt-20">
+            <SectionHeading eyebrow="Career" title="Experience" />
+            <Spotlight
+              color="rgba(120,160,255,0.12)"
+              className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-2xl sm:p-8"
+            >
+              <Stagger className="relative" stagger={0.09}>
+                {/* vertical rail */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute bottom-2 left-[7px] top-2 w-px bg-gradient-to-b from-fuchsia-400/40 via-indigo-400/30 to-cyan-400/40 sm:left-[9px]"
+                />
+                <div className="space-y-8">
+                  {experiences.map((e, i) => (
+                    <Item key={i} className="relative pl-8 sm:pl-10">
+                      <span
+                        aria-hidden
+                        className="absolute left-0 top-1.5 flex h-4 w-4 items-center justify-center rounded-full border border-white/25 bg-white/10 backdrop-blur-md sm:h-5 sm:w-5"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-br from-fuchsia-400 to-cyan-400" />
                       </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {s.items.map((i) => (
-                          <span key={i} className="rounded border border-slate-200/60 bg-slate-100/60 px-2 py-0.5 font-mono text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
-                            {i}
+                      <div className="flex flex-col gap-x-4 gap-y-1 sm:flex-row sm:items-baseline sm:justify-between">
+                        <h3 className="text-base font-bold text-white sm:text-lg">
+                          {e.title}
+                          {e.organization && (
+                            <>
+                              <span className="font-normal text-slate-500"> · </span>
+                              <span className="text-indigo-200">
+                                {e.organization}
+                              </span>
+                            </>
+                          )}
+                        </h3>
+                        {(e.startDate || e.endDate) && (
+                          <span className="shrink-0 font-mono text-xs text-slate-400">
+                            {e.startDate ?? ""} — {e.endDate ?? "Present"}
                           </span>
-                        ))}
+                        )}
                       </div>
-                    </div>
+                      {e.location && (
+                        <p className="mt-0.5 text-xs text-slate-400">{e.location}</p>
+                      )}
+                      {e.bullets.length > 0 && (
+                        <ul className="mt-3 space-y-2">
+                          {e.bullets.map((b, j) => (
+                            <li
+                              key={j}
+                              className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-300"
+                            >
+                              <span
+                                aria-hidden
+                                className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400/70"
+                              />
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </Item>
                   ))}
                 </div>
-              </Section>
+              </Stagger>
+            </Spotlight>
+          </section>
+        )}
+
+        {/* ─────────────── SKILLS + EDUCATION ─────────────── */}
+        {(skills.length > 0 || educations.length > 0) && (
+          <section className="mt-16 grid grid-cols-1 gap-6 sm:mt-20 lg:grid-cols-2">
+            {/* Skills */}
+            {skills.length > 0 && (
+              <div>
+                <SectionHeading eyebrow="Toolkit" title="Skills" />
+                <Stagger className="space-y-4" stagger={0.08}>
+                  {skills.map((s) => (
+                    <Item key={s.category}>
+                      <div className="rounded-[1.4rem] border border-white/12 bg-white/[0.05] p-5 backdrop-blur-2xl">
+                        <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-indigo-200/80">
+                          {s.category}
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {s.items.map((it) => (
+                            <Chip key={it}>{it}</Chip>
+                          ))}
+                        </div>
+                      </div>
+                    </Item>
+                  ))}
+                </Stagger>
+              </div>
             )}
 
-            {/* Academic Track Array */}
+            {/* Education */}
             {educations.length > 0 && (
-              <Section method="verify_credentials()" title="Academic Grid">
-                <div className="space-y-4 rounded-xl border border-slate-200/80 bg-white/50 p-5 backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#080C14]/50">
+              <div>
+                <SectionHeading eyebrow="Background" title="Education" />
+                <Stagger className="space-y-4" stagger={0.08}>
                   {educations.map((ed, i) => (
-                    <div key={i} className="space-y-1 border-l-2 border-indigo-500/40 pl-3.5 text-xs dark:border-indigo-400/40">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{ed.institution}</span>
-                        {ed.endYear && <span className="font-mono text-[10px] text-slate-400 dark:text-slate-500">({ed.endYear})</span>}
+                    <Item key={i}>
+                      <div className="rounded-[1.4rem] border border-white/12 bg-white/[0.05] p-5 backdrop-blur-2xl">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <h3 className="text-base font-bold text-white">
+                            {ed.institution}
+                          </h3>
+                          {(ed.startYear || ed.endYear) && (
+                            <span className="shrink-0 font-mono text-xs text-slate-400">
+                              {ed.startYear ?? ""}
+                              {ed.startYear && ed.endYear ? "–" : ""}
+                              {ed.endYear ?? ""}
+                            </span>
+                          )}
+                        </div>
+                        {ed.degree && (
+                          <p className="mt-1 text-sm text-slate-300">{ed.degree}</p>
+                        )}
+                        {ed.score && (
+                          <p className="mt-1 text-xs font-medium text-indigo-200/80">
+                            {ed.score}
+                          </p>
+                        )}
                       </div>
-                      <p className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                        {ed.degree} {ed.score && `[VAL: ${ed.score}]`}
-                      </p>
-                    </div>
+                    </Item>
                   ))}
-                </div>
-              </Section>
+                </Stagger>
+              </div>
             )}
+          </section>
+        )}
 
+        {/* ─────────────── FOOTER ─────────────── */}
+        <Reveal as="footer" className="mt-16 sm:mt-24">
+          <div className="flex flex-col items-center justify-between gap-3 rounded-[1.4rem] border border-white/10 bg-white/[0.04] px-6 py-5 text-sm text-slate-400 backdrop-blur-2xl sm:flex-row">
+            <span>
+              © {profile.fullName}
+            </span>
+            <a
+              href="https://portxz.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm text-slate-300 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60"
+            >
+              Built with Portxz ↗
+            </a>
           </div>
-
-        </div>
-
-        {/* SYSTEM STATUS GRID FOOTER MODULE */}
-        <footer className="flex flex-col items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/40 px-6 py-4 font-mono text-[10px] tracking-widest text-slate-400 backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#080C14]/30 sm:flex-row">
-          <span className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            SYSTEM_NODE // DISPATCH_STABLE_OK
-          </span>
-          <a href="https://portxz.vercel.app" target="_blank" rel="noopener noreferrer" className="text-slate-500 transition-colors hover:text-indigo-600 dark:hover:text-[#4DA6FF]">
-            INITIALIZE_INSTANCE ↗
-          </a>
-        </footer>
-
+        </Reveal>
       </div>
     </main>
   );
 }
 
-interface SectionProps {
-  title: string;
-  method: string;
-  children: React.ReactNode;
+/* ─────────────── small local building blocks ─────────────── */
+
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <Reveal className="mb-7">
+      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-fuchsia-300/70">
+        {eyebrow}
+      </p>
+      <h2 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
+        {title}
+      </h2>
+    </Reveal>
+  );
 }
 
-function Section({ title, method, children }: SectionProps) {
+function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <section className="w-full space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-200/80 pb-2 dark:border-slate-800/80">
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">
-            {title}
-          </h2>
-          <span className="hidden font-mono text-[10px] lowercase text-slate-400 dark:text-slate-600 sm:inline">
-            .{method}
-          </span>
-        </div>
-        <span className="font-mono text-[10px] text-slate-300 dark:text-slate-800">
-          //0x_
-        </span>
-      </div>
+    <span className="rounded-full border border-white/12 bg-white/[0.07] px-2.5 py-1 text-xs font-medium text-slate-200 backdrop-blur-md">
       {children}
-    </section>
+    </span>
+  );
+}
+
+function Dot() {
+  return (
+    <span
+      aria-hidden
+      className="inline-block h-1 w-1 rounded-full bg-slate-500"
+    />
+  );
+}
+
+/* ─────────────── deterministic, reduced-motion-safe keyframes ─────────────── */
+
+function GlassStyles() {
+  return (
+    <style>{`
+      @keyframes pxz-blob-a {
+        0%,100% { transform: translate3d(0,0,0) scale(1); }
+        33%     { transform: translate3d(6%,8%,0) scale(1.12); }
+        66%     { transform: translate3d(-5%,4%,0) scale(0.94); }
+      }
+      @keyframes pxz-blob-b {
+        0%,100% { transform: translate3d(0,0,0) scale(1); }
+        33%     { transform: translate3d(-7%,6%,0) scale(0.9); }
+        66%     { transform: translate3d(4%,-6%,0) scale(1.14); }
+      }
+      @keyframes pxz-blob-c {
+        0%,100% { transform: translate3d(0,0,0) scale(1); }
+        50%     { transform: translate3d(8%,-7%,0) scale(1.16); }
+      }
+      @keyframes pxz-blob-d {
+        0%,100% { transform: translate3d(0,0,0) scale(1); }
+        50%     { transform: translate3d(-6%,-5%,0) scale(1.1); }
+      }
+      @keyframes pxz-halo-spin { to { transform: rotate(360deg); } }
+      @keyframes pxz-ping {
+        75%,100% { transform: scale(2); opacity: 0; }
+      }
+      .pxz-blob { will-change: transform; }
+      .pxz-blob-a { animation: pxz-blob-a 22s ease-in-out infinite; }
+      .pxz-blob-b { animation: pxz-blob-b 26s ease-in-out infinite; }
+      .pxz-blob-c { animation: pxz-blob-c 30s ease-in-out infinite; }
+      .pxz-blob-d { animation: pxz-blob-d 24s ease-in-out infinite; }
+      .pxz-halo { animation: pxz-halo-spin 14s linear infinite; transform-origin: center; }
+      .pxz-ping { animation: pxz-ping 1.6s cubic-bezier(0,0,0.2,1) infinite; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .pxz-blob-a, .pxz-blob-b, .pxz-blob-c, .pxz-blob-d,
+        .pxz-halo, .pxz-ping {
+          animation: none !important;
+        }
+      }
+    `}</style>
   );
 }
