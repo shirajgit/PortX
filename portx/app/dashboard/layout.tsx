@@ -16,9 +16,16 @@ export default async function DashboardLayout({
   const isAdmin = userId === process.env.ADMIN_CLERK_ID;
 
   return (
-    <div className="flex min-h-screen bg-[#0A0F1E] text-[#E8EDF7]">
+    <div className="relative isolate flex min-h-screen bg-[#0A0F1E] text-[#E8EDF7]">
+      {/* ambient background glow — subtle depth, degrades gracefully in light mode */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-32 -top-40 h-96 w-96 rounded-full bg-[#4DA6FF]/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-0 h-[26rem] w-[26rem] rounded-full bg-[#39D98A]/[0.06] blur-[130px]" />
+      </div>
       <DashboardNav username={profile?.username ?? null} isAdmin={isAdmin} />
-      <main className="flex-1 p-6 pt-20 sm:p-10 sm:pt-10">{children}</main>
+      <main className="flex-1 p-6 pt-20 sm:p-10 sm:pt-10">
+        <div className="mx-auto w-full max-w-6xl">{children}</div>
+      </main>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PortxzLoader } from "@/components/PortxzLoader";
 
 /* ── portxz onboarding wizard ───────────────────────────────────────────
    New signups walk: Profile → Project → Experience → Skills → Education
@@ -226,12 +227,7 @@ export default function SetupWizard() {
     }
   }
 
-  if (step === null)
-    return (
-      <main className="grid min-h-screen place-items-center bg-[#0A0F1E] text-[#8B98B8]">
-        Loading…
-      </main>
-    );
+  if (step === null) return <PortxzLoader fullscreen label="Setting things up" />;
 
   const meta = STEPS[step]; // index aligns: 0 = claim, 1-7 = content steps
   const displayStep = step + 1; // 1..8 for humans

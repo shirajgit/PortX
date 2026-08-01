@@ -105,14 +105,17 @@ export default async function Overview() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Stat label="Total views" value={views} accent="#4DA6FF" />
-        <Stat label="Views this week" value={weekViews} accent="#39D98A" />
-        <Stat label="Resume downloads" value={downloads} accent="#FFB454" />
+        <Stat label="Total views" value={views} accent="#4DA6FF" icon={STAT_ICONS.views} />
+        <Stat label="Views this week" value={weekViews} accent="#39D98A" icon={STAT_ICONS.week} />
+        <Stat label="Resume downloads" value={downloads} accent="#FFB454" icon={STAT_ICONS.download} />
       </div>
 
       {/* Chart */}
-      <div className="rounded-xl border border-[#1E2C52] bg-[#111A36] p-5 light:bg-white light:border-slate-200 shadow-sm">
-        <p className="text-xs font-mono uppercase tracking-widest text-[#8B98B8] mb-4">Traffic Performance</p>
+      <div className="rounded-xl border border-[#1E2C52] bg-[#111A36] p-5 shadow-sm transition hover:border-[#2A3E6E] light:bg-white light:border-slate-200">
+        <div className="mb-4 flex items-center justify-between">
+          <p className="font-mono text-xs uppercase tracking-widest text-[#8B98B8]">Traffic Performance</p>
+          <span className="font-mono text-[11px] text-[#5C6A87]">last 7 days</span>
+        </div>
         <div className="h-[200px] w-full">
           <ViewsChart data={chartData} />
         </div>
@@ -144,7 +147,7 @@ export default async function Overview() {
           {checklist.map((c) => (
             <li key={c.label}>
               <Link href={c.href}
-                className="flex items-center gap-3 rounded-lg border border-[#1E2C52] bg-[#111A36] px-4 py-3 transition hover:border-[#4DA6FF] light:bg-white light:border-slate-200 light:hover:border-blue-400">
+                className="group flex items-center gap-3 rounded-lg border border-[#1E2C52] bg-[#111A36] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[#4DA6FF] light:bg-white light:border-slate-200 light:hover:border-blue-400">
                 <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border text-[11px] ${
                   c.done
                     ? "border-[#39D98A] bg-[#39D98A]/15 text-[#39D98A]"
@@ -154,7 +157,7 @@ export default async function Overview() {
                 <span className={`text-sm ${c.done ? "text-[#5C6A87] line-through light:text-slate-400" : "text-white light:text-slate-700"}`}>
                   {c.label}
                 </span>
-                <span className="ml-auto text-[#5C6A87]">→</span>
+                <span className="ml-auto text-[#5C6A87] transition-transform group-hover:translate-x-0.5 group-hover:text-[#4DA6FF]">→</span>
               </Link>
             </li>
           ))}
@@ -174,11 +177,35 @@ export default async function Overview() {
   );
 }
 
-function Stat({ label, value, accent }: { label: string; value: number; accent: string }) {
+/* small line icons for the stat cards */
+const STAT_ICONS = {
+  views: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  week: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M3 17l6-6 4 4 7-7" /><path d="M17 8h4v4" />
+    </svg>
+  ),
+  download: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M12 3v12" /><path d="M7 11l5 5 5-5" /><path d="M4 21h16" />
+    </svg>
+  ),
+};
+
+function Stat({ label, value, accent, icon }: { label: string; value: number; accent: string; icon: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-[#1E2C52] bg-[#111A36] p-5 light:bg-white light:border-slate-200">
-      <p className="text-3xl font-bold" style={{ color: accent }}>{value}</p>
-      <p className="mt-0.5 font-mono text-xs uppercase tracking-wider text-[#8B98B8] light:text-slate-400">{label}</p>
+    <div className="group relative overflow-hidden rounded-xl border border-[#1E2C52] bg-[#111A36] p-5 transition duration-200 hover:-translate-y-0.5 hover:border-[#2A3E6E] light:bg-white light:border-slate-200">
+      {/* accent glow blob */}
+      <div aria-hidden className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full opacity-20 blur-2xl transition-opacity duration-200 group-hover:opacity-40" style={{ backgroundColor: accent }} />
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-[#8B98B8] light:text-slate-400">{label}</p>
+        <span style={{ color: accent }}>{icon}</span>
+      </div>
+      <p className="mt-3 text-3xl font-bold tabular-nums" style={{ color: accent }}>{value}</p>
     </div>
   );
 }
@@ -186,7 +213,7 @@ function Stat({ label, value, accent }: { label: string; value: number; accent: 
 function Action({ href, label, external }: { href: string; label: string; external?: boolean }) {
   return (
     <Link href={href} target={external ? "_blank" : undefined}
-      className="rounded-lg border border-[#1E2C52] bg-[#0F1730] px-4 py-2.5 text-center text-sm text-[#8FC4FF] transition hover:border-[#4DA6FF] hover:bg-[#111A36] light:bg-white light:border-slate-200 light:text-slate-700 light:hover:bg-slate-50">
+      className="rounded-lg border border-[#1E2C52] bg-[#0F1730] px-4 py-2.5 text-center text-sm text-[#8FC4FF] transition hover:-translate-y-0.5 hover:border-[#4DA6FF] hover:bg-[#111A36] light:bg-white light:border-slate-200 light:text-slate-700 light:hover:bg-slate-50">
       {label}{external && " ↗"}
     </Link>
   );

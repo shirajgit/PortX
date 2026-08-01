@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { EnhanceButton } from "@/components/editor/EnhanceButton";
 import { usePlan } from "@/lib/usePlan";
 import { PlanChip } from "@/components/PlanChip";
+import { PortxzLoader } from "@/components/PortxzLoader";
 
 type ProfileForm = {
   fullName: string;
@@ -61,7 +62,7 @@ export default function ProfilePage() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  if (loading) return <p className="text-[#8B98B8]">Loading…</p>;
+  if (loading) return <PortxzLoader label="Loading profile" />;
 
   return (
     <div className="w-full max-w-none">

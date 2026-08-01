@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { PortxzLoader } from "@/components/PortxzLoader";
 
 export default function ReadmePage() {
   const [markdown, setMarkdown] = useState("");
@@ -37,7 +38,7 @@ export default function ReadmePage() {
       </p>
 
       {loading ? (
-        <p className="mt-6 text-[#8B98B8]">Generating…</p>
+        <PortxzLoader label="Generating README" />
       ) : (
         <>
           <div className="mt-6 flex gap-3">
