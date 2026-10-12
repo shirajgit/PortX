@@ -11,7 +11,9 @@ const OPTIONS = [
   { id: "minimal", name: "Minimal", note: "Blue-black, fast, readable.", proOnly: false },
   { id: "cli", name: "CLI Terminal", note: "Visitors type commands to explore. The shareable one.", proOnly: true },
   { id: "glass", name: "Glassmorphism", note: "Frosted cards over gradient orbs.", proOnly: true },
+  { id: "editorial", name: "Editorial", note: "Serif magazine style, light.", proOnly: true },
   { id: "noir", name: "Noir", note: "Black & gold quiet luxury.", proOnly: true },
+  { id: "bento", name: "Bento", note: "Modern tile grid.", proOnly: true },
   { id: "executive", name: "Executive", note: "Corporate-clean & light. Interview-ready.", proOnly: true },
   { id: "aurora", name: "Aurora", note: "Glowing gradient washes. Luminous.", proOnly: true },
 ];

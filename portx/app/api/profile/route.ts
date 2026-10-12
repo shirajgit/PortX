@@ -71,7 +71,7 @@ const PatchInput = z.object({
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().max(20).optional(),
   openToWork: z.boolean().optional(),
-  template: z.enum(["minimal", "cli", "glass", "executive", "noir", "aurora"]).optional(),
+  template: z.enum(["minimal", "cli", "glass", "editorial", "noir", "bento", "executive", "aurora"]).optional(),
   isPublished: z.boolean().optional(),
   onboardingStep: z.number().int().min(1).max(8).optional(),
 });

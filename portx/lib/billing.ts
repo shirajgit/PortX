@@ -34,4 +34,4 @@ export function newExpiry(current: Date | null, days: number): Date {
   return new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
-export const PRO_TEMPLATES = new Set(["cli", "glass", "executive", "noir", "aurora"]);
+export const PRO_TEMPLATES = new Set(["cli", "glass", "editorial", "noir", "bento", "executive", "aurora"]);
