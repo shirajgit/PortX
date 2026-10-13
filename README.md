@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.portxz.xyz"><b>www.portxz.xyz</b></a> · Live in ~3 minutes · Zero code needed
+  <a href="https://portxz.xyz"><b>portxz.xyz</b></a> · Live in ~3 minutes · Zero code needed
 </p>
 
 ---
@@ -109,7 +109,7 @@ Pro passes: **₹49 launch offer** (first 50, one month) · ₹149 / month · �
 ## 🧑‍💻 Author
 
 **Shiraj Mujawar** — built solo, after work.
-[Portfolio](https://www.portxz.xyz/shiraj02) · [GitHub](https://github.com/shirajgit)
+[Portfolio](https://portxz.xyz/shiraj02) · [GitHub](https://github.com/shirajgit)
 
 ---
 
