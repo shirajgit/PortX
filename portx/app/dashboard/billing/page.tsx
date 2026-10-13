@@ -92,7 +92,7 @@ export default function BillingPage() {
       order_id: order.orderId,
       amount: order.amount,
       currency: order.currency,
-      name: "portX",
+      name: "Portxz",
       description: selected.label,
       prefill,
       theme: { color: "#4DA6FF" },
@@ -190,6 +190,11 @@ export default function BillingPage() {
           <h3 className="font-semibold">{selected.label} — ₹{selected.price}</h3>
           <p className="mt-2 text-sm text-[#8B98B8]">
             Pay securely with UPI, card, netbanking or wallet. Pro activates as soon as the payment goes through.
+          </p>
+          <p className="mt-2 text-xs text-[#8B98B8]">
+            By paying you agree to our{" "}
+            <a href="/terms" target="_blank" className="text-[#4DA6FF] hover:underline">Terms</a> and{" "}
+            <a href="/refund-policy" target="_blank" className="text-[#4DA6FF] hover:underline">Refund Policy</a>.
           </p>
           <div className="mt-4 flex gap-3">
             <button onClick={pay} disabled={busy}

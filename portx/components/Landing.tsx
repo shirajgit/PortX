@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
 import { FAQ } from "@/lib/faq";
+import { LEGAL_LINKS } from "@/lib/site";
 
 /* ═══ Portxz landing — animated SaaS edition ═══ */
 
@@ -568,6 +569,11 @@ export function Landing() {
       <footer className="relative z-10 border-t border-[#1E2C52]">
         <div className="flex w-full flex-col items-center justify-between gap-3 px-6 py-8 sm:flex-row sm:px-12">
           <Logo size="sm" />
+          <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2 font-mono text-xs text-[#8B98B8]">
+            {LEGAL_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className="hover:text-[#4DA6FF]">{l.label}</Link>
+            ))}
+          </nav>
           <p className="font-mono text-xs text-[#6B7A99]">© {new Date().getFullYear()} Portxz · one profile, always in sync</p>
         </div>
       </footer>

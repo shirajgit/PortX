@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, LEGAL_LINKS } from "@/lib/site";
 
 // Rebuilt at most once an hour, so newly published portfolios show up without a deploy.
 export const revalidate = 3600;
@@ -9,6 +9,11 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const home: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "weekly", priority: 1 },
+    ...LEGAL_LINKS.map((l) => ({
+      url: `${SITE_URL}${l.href}`,
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+    })),
   ];
 
   try {
