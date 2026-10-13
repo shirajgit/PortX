@@ -248,7 +248,7 @@ export default function SetupWizard() {
         <div className="flex items-center justify-between">
           <Logo size="md" />
           <span className="font-mono text-xs text-[#8B98B8]">
-            step {displayStep}/8{username ? ` · Portxz.vercel.app/${username}` : ""}
+            step {displayStep}/8{username ? ` · portxz.xyz/${username}` : ""}
           </span>
         </div>
         <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#111A36]">
@@ -272,7 +272,7 @@ export default function SetupWizard() {
                 onChange={(e) => setClaimName(e.target.value)} />
               <label className={label}>Username</label>
               <div className="mt-1 flex items-center rounded-lg border border-[#1E2C52] bg-[#111A36] focus-within:border-[#4DA6FF]">
-                <span className="pl-4 font-mono text-sm text-[#8B98B8]">Portxz.vercel.app/</span>
+                <span className="pl-4 font-mono text-sm text-[#8B98B8]">portxz.xyz/</span>
                 <input value={claimUser} onChange={(e) => checkAvail(e.target.value)}
                   className="w-full bg-transparent px-1 py-2.5 font-mono text-sm outline-none" placeholder="shiraj" />
               </div>

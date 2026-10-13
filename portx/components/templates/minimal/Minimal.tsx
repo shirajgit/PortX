@@ -221,7 +221,7 @@ export function Minimal({ data }: TemplateProps) {
                   <span>SYSTEM: PORTXZ_V2</span>
                   <Magnetic strength={0.3}>
                     <a
-                      href="https://Portxz.vercel.app"
+                      href="https://www.portxz.xyz"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="rounded outline-none transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:hover:text-white"
@@ -494,7 +494,7 @@ export function Minimal({ data }: TemplateProps) {
             <footer className="flex items-center justify-between border-t border-slate-200/80 pt-6 font-mono text-[10px] text-slate-400 dark:border-slate-800/60 dark:text-slate-600 lg:hidden">
               <span>SYSTEM // PORTXZ</span>
               <a
-                href="https://Portxz.vercel.app"
+                href="https://www.portxz.xyz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-blue-500 dark:hover:text-white"

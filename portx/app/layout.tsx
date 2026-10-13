@@ -1,35 +1,38 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://Portxz.vercel.app";
+const TITLE = "Portxz — Portfolio, ATS Resume & GitHub README in Sync";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: {
-    default: "Portxz — Working Profitinal Portfolio Builder with ATS Resume & GitHub README",
+    default: TITLE,
     template: "%s | Portxz",
   },
-  description:
-    "Free developer portfolio builder. One profile generates your live portfolio website, ATS-friendly resume PDF, and GitHub README — always in sync. 8 templates including an interactive CLI terminal. Built for developers who ship.",
+  description: SITE_DESCRIPTION,
   keywords: [
     "portfolio builder",
     "developer portfolio builder",
-    "free portfolio website for developers",
+    "free portfolio website",
+    "portfolio website for developers",
     "ATS resume builder",
-    "ATS friendly resume for developers",
+    "ATS friendly resume",
     "GitHub profile README generator",
-    "developer portfolio templates",
+    "portfolio templates",
     "portfolio and resume in sync",
     "CLI terminal portfolio",
     "portfolio builder India",
+    "Portxz",
   ],
-  authors: [{ name: "Portxz" }],
-  creator: "Portxz",
-  publisher: "Portxz",
-  alternates: {
-    canonical: "/",
-  },
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "technology",
+  // No site-wide canonical here: each page sets its own, so a portfolio is
+  // never treated as a copy of the home page.
   robots: {
     index: true,
     follow: true,
@@ -38,23 +41,26 @@ export const metadata: Metadata = {
       follow: true,
       "max-image-preview": "large",
       "max-snippet": -1,
+      "max-video-preview": -1,
     },
   },
   openGraph: {
     type: "website",
-    locale: "en_US",
-    url: SITE_URL,
-    title: "Portxz — Developer Portfolio Builder with ATS Resume & GitHub README",
+    locale: "en_IN",
+    url: "/",
+    siteName: SITE_NAME,
+    title: TITLE,
     description:
       "One profile → live portfolio + ATS resume PDF + GitHub README, always in sync. Free to start.",
-    siteName: "Portxz",
+    images: [{ url: "/brand/og.png", width: 1200, height: 630, alt: "Portxz — one profile, always in sync" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Portxz — Developer Portfolio Builder",
+    title: TITLE,
     description:
       "One profile → portfolio + ATS resume + GitHub README, always in sync. Free to start.",
     creator: "@portxz",
+    images: ["/brand/og.png"],
   },
   icons: {
     icon: [
@@ -65,6 +71,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#0A0F1E",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
@@ -73,26 +83,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <script
             dangerouslySetInnerHTML={{
               __html: `try{if(localStorage.getItem('Portxz-theme')==='light')document.documentElement.classList.add('light')}catch(e){}`,
-            }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                name: "Portxz",
-                applicationCategory: "DeveloperApplication",
-                operatingSystem: "Web",
-                description:
-                  "Developer portfolio builder that generates a live portfolio, ATS resume PDF, and GitHub README from one profile.",
-                url: SITE_URL,
-                offers: {
-                  "@type": "Offer",
-                  price: "0",
-                  priceCurrency: "INR",
-                },
-              }),
             }}
           />
         </head>

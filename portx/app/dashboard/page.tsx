@@ -94,7 +94,7 @@ export default async function Overview() {
           <p className="mt-1 text-[#8B98B8] light:text-slate-500 text-sm">
             Your page:{" "}
             <a className="font-mono text-[#8FC4FF] hover:text-white light:text-blue-600 light:hover:text-blue-700" href={`/${profile.username}`} target="_blank">
-              Portxz.vercel.app/{profile.username} ↗
+              portxz.xyz/{profile.username} ↗
             </a>
             {!profile.isPublished && <span className="ml-2 font-mono text-xs text-[#FFB454]">(unpublished)</span>}
           </p>
@@ -168,7 +168,7 @@ export default async function Overview() {
         <div className="rounded-xl border border-[#1E3A2E] bg-[#0E2018] p-5 light:bg-emerald-50 light:border-emerald-200">
           <p className="font-semibold text-[#39D98A] light:text-emerald-700">You're fully launched 🚀</p>
           <p className="mt-1 text-sm text-[#8B98B8] light:text-slate-600">
-            Share <span className="font-mono text-[#8FC4FF] light:text-blue-600">Portxz.vercel.app/{profile.username}</span> on
+            Share <span className="font-mono text-[#8FC4FF] light:text-blue-600">portxz.xyz/{profile.username}</span> on
             LinkedIn and X — every view shows up in your stats above.
           </p>
         </div>

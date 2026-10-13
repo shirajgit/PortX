@@ -270,7 +270,7 @@ export default function TemplatePage() {
             </p>
             <p className="text-sm text-[#8B98B8]">
               {published
-                ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">portxz.in/{username}</a>{" "}
+                ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">portxz.xyz/{username}</a>{" "}
                     with <span className="font-mono text-[#8FC4FF]">{savedTemplate}</span>.</>
                 : "Your page returns 404 until you publish."}
             </p>

@@ -482,7 +482,7 @@ export function Glass({ data }: TemplateProps) {
               © {profile.fullName}
             </span>
             <a
-              href="https://portxz.vercel.app"
+              href="https://www.portxz.xyz"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-sm text-slate-300 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60"

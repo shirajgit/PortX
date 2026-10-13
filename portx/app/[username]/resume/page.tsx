@@ -8,6 +8,18 @@ export const revalidate = 60;
 
 type Props = { params: Promise<{ username: string }> };
 
+/* The resume repeats the portfolio's content, so point search engines at the portfolio. */
+export async function generateMetadata({ params }: Props) {
+  const { username } = await params;
+  const result = await getPortfolioData(username.toLowerCase());
+  if (!result) return {};
+  return {
+    title: `${result.data.profile.fullName} — Resume`,
+    alternates: { canonical: `/${username.toLowerCase()}` },
+    robots: { index: false, follow: true },
+  };
+}
+
 export default async function ResumePage({ params }: Props) {
   const { username } = await params;
   const result = await getPortfolioData(username.toLowerCase());
