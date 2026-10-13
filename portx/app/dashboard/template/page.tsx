@@ -244,6 +244,20 @@ export default function TemplatePage() {
             </div>
           );
         })}
+        {/* coming soon — placeholder, not selectable */}
+        <div aria-disabled="true"
+          className="cursor-default overflow-hidden rounded-2xl border border-dashed border-[#2A3E6E]">
+          <div className="relative grid aspect-[16/10] place-items-center bg-[#0A0F1E]">
+            <div className="absolute -left-4 -top-4 h-20 w-20 rounded-full bg-[#4DA6FF]/15 blur-2xl" />
+            <div className="absolute -bottom-4 -right-4 h-20 w-20 rounded-full bg-[#7C5CFF]/15 blur-2xl" />
+            <span className="relative grid h-10 w-10 place-items-center rounded-xl border border-dashed border-[#2A3E6E] text-xl text-[#6B7A99]">+</span>
+            <span className="absolute right-2 top-2 rounded-full bg-[#111A36]/90 px-2 py-0.5 font-mono text-[10px] text-[#8FC4FF] backdrop-blur">COMING SOON</span>
+          </div>
+          <div className="border-t border-dashed border-[#2A3E6E] bg-[#0F1730]/60 p-4">
+            <p className="font-semibold text-[#8B98B8]">Coming soon</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-[#6B7A99]">More templates are on the way.</p>
+          </div>
+        </div>
       </div>
 
       {/* apply / publish bar */}

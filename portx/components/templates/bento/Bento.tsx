@@ -9,7 +9,11 @@ import {
   GradientText,
   Spotlight,
   Marquee,
+  ScrollProgress,
+  CountUp,
+  Avatar3D,
 } from "../tem_comps/Motion";
+import { getInsights } from "../insights";
 
 /* ── Bento template ─────────────────────────────────────────────────────
    A premium Apple/Vercel/Linear-style bento mosaic: varied-span rounded
@@ -56,29 +60,18 @@ export function Bento({ data }: TemplateProps) {
   const rest = projects.filter((p) => !shown.includes(p));
 
   const allSkillItems = skills.flatMap((s) => s.items);
-  const uniqueTech = Array.from(new Set(projects.flatMap((p) => p.tech)));
-
-  /* Stat values derived purely from data lengths — SSR-stable. */
-  const stats = [
-    { value: projects.length, label: "Projects" },
-    { value: allSkillItems.length, label: "Skills" },
-    { value: experiences.length, label: "Roles" },
-    { value: uniqueTech.length, label: "Technologies" },
-  ].filter((s) => s.value > 0);
-
-  const initials =
-    profile.fullName
-      .split(" ")
-      .map((w) => w[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join("") || "•";
+  /* Stat tiles, current role and monogram all derive from the profile data. */
+  const { initials, current, stats } = getInsights(data);
+  const statCols =
+    ["", "grid-cols-1", "grid-cols-2", "grid-cols-3", "grid-cols-2 lg:grid-cols-4"][stats.length] ??
+    "grid-cols-2 lg:grid-cols-4";
 
   return (
     <main
       className="relative min-h-screen overflow-hidden bg-[#08090D] px-4 py-12 font-sans text-[#EAECF2] antialiased sm:px-6 sm:py-16"
       data-fixed-theme
     >
+      <ScrollProgress color="linear-gradient(90deg,#7DD3FC,#A78BFA,#F0ABFC)" />
       {/* ambient background */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -top-40 left-1/4 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-[#5B6CFF]/15 blur-[130px]" />
@@ -102,7 +95,7 @@ export function Bento({ data }: TemplateProps) {
           <TiltCard className="h-full" max={4}>
             <Tile className="justify-between bg-gradient-to-br from-[#161A2B] via-[#101320] to-[#0B0D16]">
               <div className="flex items-start justify-between gap-4">
-                {profile.openToWork && (
+                {profile.openToWork ? (
                   <span className="inline-flex items-center gap-2 rounded-full border border-[#39D98A]/30 bg-[#39D98A]/10 px-3 py-1 text-xs font-medium text-[#5FE7AA]">
                     <span className="relative flex h-2 w-2">
                       <span className="pxz-pulse absolute inline-flex h-full w-full rounded-full bg-[#5FE7AA]/70" />
@@ -110,22 +103,19 @@ export function Bento({ data }: TemplateProps) {
                     </span>
                     Open to work
                   </span>
-                )}
-                {profile.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatarUrl}
-                    alt={profile.fullName}
-                    className="h-14 w-14 rounded-2xl border border-white/10 object-cover"
-                  />
                 ) : (
-                  <span
-                    aria-hidden
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-lg font-semibold text-white/70"
-                  >
-                    {initials}
-                  </span>
+                  <span />
                 )}
+                <Avatar3D
+                  src={profile.avatarUrl}
+                  name={profile.fullName}
+                  initials={initials}
+                  size={72}
+                  shape="squircle"
+                  colors={["#7DD3FC", "#A78BFA", "#F0ABFC"]}
+                  surface="linear-gradient(135deg,#1B2140,#141627)"
+                  className="mr-3 mt-3"
+                />
               </div>
 
               <div className="mt-8">
@@ -135,6 +125,14 @@ export function Bento({ data }: TemplateProps) {
                 {profile.headline && (
                   <p className="mt-3 text-lg text-white/70 sm:text-xl">
                     {profile.headline}
+                  </p>
+                )}
+                {current && (
+                  <p className="mt-2 text-sm text-white/50">
+                    Currently <span className="text-white/85">{current.title}</span>
+                    {current.organization && (
+                      <span className="text-[#7DD3FC]"> @ {current.organization}</span>
+                    )}
                   </p>
                 )}
                 {profile.summary && (
@@ -204,23 +202,26 @@ export function Bento({ data }: TemplateProps) {
         </Item>
 
         {/* ── Stat tiles ────────────────────────────────────────────── */}
-        {stats.map((s) => (
-          <Item
-            key={s.label}
-            className="h-full sm:col-span-1 lg:col-span-3 xl:col-span-2"
-          >
-            <Tile className="items-start justify-center bg-gradient-to-br from-[#12141F] to-[#0B0D14]">
-              <span className="text-4xl font-bold tabular-nums tracking-tight">
-                <GradientText colors={ACCENT}>
-                  {String(s.value).padStart(2, "0")}
-                </GradientText>
-              </span>
-              <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
-                {s.label}
-              </span>
-            </Tile>
+        {stats.length > 0 && (
+          <Item className="col-span-full">
+            <div className={`grid gap-4 ${statCols}`}>
+              {stats.map((s) => (
+                <TiltCard key={s.label} className="h-full" max={9}>
+                  <Tile className="items-start justify-center bg-gradient-to-br from-[#12141F] to-[#0B0D14]">
+                    <span className="text-4xl font-bold tracking-tight sm:text-5xl">
+                      <GradientText colors={ACCENT}>
+                        <CountUp value={s.value} suffix={s.suffix} pad={2} />
+                      </GradientText>
+                    </span>
+                    <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                      {s.label}
+                    </span>
+                  </Tile>
+                </TiltCard>
+              ))}
+            </div>
           </Item>
-        ))}
+        )}
 
         {/* ── Featured projects ─────────────────────────────────────── */}
         {shown.map((p, i) => (
@@ -441,6 +442,33 @@ export function Bento({ data }: TemplateProps) {
             </Tile>
           </Item>
         ))}
+
+        {/* ── Closing contact tile ──────────────────────────────────── */}
+        {profile.email && (
+          <Item className="col-span-full">
+            <TiltCard max={3}>
+              <Tile
+                glow="rgba(240,171,252,0.2)"
+                className="items-center bg-gradient-to-br from-[#161A2B] via-[#1c1230] to-[#0B0D16] py-12 text-center sm:py-16"
+              >
+                <Label>{profile.openToWork ? "Open to work" : "Contact"}</Label>
+                <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-5xl">
+                  <GradientText colors={ACCENT}>Let&apos;s work together.</GradientText>
+                </h2>
+                <div className="mt-7 flex justify-center">
+                  <Magnetic as="a" strength={0.3}>
+                    <a
+                      href={`mailto:${profile.email}`}
+                      className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0B0D16] transition hover:bg-[#7DD3FC]"
+                    >
+                      {profile.email} <span aria-hidden>↗</span>
+                    </a>
+                  </Magnetic>
+                </div>
+              </Tile>
+            </TiltCard>
+          </Item>
+        )}
 
         <footer className="col-span-full pt-4 text-center text-xs text-white/35">
           built with Portxz

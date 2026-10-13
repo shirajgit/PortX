@@ -9,7 +9,11 @@ import {
   Magnetic,
   GradientText,
   Spotlight,
+  ScrollProgress,
+  CountUp,
+  Avatar3D,
 } from "../tem_comps/Motion";
+import { getInsights } from "../insights";
 
 /* ── Noir template · premium edition ────────────────────────────────────
    Dark luxury, cinematic: black/charcoal with champagne-gold accents.
@@ -47,6 +51,7 @@ const slow = {
 
 export function Noir({ data }: TemplateProps) {
   const { profile, links, experiences, projects, skills, educations } = data;
+  const { initials, current, stats } = getInsights(data);
 
   return (
     <main
@@ -60,6 +65,8 @@ export function Noir({ data }: TemplateProps) {
         @keyframes noirDust { 0%,100%{opacity:0.15; transform:translateY(0)} 50%{opacity:0.5; transform:translateY(-6px)} }
         @media (prefers-reduced-motion: reduce) { .noir-anim { animation: none !important; } }
       `}</style>
+
+      <ScrollProgress color={`linear-gradient(90deg, #B8935A, ${GOLD_LT}, ${GOLD})`} height={1} />
 
       {/* breathing candle-glow */}
       <div
@@ -120,6 +127,25 @@ export function Noir({ data }: TemplateProps) {
       <div className="relative z-10 mx-auto max-w-3xl px-6 py-20 sm:py-28">
         {/* HERO */}
         <header className="text-center">
+          {/* gold medallion — portrait or monogram inside slow orbiting rings */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-14 flex justify-center font-serif"
+          >
+            <Avatar3D
+              src={profile.avatarUrl}
+              name={profile.fullName}
+              initials={initials}
+              size={96}
+              colors={[GOLD, GOLD_LT, "#B8935A"]}
+              surface="#0E0E10"
+              textColor={GOLD}
+              glow={0.22}
+            />
+          </motion.div>
+
           {profile.openToWork && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -167,6 +193,19 @@ export function Noir({ data }: TemplateProps) {
               style={{ color: DIM }}
             >
               {profile.headline}
+            </motion.p>
+          )}
+
+          {current && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.74 }}
+              className="mt-4 font-serif text-base italic"
+              style={{ color: BODY }}
+            >
+              presently {current.title}
+              {current.organization && <span style={{ color: GOLD }}> · {current.organization}</span>}
             </motion.p>
           )}
 
@@ -239,6 +278,31 @@ export function Noir({ data }: TemplateProps) {
           )}
         </header>
 
+        {/* IN FIGURES — quiet gold numerals between hairlines */}
+        {stats.length > 1 && (
+          <Stagger
+            stagger={0.12}
+            delay={0.2}
+            className="mt-20 flex flex-wrap justify-center border-y border-[#2A2820] py-8"
+          >
+            {stats.map((s, i) => (
+              <Item
+                key={s.label}
+                className={`min-w-[8.5rem] flex-1 border-[#2A2820] px-4 py-2 text-center ${i > 0 ? "sm:border-l" : ""}`}
+              >
+                <div className="font-serif text-4xl font-light sm:text-5xl">
+                  <GradientText colors={GOLD_STOPS} duration={8}>
+                    <CountUp value={s.value} suffix={s.suffix} duration={2} />
+                  </GradientText>
+                </div>
+                <div className="mt-2 text-[9px] font-medium uppercase tracking-[0.35em]" style={{ color: DIM }}>
+                  {s.label}
+                </div>
+              </Item>
+            ))}
+          </Stagger>
+        )}
+
         {/* PROJECTS */}
         {projects.length > 0 && (
           <NoirSection title="Selected Work">
@@ -251,7 +315,7 @@ export function Noir({ data }: TemplateProps) {
                       glareColor={`${GOLD}1F`}
                       className="group rounded-sm border border-[#1A1915] bg-[#0E0E10]/40 p-6 transition-colors duration-500 hover:border-[#2A2820] sm:p-8"
                     >
-                      <div className="flex items-baseline gap-5 sm:gap-7">
+                      <div className="flex items-baseline gap-5 [transform:translateZ(20px)] sm:gap-7">
                         <span
                           className="font-serif text-2xl font-light transition-all duration-500 group-hover:-translate-y-1 group-hover:opacity-90 sm:text-3xl"
                           style={{ color: GOLD, opacity: 0.45 }}
@@ -394,6 +458,33 @@ export function Noir({ data }: TemplateProps) {
               ))}
             </Stagger>
           </NoirSection>
+        )}
+
+        {/* ENQUIRIES */}
+        {(profile.email || links.length > 0) && (
+          <Reveal as="section" className="mt-28 text-center" duration={1}>
+            <p className="text-[10px] font-medium uppercase tracking-[0.4em]" style={{ color: GOLD }}>
+              {profile.openToWork ? "Available for select engagements" : "Enquiries"}
+            </p>
+            <h2 className="mt-6 font-serif text-4xl font-normal leading-tight sm:text-6xl">
+              <GradientText colors={GOLD_STOPS} duration={7}>
+                Shall we begin?
+              </GradientText>
+            </h2>
+            {profile.email && (
+              <div className="mt-10">
+                <Magnetic strength={0.3}>
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="inline-block rounded-sm border px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.3em] outline-none transition-all duration-500 hover:bg-[#D4B36A] hover:text-[#0B0B0D] hover:shadow-[0_0_40px_rgba(212,179,106,0.25)] focus-visible:ring-1 focus-visible:ring-[#D4B36A]/70"
+                    style={{ borderColor: `${GOLD}66`, color: GOLD }}
+                  >
+                    {profile.email}
+                  </a>
+                </Magnetic>
+              </div>
+            )}
+          </Reveal>
         )}
 
         {/* FOOTER */}

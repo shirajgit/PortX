@@ -10,7 +10,12 @@ import {
   GradientText,
   Spotlight,
   Marquee,
+  ScrollProgress,
+  CountUp,
+  Parallax,
+  Avatar3D,
 } from "../tem_comps/Motion";
+import { getInsights } from "../insights";
 
 /* ── Aurora template · premium edition ──────────────────────────────────
    Living aurora washes (CSS keyframes) + deterministic starfield depth,
@@ -38,12 +43,14 @@ export function Aurora({ data }: TemplateProps) {
 
   /* flatten skills for the drifting marquee strip (deterministic order) */
   const skillStrip = skills.flatMap((s) => s.items);
+  const { initials, current, stats } = getInsights(data);
 
   return (
     <main
       className="relative min-h-screen overflow-hidden bg-[#070912] font-sans text-[#E9EDF7]"
       data-fixed-theme
     >
+      <ScrollProgress />
       <style>{`
         @keyframes aur-wash1 { 0%,100%{transform:rotate(12deg) translate(0,0) scale(1)} 50%{transform:rotate(18deg) translate(60px,40px) scale(1.15)} }
         @keyframes aur-wash2 { 0%,100%{transform:rotate(-12deg) translate(0,0) scale(1)} 50%{transform:rotate(-20deg) translate(-50px,30px) scale(1.1)} }
@@ -72,8 +79,8 @@ export function Aurora({ data }: TemplateProps) {
         <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,transparent_35%,rgba(7,9,18,0.55)_100%)]" />
       </div>
 
-      {/* starfield depth */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
+      {/* starfield depth — drifts slower than the page for parallax */}
+      <Parallax offset={140} className="pointer-events-none absolute inset-0">
         {STARS.map((s, i) => (
           <span
             key={i}
@@ -91,12 +98,12 @@ export function Aurora({ data }: TemplateProps) {
             }}
           />
         ))}
-      </div>
+      </Parallax>
 
       <div className="relative mx-auto max-w-3xl px-6 py-16 sm:py-24">
         {/* hero */}
-        <header>
-          <Stagger stagger={0.1}>
+        <header className="flex flex-col-reverse gap-12 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <Stagger stagger={0.1} className="min-w-0 flex-1">
             {profile.openToWork && (
               <Item>
                 <span className="inline-flex items-center gap-2 rounded-full border border-[#22D3EE]/30 bg-[#22D3EE]/10 px-4 py-1.5 text-xs font-medium text-[#67E8F9] shadow-[0_0_24px_rgba(34,211,238,0.15)]">
@@ -117,6 +124,19 @@ export function Aurora({ data }: TemplateProps) {
             {profile.headline && (
               <Item>
                 <p className="mt-4 text-xl text-[#9BA6C6]">{profile.headline}</p>
+              </Item>
+            )}
+            {current && (
+              <Item>
+                <p className="mt-3 text-sm text-[#8B96B5]">
+                  Currently <span className="text-[#E9EDF7]">{current.title}</span>
+                  {current.organization && (
+                    <>
+                      {" "}
+                      <span className="text-[#A78BFA]">@ {current.organization}</span>
+                    </>
+                  )}
+                </p>
               </Item>
             )}
             {profile.location && (
@@ -160,7 +180,46 @@ export function Aurora({ data }: TemplateProps) {
               </Item>
             )}
           </Stagger>
+
+          {/* a small planet: portrait inside three orbiting rings */}
+          <Avatar3D
+            src={profile.avatarUrl}
+            name={profile.fullName}
+            initials={initials}
+            size={128}
+            rings={3}
+            colors={["#67E8F9", "#A78BFA", "#F472B6"]}
+            surface="linear-gradient(135deg,#0E1630,#1B1140)"
+            glow={0.55}
+            className="mx-auto mt-10 sm:mx-14 sm:mt-0"
+          />
         </header>
+
+        {/* at a glance */}
+        {stats.length > 1 && (
+          <Stagger className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-4" stagger={0.08} delay={0.3}>
+            {stats.map((s, i) => {
+              const glow = ["#67E8F9", "#A78BFA", "#F472B6", "#67E8F9"][i % 4];
+              return (
+                <Item key={s.label}>
+                  <TiltCard max={10} glareColor={`${glow}26`} className="rounded-2xl">
+                    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-5 text-center backdrop-blur-sm [transform-style:preserve-3d]">
+                      <div
+                        className="text-3xl font-bold tracking-tight [transform:translateZ(26px)]"
+                        style={{ color: glow, textShadow: `0 0 28px ${glow}66` }}
+                      >
+                        <CountUp value={s.value} suffix={s.suffix} />
+                      </div>
+                      <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6B7694] [transform:translateZ(12px)]">
+                        {s.label}
+                      </div>
+                    </div>
+                  </TiltCard>
+                </Item>
+              );
+            })}
+          </Stagger>
+        )}
 
         {/* projects */}
         {projects.length > 0 && (
@@ -357,6 +416,47 @@ export function Aurora({ data }: TemplateProps) {
               </Spotlight>
             </Reveal>
           </AuroraSection>
+        )}
+
+        {/* contact */}
+        {(profile.email || links.length > 0) && (
+          <Reveal as="section" className="mt-24 text-center">
+            <p
+              className="text-sm font-bold uppercase tracking-[0.25em] text-[#F472B6]"
+              style={{ textShadow: "0 0 24px #F472B655" }}
+            >
+              {profile.openToWork ? "Open to work" : "Contact"}
+            </p>
+            <h2 className="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+              <GradientText colors={["#67E8F9", "#A78BFA", "#F472B6", "#67E8F9"]}>
+                Let&apos;s make something glow.
+              </GradientText>
+            </h2>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              {profile.email && (
+                <Magnetic as="span" strength={0.35}>
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="block rounded-full bg-gradient-to-r from-[#22D3EE] via-[#8B5CF6] to-[#EC4899] px-7 py-3 text-sm font-semibold text-white shadow-[0_0_40px_rgba(139,92,246,0.45)] transition hover:shadow-[0_0_60px_rgba(236,72,153,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                  >
+                    {profile.email}
+                  </a>
+                </Magnetic>
+              )}
+              {links.slice(0, 3).map((l) => (
+                <Magnetic as="span" key={l.url} strength={0.3}>
+                  <a
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-sm text-[#C7CFE5] transition hover:border-[#67E8F9]/50 hover:text-[#67E8F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#67E8F9]/60"
+                  >
+                    {l.label || l.kind}
+                  </a>
+                </Magnetic>
+              ))}
+            </div>
+          </Reveal>
         )}
 
         <footer className="mt-20 text-center text-xs text-[#6B7694]">

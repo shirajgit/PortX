@@ -1,15 +1,26 @@
 "use client";
 
 import type { TemplateProps } from "../types";
-import { Reveal, Stagger, Item } from "../tem_comps/Motion";
+import {
+  Reveal,
+  Stagger,
+  Item,
+  TiltCard,
+  Magnetic,
+  ScrollProgress,
+  CountUp,
+  SplitText,
+} from "../tem_comps/Motion";
+import { getInsights } from "../insights";
 
 /* ── Editorial template ─────────────────────────────────────────────────
    A light, art-directed magazine feature. Didone-style display serif for
    headlines, a clean sans for labels & data, a drop-capped lead, a large
    pull-quote, hairline rules and generous vertical rhythm. Refined neutral
-   paper palette with a single oxblood accent. Motion is deliberately quiet:
-   slow masthead reveal, gentle scroll fades, whisper-thin hover underlines.
-   Always light by design.                                                */
+   paper palette with a single oxblood accent. Motion stays art-directed:
+   the name rises word by word, a portrait plate tilts in 3D under the
+   cursor, a circular press seal turns slowly, figures count up, and work
+   entries shift on hover. Always light by design.                        */
 
 const PAPER = "#F6F2E9"; // warm printed paper
 const INK = "#1B1713"; // near-black ink
@@ -24,14 +35,17 @@ export function Editorial({ data }: TemplateProps) {
   // Pull-quote sourced from the strongest available editorial line.
   const featured = projects.find((p) => p.featured) ?? projects[0];
   const pullQuote = profile.headline || featured?.tagline || "";
+  const { initials, current, stats } = getInsights(data);
+  const sealText = `${profile.openToWork ? "Open to opportunities" : "Selected works"} · ${profile.fullName} · `;
 
   return (
     <main
-      className="pxz-ed min-h-screen font-serif antialiased"
+      className="pxz-ed min-h-screen overflow-x-hidden font-serif antialiased"
       style={{ background: PAPER, color: INK }}
       data-fixed-theme
     >
       <PxzStyle />
+      <ScrollProgress color={ACCENT} height={3} />
 
       <div className="mx-auto max-w-[74rem] px-6 py-16 sm:px-10 sm:py-24 lg:px-14">
         {/* ── Masthead ────────────────────────────────────────────── */}
@@ -49,19 +63,74 @@ export function Editorial({ data }: TemplateProps) {
             )}
           </div>
 
-          <h1
-            className="pxz-d mt-8 text-balance text-[clamp(2.75rem,8vw,6rem)] font-medium leading-[0.98] tracking-[-0.02em]"
-          >
-            {profile.fullName}
-          </h1>
+          <div className="mt-8 flex items-end justify-between gap-8">
+            <div className="min-w-0">
+              <h1
+                className="pxz-d text-balance text-[clamp(2.75rem,8vw,6rem)] font-medium leading-[0.98] tracking-[-0.02em]"
+              >
+                <SplitText text={profile.fullName} delay={0.15} />
+              </h1>
 
-          {profile.headline && (
-            <p className="mt-6 max-w-[38ch] text-pretty text-xl italic leading-snug sm:text-2xl" style={{ color: MUTE }}>
-              {profile.headline}
-            </p>
-          )}
+              {profile.headline && (
+                <p className="mt-6 max-w-[38ch] text-pretty text-xl italic leading-snug sm:text-2xl" style={{ color: MUTE }}>
+                  {profile.headline}
+                </p>
+              )}
 
-          <div className="mt-10 h-px w-full" style={{ background: `${RULE}` }} />
+              {current && (
+                <p className="pxz-sans mt-4 text-xs uppercase tracking-[0.22em]" style={{ color: FAINT }}>
+                  Now — {current.title}
+                  {current.organization && <span style={{ color: ACCENT }}> · {current.organization}</span>}
+                </p>
+              )}
+            </div>
+
+            {/* portrait plate: tilts in 3D, with a slowly turning press seal */}
+            <div className="relative hidden shrink-0 pb-2 pr-2 md:block">
+              <TiltCard max={12} glareColor="rgba(255,255,255,0.35)">
+                <div className="relative [transform-style:preserve-3d]">
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 border"
+                    style={{ borderColor: ACCENT, transform: "translate(12px,12px) translateZ(-30px)" }}
+                  />
+                  {profile.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profile.avatarUrl}
+                      alt={profile.fullName}
+                      className="relative block h-48 w-40 object-cover grayscale-[35%] lg:h-56 lg:w-44"
+                      style={{ border: `1px solid ${RULE}` }}
+                    />
+                  ) : (
+                    <div
+                      className="pxz-d relative flex h-48 w-40 items-center justify-center text-6xl font-medium lg:h-56 lg:w-44"
+                      style={{ border: `1px solid ${RULE}`, background: "#EFE9DC", color: ACCENT }}
+                    >
+                      {initials}
+                    </div>
+                  )}
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 120 120"
+                    className="pxz-seal absolute -bottom-10 -left-12 h-24 w-24"
+                    style={{ transform: "translateZ(40px)" }}
+                  >
+                    <circle cx="60" cy="60" r="59" fill={PAPER} stroke={ACCENT} strokeWidth="0.75" />
+                    <path id="pxz-seal-arc" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" fill="none" />
+                    <text className="pxz-sans" fontSize="8.2" letterSpacing="2.4" fill={ACCENT}>
+                      <textPath href="#pxz-seal-arc">{sealText.toUpperCase()}</textPath>
+                    </text>
+                    <text x="60" y="68" textAnchor="middle" className="pxz-d" fontSize="24" fill={ACCENT}>
+                      ✦
+                    </text>
+                  </svg>
+                </div>
+              </TiltCard>
+            </div>
+          </div>
+
+          <div className="pxz-rule mt-10 h-px w-full origin-left" style={{ background: `${RULE}` }} />
         </Reveal>
 
         {/* ── Lead + details rail ─────────────────────────────────── */}
@@ -121,6 +190,29 @@ export function Editorial({ data }: TemplateProps) {
           </Reveal>
         )}
 
+        {/* ── By the numbers ──────────────────────────────────────── */}
+        {stats.length > 1 && (
+          <Stagger
+            stagger={0.1}
+            className="mt-16 grid grid-cols-2 border-y sm:mt-20 sm:grid-cols-4 [border-color:#1B1713]"
+          >
+            {stats.map((s, i) => (
+              <Item
+                key={s.label}
+                className={`px-2 py-7 sm:px-6 ${i > 0 ? "sm:border-l" : ""} ${i % 2 === 1 ? "max-sm:border-l" : ""} [border-color:#1B17131f]`}
+              >
+                <div className="pxz-d text-[clamp(2.5rem,6vw,4.25rem)] font-medium leading-none tracking-[-0.02em]">
+                  <CountUp value={s.value} duration={1.8} />
+                  {s.suffix && <span style={{ color: ACCENT }}>{s.suffix}</span>}
+                </div>
+                <div className="pxz-sans mt-3 text-[10px] uppercase tracking-[0.28em]" style={{ color: FAINT }}>
+                  {s.label}
+                </div>
+              </Item>
+            ))}
+          </Stagger>
+        )}
+
         {/* ── Pull-quote ──────────────────────────────────────────── */}
         {pullQuote && (
           <Reveal as="section" className="my-20 sm:my-28">
@@ -141,7 +233,14 @@ export function Editorial({ data }: TemplateProps) {
           <Section title="Selected Work" meta={`${projects.length} ${projects.length === 1 ? "piece" : "pieces"}`}>
             <Stagger className="space-y-0">
               {projects.map((p, i) => (
-                <Item key={p.name} as="article" className="group grid gap-4 border-t border-[#1B17131f] py-9 md:grid-cols-[1fr_2fr]">
+                <Item key={p.name} as="article" className="group relative isolate grid gap-4 border-t border-[#1B17131f] py-9 md:grid-cols-[1fr_2fr]">
+                  <span
+                    aria-hidden
+                    className="pxz-d pointer-events-none absolute right-0 top-4 -z-10 select-none text-[7rem] font-medium leading-none opacity-[0.05] transition-all duration-700 group-hover:-translate-x-2 group-hover:opacity-[0.12] max-md:hidden"
+                    style={{ color: ACCENT }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   <div>
                     <div
                       className="pxz-mono text-xs tabular-nums"
@@ -188,7 +287,7 @@ export function Editorial({ data }: TemplateProps) {
                   </div>
 
                   <div>
-                    <h3 className="pxz-d text-3xl font-medium leading-tight tracking-[-0.01em] sm:text-4xl">
+                    <h3 className="pxz-d text-3xl font-medium leading-tight tracking-[-0.01em] transition-transform duration-500 ease-out group-hover:translate-x-2 sm:text-4xl">
                       {p.name}
                     </h3>
                     {p.tagline && (
@@ -317,6 +416,47 @@ export function Editorial({ data }: TemplateProps) {
           </Section>
         )}
 
+        {/* ── Closing line ────────────────────────────────────────── */}
+        {(profile.email || links.length > 0) && (
+          <Reveal as="section" className="mt-24 text-center sm:mt-32" duration={1}>
+            <p className="pxz-sans text-[11px] uppercase tracking-[0.3em]" style={{ color: ACCENT }}>
+              {profile.openToWork ? "Open to opportunities" : "Correspondence"}
+            </p>
+            <h2 className="pxz-d mt-5 text-[clamp(2.5rem,9vw,6.5rem)] font-medium italic leading-[0.95] tracking-[-0.02em]">
+              Let&rsquo;s talk<span style={{ color: ACCENT }}>.</span>
+            </h2>
+            {profile.email && (
+              <div className="mt-8">
+                <Magnetic strength={0.25}>
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="pxz-link pxz-d text-2xl sm:text-3xl"
+                    style={{ color: INK }}
+                  >
+                    {profile.email}
+                  </a>
+                </Magnetic>
+              </div>
+            )}
+            {links.length > 0 && (
+              <div className="pxz-sans mt-7 flex flex-wrap justify-center gap-x-7 gap-y-2 text-xs uppercase tracking-[0.2em]">
+                {links.map((l) => (
+                  <a
+                    key={l.url}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pxz-link"
+                    style={{ color: MUTE }}
+                  >
+                    {l.label || l.kind}
+                  </a>
+                ))}
+              </div>
+            )}
+          </Reveal>
+        )}
+
         {/* ── Colophon ────────────────────────────────────────────── */}
         <footer
           className="pxz-sans mt-24 flex items-center justify-between border-t-2 pt-6 text-[11px] uppercase tracking-[0.3em]"
@@ -391,8 +531,13 @@ function PxzStyle() {
       }
       .pxz-link:hover,.pxz-link:focus-visible{background-size:100% 1px;color:${ACCENT};}
       .pxz-ed a:focus-visible{outline:2px solid ${ACCENT};outline-offset:3px;border-radius:2px;}
+      @keyframes pxz-seal-turn{to{rotate:360deg}}
+      .pxz-seal{animation:pxz-seal-turn 26s linear infinite;}
+      @keyframes pxz-rule-draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+      .pxz-rule{animation:pxz-rule-draw 1.4s cubic-bezier(.22,1,.36,1) .3s both;}
       @media (prefers-reduced-motion:reduce){
         .pxz-link{transition:none;}
+        .pxz-seal,.pxz-rule{animation:none;}
       }
     `}</style>
   );

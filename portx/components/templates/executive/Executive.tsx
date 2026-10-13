@@ -2,7 +2,18 @@
 
 import { motion } from "framer-motion";
 import type { TemplateProps } from "../types";
-import { Reveal, Stagger, Item, Magnetic, Spotlight } from "../tem_comps/Motion";
+import {
+  Reveal,
+  Stagger,
+  Item,
+  TiltCard,
+  Magnetic,
+  Spotlight,
+  ScrollProgress,
+  CountUp,
+  Avatar3D,
+} from "../tem_comps/Motion";
+import { getInsights } from "../insights";
 
 /* ── Executive template · premium edition ───────────────────────────────
    Corporate-clean and LIGHT by design — LinkedIn, but luxe. Premium here
@@ -14,18 +25,6 @@ import { Reveal, Stagger, Item, Magnetic, Spotlight } from "../tem_comps/Motion"
 const NAVY = "#16273D"; // deep slate-navy for headings
 const ACCENT = "#2563EB"; // one trustworthy accent
 const SERIF = 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif';
-
-/* Deterministic, SSR-stable: pull 4-digit years out of free-text dates so
-   any "years of experience" stat derives from the data, never new Date(). */
-function extractYears(values: (string | null)[]): number[] {
-  const out: number[] = [];
-  for (const v of values) {
-    if (!v) continue;
-    const matches = v.match(/\b(?:19|20)\d{2}\b/g);
-    if (matches) for (const m of matches) out.push(parseInt(m, 10));
-  }
-  return out;
-}
 
 /* Emphasise metrics/impact (numbers, %, $, +, ×) inside a bullet without
    any randomness — pure string parsing, stable across SSR + hydration. */
@@ -47,30 +46,15 @@ export function Executive({ data }: TemplateProps) {
 
   const primaryLinks = links.slice(0, 3);
 
-  // KPI row — credible counts derived purely from array data.
-  const expYears = extractYears(
-    experiences.flatMap((e) => [e.startDate, e.endDate]),
-  );
-  const yearsSpan =
-    expYears.length > 1 ? Math.max(...expYears) - Math.min(...expYears) : 0;
-  const skillCount = skills.reduce((n, s) => n + s.items.length, 0);
-
-  const stats = [
-    yearsSpan > 0 ? { value: `${yearsSpan}+`, label: "Years Experience" } : null,
-    experiences.length > 0
-      ? { value: String(experiences.length), label: experiences.length === 1 ? "Role" : "Roles" }
-      : null,
-    projects.length > 0
-      ? { value: String(projects.length), label: projects.length === 1 ? "Project" : "Projects" }
-      : null,
-    skillCount > 0 ? { value: String(skillCount), label: "Skills" } : null,
-  ].filter((s): s is { value: string; label: string } => s !== null);
+  // KPI row, current role and monogram — all derived from the profile data.
+  const { initials, current, stats } = getInsights(data);
 
   return (
     <main
       className="min-h-screen bg-[#F6F8FB] font-sans text-[#1E293B] antialiased selection:bg-[#2563EB]/10 selection:text-[#2563EB] print:bg-white"
       data-fixed-theme
     >
+      <ScrollProgress color={ACCENT} height={3} />
       {/* top accent bar with a slow, restrained sheen */}
       <div
         className="relative h-1.5 w-full overflow-hidden print:hidden"
@@ -120,6 +104,23 @@ export function Executive({ data }: TemplateProps) {
                   </p>
                 )}
 
+                {current && (
+                  <p className="text-sm text-slate-500">
+                    Currently{" "}
+                    <span className="font-semibold" style={{ color: NAVY }}>
+                      {current.title}
+                    </span>
+                    {current.organization && (
+                      <>
+                        {" "}at{" "}
+                        <span className="font-semibold" style={{ color: ACCENT }}>
+                          {current.organization}
+                        </span>
+                      </>
+                    )}
+                  </p>
+                )}
+
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs font-medium text-slate-500 sm:text-sm">
                   {profile.location && (
                     <span className="inline-flex items-center gap-1.5">
@@ -142,14 +143,18 @@ export function Executive({ data }: TemplateProps) {
               </div>
 
               <div className="flex shrink-0 items-center gap-4 sm:flex-col sm:items-end">
-                {profile.avatarUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatarUrl}
-                    alt={profile.fullName}
-                    className="h-16 w-16 rounded-2xl object-cover ring-1 ring-slate-200 sm:h-20 sm:w-20"
-                  />
-                )}
+                <Avatar3D
+                  src={profile.avatarUrl}
+                  name={profile.fullName}
+                  initials={initials}
+                  size={80}
+                  shape="squircle"
+                  rings={1}
+                  colors={[ACCENT, "#60A5FA", NAVY]}
+                  surface={`linear-gradient(135deg, ${NAVY}, #24406A)`}
+                  glow={0.16}
+                  className="m-3 print:hidden"
+                />
                 {profile.openToWork && (
                   <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500 print:animate-none" />
@@ -203,14 +208,16 @@ export function Executive({ data }: TemplateProps) {
           <Stagger className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4" stagger={0.07}>
             {stats.map((s) => (
               <Item key={s.label}>
-                <div className="rounded-2xl border border-slate-200/70 bg-white px-5 py-4 shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-slate-900/5">
-                  <div className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: ACCENT }}>
-                    {s.value}
+                <TiltCard max={8} glareColor="rgba(37,99,235,0.10)" className="rounded-2xl">
+                  <div className="rounded-2xl border border-slate-200/70 bg-white px-5 py-4 shadow-xs transition-shadow [transform-style:preserve-3d] hover:shadow-lg hover:shadow-slate-900/10">
+                    <div className="text-2xl font-bold tracking-tight [transform:translateZ(22px)] sm:text-3xl" style={{ color: ACCENT }}>
+                      <CountUp value={s.value} suffix={s.suffix} />
+                    </div>
+                    <div className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 [transform:translateZ(10px)]">
+                      {s.label}
+                    </div>
                   </div>
-                  <div className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    {s.label}
-                  </div>
-                </div>
+                </TiltCard>
               </Item>
             ))}
           </Stagger>
@@ -265,10 +272,14 @@ export function Executive({ data }: TemplateProps) {
         {/* PROJECTS */}
         {projects.length > 0 && (
           <ExecSection title="Key Projects">
-            <Stagger className="grid gap-4 sm:grid-cols-2" stagger={0.08}>
+            <Stagger
+              className={`grid gap-4 ${projects.length > 1 ? "sm:grid-cols-2" : ""}`}
+              stagger={0.08}
+            >
               {projects.map((p) => (
-                <Item as="article" key={p.name}>
-                  <div className="group flex h-full flex-col justify-between rounded-2xl border border-slate-200/70 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-900/5">
+                <Item as="article" key={p.name} className="h-full">
+                  <TiltCard max={4} glareColor="rgba(37,99,235,0.08)" className="h-full rounded-2xl">
+                  <div className="group flex h-full flex-col justify-between rounded-2xl border border-slate-200/70 bg-white p-6 shadow-xs transition-all duration-200 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-900/10">
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-bold transition-colors group-hover:text-[#2563EB]" style={{ color: NAVY }}>
@@ -324,6 +335,7 @@ export function Executive({ data }: TemplateProps) {
                       )}
                     </div>
                   </div>
+                  </TiltCard>
                 </Item>
               ))}
             </Stagger>
@@ -380,6 +392,41 @@ export function Executive({ data }: TemplateProps) {
               </Reveal>
             )}
           </div>
+        )}
+
+        {/* CLOSING CTA */}
+        {profile.email && (
+          <Reveal y={22} className="mt-10 print:hidden">
+            <Spotlight
+              color="rgba(96,165,250,0.22)"
+              size={560}
+              className="overflow-hidden rounded-3xl bg-[#16273D] p-8 text-white shadow-[0_24px_60px_-24px_rgba(22,39,61,0.6)] sm:p-12"
+            >
+              <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-200/80">
+                    {profile.openToWork ? "Open to opportunities" : "Get in touch"}
+                  </p>
+                  <h2
+                    className="mt-2 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl"
+                    style={{ fontFamily: SERIF }}
+                  >
+                    Let&apos;s start a conversation.
+                  </h2>
+                </div>
+                <Magnetic as="a" strength={0.25}>
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#16273D]"
+                    style={{ color: NAVY }}
+                  >
+                    {profile.email}
+                    <span aria-hidden>→</span>
+                  </a>
+                </Magnetic>
+              </div>
+            </Spotlight>
+          </Reveal>
         )}
 
         <Reveal className="mt-16 text-center text-xs font-medium text-slate-400">

@@ -9,7 +9,12 @@ import {
   Magnetic,
   GradientText,
   Spotlight,
+  ScrollProgress,
+  CountUp,
+  Float,
+  Avatar3D,
 } from "../tem_comps/Motion";
+import { getInsights } from "../insights";
 
 /* ─────────────────────────────────────────────────────────────────────────
    GLASS — "Apple-keynote" frosted glassmorphism.
@@ -20,18 +25,12 @@ import {
 export function Glass({ data }: TemplateProps) {
   const { profile, links, experiences, projects, skills, educations } = data;
 
-  const initials =
-    profile.fullName
-      .split(" ")
-      .map((w) => w[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() || "•";
+  const { initials, current, stats } = getInsights(data);
 
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden bg-[#05060B] font-sans text-slate-100 antialiased selection:bg-fuchsia-500/30 selection:text-white">
       <GlassStyles />
+      <ScrollProgress color="linear-gradient(90deg,#818cf8,#ec4899,#22d3ee)" />
 
       {/* ── Living animated color-mesh backdrop ── */}
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -42,6 +41,17 @@ export function Glass({ data }: TemplateProps) {
         {/* Fine noise/grain veil for tactile frost */}
         <div className="absolute inset-0 opacity-[0.5] bg-[linear-gradient(to_bottom,rgba(5,6,11,0.2),rgba(5,6,11,0.85))]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_40%,rgba(5,6,11,0.6))]" />
+
+        {/* floating 3D glass panes — depth behind the content */}
+        <Float className="absolute right-[6%] top-[14%] hidden lg:block" y={22} rotate={5} duration={11}>
+          <div className="h-44 w-32 rounded-[1.75rem] border border-white/15 bg-white/[0.05] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] [transform:perspective(900px)_rotateX(22deg)_rotateY(-32deg)]" />
+        </Float>
+        <Float className="absolute left-[4%] top-[46%] hidden lg:block" y={16} rotate={-6} duration={13} delay={1.5}>
+          <div className="h-28 w-28 rounded-full border border-white/15 bg-gradient-to-br from-white/[0.10] to-transparent [transform:perspective(900px)_rotateX(-18deg)_rotateY(34deg)]" />
+        </Float>
+        <Float className="absolute bottom-[10%] right-[14%] hidden lg:block" y={18} rotate={8} duration={15} delay={0.8}>
+          <div className="h-24 w-40 rounded-[1.5rem] border border-white/12 bg-white/[0.04] [transform:perspective(900px)_rotateX(38deg)_rotateY(18deg)]" />
+        </Float>
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
@@ -64,25 +74,17 @@ export function Glass({ data }: TemplateProps) {
 
             <div className="relative flex flex-col items-start gap-8 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-5 sm:gap-6">
-                {/* Avatar / monogram wafer */}
-                <div className="relative shrink-0">
-                  <span
-                    aria-hidden
-                    className="pxz-halo absolute -inset-1.5 rounded-[1.4rem] bg-[conic-gradient(from_0deg,#818cf8,#ec4899,#22d3ee,#818cf8)] opacity-70 blur-[6px]"
-                  />
-                  {profile.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={profile.avatarUrl}
-                      alt={profile.fullName}
-                      className="relative h-20 w-20 rounded-[1.25rem] border border-white/20 object-cover shadow-lg sm:h-24 sm:w-24"
-                    />
-                  ) : (
-                    <div className="relative flex h-20 w-20 items-center justify-center rounded-[1.25rem] border border-white/20 bg-white/10 text-2xl font-black tracking-tight text-white shadow-lg backdrop-blur-xl sm:h-24 sm:w-24 sm:text-3xl">
-                      {initials}
-                    </div>
-                  )}
-                </div>
+                {/* Avatar / monogram — floats inside orbiting 3D rings */}
+                <Avatar3D
+                  src={profile.avatarUrl}
+                  name={profile.fullName}
+                  initials={initials}
+                  size={92}
+                  shape="squircle"
+                  colors={["#818cf8", "#ec4899", "#22d3ee"]}
+                  surface="rgba(255,255,255,0.10)"
+                  className="m-4"
+                />
 
                 <div className="space-y-3">
                   {profile.openToWork && (
@@ -105,6 +107,18 @@ export function Glass({ data }: TemplateProps) {
                   {profile.headline && (
                     <p className="max-w-xl text-base font-medium text-slate-300 sm:text-lg">
                       {profile.headline}
+                    </p>
+                  )}
+                  {current && (
+                    <p className="text-sm text-slate-400">
+                      Currently{" "}
+                      <span className="font-semibold text-slate-200">{current.title}</span>
+                      {current.organization && (
+                        <>
+                          {" "}at{" "}
+                          <span className="font-semibold text-indigo-200">{current.organization}</span>
+                        </>
+                      )}
                     </p>
                   )}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-400">
@@ -174,11 +188,40 @@ export function Glass({ data }: TemplateProps) {
           </Spotlight>
         </Reveal>
 
+        {/* ─────────────── AT A GLANCE ─────────────── */}
+        {stats.length > 1 && (
+          <Stagger className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4" stagger={0.08} delay={0.2}>
+            {stats.map((s) => (
+              <Item key={s.label}>
+                <TiltCard max={10} glareColor="rgba(255,255,255,0.18)" className="rounded-[1.4rem]">
+                  <div className="relative rounded-[1.4rem] border border-white/12 bg-white/[0.055] px-5 py-5 backdrop-blur-2xl [transform-style:preserve-3d]">
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"
+                    />
+                    <div className="text-3xl font-black tracking-tight [transform:translateZ(26px)] sm:text-4xl">
+                      <GradientText colors={["#c7d2fe", "#f0abfc", "#67e8f9", "#c7d2fe"]} duration={7}>
+                        <CountUp value={s.value} suffix={s.suffix} />
+                      </GradientText>
+                    </div>
+                    <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 [transform:translateZ(12px)]">
+                      {s.label}
+                    </div>
+                  </div>
+                </TiltCard>
+              </Item>
+            ))}
+          </Stagger>
+        )}
+
         {/* ─────────────── PROJECTS ─────────────── */}
         {projects.length > 0 && (
           <section className="mt-16 sm:mt-20">
             <SectionHeading eyebrow="Selected work" title="Projects" />
-            <Stagger className="grid grid-cols-1 gap-6 md:grid-cols-2" stagger={0.1}>
+            <Stagger
+              className={`grid grid-cols-1 gap-6 ${projects.length > 1 ? "md:grid-cols-2" : ""}`}
+              stagger={0.1}
+            >
               {projects.map((p) => (
                 <Item as="article" key={p.name}>
                   <TiltCard
@@ -396,6 +439,50 @@ export function Glass({ data }: TemplateProps) {
               </div>
             )}
           </section>
+        )}
+
+        {/* ─────────────── CONTACT ─────────────── */}
+        {(profile.email || links.length > 0) && (
+          <Reveal as="section" className="mt-16 sm:mt-20">
+            <Spotlight
+              color="rgba(236,72,153,0.16)"
+              size={620}
+              className="overflow-hidden rounded-[2rem] border border-white/12 bg-white/[0.055] px-7 py-12 text-center shadow-[0_24px_80px_-24px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:px-10 sm:py-16"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-fuchsia-300/70">
+                {profile.openToWork ? "Open to work" : "Contact"}
+              </p>
+              <h2 className="mx-auto mt-3 max-w-2xl text-3xl font-black leading-tight tracking-tight sm:text-5xl">
+                <GradientText colors={["#c7d2fe", "#f0abfc", "#67e8f9", "#c7d2fe"]} duration={7}>
+                  Let&apos;s build something together.
+                </GradientText>
+              </h2>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                {profile.email && (
+                  <Magnetic as="span" strength={0.4}>
+                    <a
+                      href={`mailto:${profile.email}`}
+                      className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-7 py-3.5 text-sm font-semibold text-white shadow-[0_8px_30px_-8px_rgba(168,140,255,0.6)] backdrop-blur-xl transition-colors hover:bg-white/22 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/70"
+                    >
+                      {profile.email} <span aria-hidden>→</span>
+                    </a>
+                  </Magnetic>
+                )}
+                {links.slice(0, 3).map((l) => (
+                  <Magnetic as="span" key={l.url} strength={0.25}>
+                    <a
+                      href={l.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.06] px-5 py-3.5 text-sm font-medium text-slate-200 backdrop-blur-md transition-all hover:border-white/25 hover:bg-white/12 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60"
+                    >
+                      {l.label || l.kind}
+                    </a>
+                  </Magnetic>
+                ))}
+              </div>
+            </Spotlight>
+          </Reveal>
         )}
 
         {/* ─────────────── FOOTER ─────────────── */}

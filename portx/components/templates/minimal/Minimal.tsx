@@ -12,7 +12,11 @@ import {
   Magnetic,
   GradientText,
   Spotlight,
+  ScrollProgress,
+  CountUp,
+  Avatar3D,
 } from "../tem_comps/Motion";
+import { getInsights } from "../insights";
 
 /* ── Minimal / Developer Matrix Template ──────────────────────────────
    Sleek dual-pane layout: a sticky profile sidebar paired with a
@@ -20,10 +24,13 @@ import {
    identity kept intact — crisp light/dark themes with localStorage
    persistence ("Portxz-theme") — but elevated with premium motion:
    animated name gradient, magnetic links, staggered + tilting cards,
-   scroll reveals, and animated section dividers.                       */
+   scroll reveals, and animated section dividers. A 3D orbiting avatar,
+   count-up overview stats and a closing contact card keep even a short
+   profile feeling complete.                                            */
 
 export function Minimal({ data }: TemplateProps) {
   const { profile, links, experiences, projects, skills, educations } = data;
+  const { initials, current, stats } = getInsights(data);
 
   // Default to light mode, fall back to localStorage if set
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -60,6 +67,8 @@ export function Minimal({ data }: TemplateProps) {
 
   return (
     <main className="min-h-screen w-full bg-[#F8FAFC] text-[#0F172A] antialiased selection:bg-[#2563EB]/20 selection:text-[#2563EB] transition-colors duration-300 dark:bg-[#030712] dark:text-[#F1F5F9]">
+      <ScrollProgress color="linear-gradient(90deg,#2563EB,#4F46E5,#0EA5E9)" />
+
       {/* Background ambient lighting accents */}
       <div
         aria-hidden
@@ -71,7 +80,7 @@ export function Minimal({ data }: TemplateProps) {
 
       <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
         {/* LEFT COLUMN: Sticky Profile Dashboard */}
-        <aside className="w-full shrink-0 border-b border-slate-200/80 bg-white/70 backdrop-blur-md dark:border-slate-800/60 dark:bg-[#070D19]/50 lg:sticky lg:top-0 lg:h-screen lg:w-[380px] lg:border-b-0 lg:border-r xl:w-[420px]">
+        <aside className="w-full shrink-0 border-b border-slate-200/80 bg-white/70 backdrop-blur-md dark:border-slate-800/60 dark:bg-[#070D19]/50 lg:sticky lg:top-0 lg:h-screen lg:w-[380px] lg:overflow-y-auto lg:border-b-0 lg:border-r xl:w-[420px]">
           <Spotlight
             className="h-full"
             color="rgba(37,99,235,0.10)"
@@ -108,6 +117,17 @@ export function Minimal({ data }: TemplateProps) {
                   </Magnetic>
                 </div>
 
+                <Avatar3D
+                  src={profile.avatarUrl}
+                  name={profile.fullName}
+                  initials={initials}
+                  size={84}
+                  colors={["#2563EB", "#0EA5E9", "#4F46E5"]}
+                  surface="linear-gradient(135deg,#2563EB,#4F46E5)"
+                  glow={0.3}
+                  className="mb-10 ml-6 mt-4"
+                />
+
                 <Reveal y={16} duration={0.7}>
                   <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl xl:text-5xl">
                     <GradientText
@@ -123,6 +143,22 @@ export function Minimal({ data }: TemplateProps) {
                   <Reveal y={12} delay={0.08}>
                     <p className="mt-3 font-mono text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-[#4DA6FF]">
                       // {profile.headline}
+                    </p>
+                  </Reveal>
+                )}
+
+                {current && (
+                  <Reveal y={12} delay={0.11}>
+                    <p className="mt-3 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                      <span className="text-emerald-600 dark:text-[#39D98A]">now →</span>{" "}
+                      {current.title}
+                      {current.organization && (
+                        <>
+                          {" "}
+                          <span className="text-slate-400 dark:text-slate-600">@</span>{" "}
+                          {current.organization}
+                        </>
+                      )}
                     </p>
                   </Reveal>
                 )}
@@ -202,10 +238,35 @@ export function Minimal({ data }: TemplateProps) {
         {/* RIGHT COLUMN: Scrolling Feed */}
         <div className="flex-1 px-6 py-10 lg:px-12 lg:py-16 xl:px-20">
           <div className="mx-auto max-w-4xl space-y-16">
+            {/* At-a-glance overview */}
+            {stats.length > 1 && (
+              <Section title="System Overview">
+                <Stagger stagger={0.07} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {stats.map((s) => (
+                    <Item key={s.label} y={16}>
+                      <TiltCard max={10} glareColor="rgba(37,99,235,0.12)" className="rounded-xl">
+                        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs [transform-style:preserve-3d] dark:border-slate-800/80 dark:bg-[#090F1C]/60">
+                          <div className="text-3xl font-extrabold tracking-tight text-blue-600 [transform:translateZ(24px)] dark:text-[#4DA6FF]">
+                            <CountUp value={s.value} suffix={s.suffix} />
+                          </div>
+                          <div className="mt-1 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400 [transform:translateZ(12px)] dark:text-slate-500">
+                            {s.label}
+                          </div>
+                        </div>
+                      </TiltCard>
+                    </Item>
+                  ))}
+                </Stagger>
+              </Section>
+            )}
+
             {/* Projects Showcase */}
             {projects.length > 0 && (
               <Section title="Production Repositories">
-                <Stagger stagger={0.09} className="grid gap-4 sm:grid-cols-2">
+                <Stagger
+                  stagger={0.09}
+                  className={`grid gap-4 ${projects.length > 1 ? "sm:grid-cols-2" : ""}`}
+                >
                   {projects.map((p) => (
                     <Item key={p.name} as="article" y={22} className="h-full">
                       <TiltCard
@@ -213,8 +274,13 @@ export function Minimal({ data }: TemplateProps) {
                         glareColor="rgba(37,99,235,0.10)"
                         className="h-full rounded-xl"
                       >
-                        <div className="flex h-full flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/40 hover:shadow-md dark:border-slate-800/80 dark:bg-[#090F1C]/50 dark:hover:border-blue-500/40 dark:hover:bg-[#0D1527]">
-                          <div>
+                        <div className="group flex h-full flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs transition-colors duration-300 [transform-style:preserve-3d] hover:border-blue-500/40 hover:shadow-md dark:border-slate-800/80 dark:bg-[#090F1C]/50 dark:hover:border-blue-500/40 dark:hover:bg-[#0D1527]">
+                          <div className="[transform:translateZ(22px)]">
+                            {p.featured && (
+                              <span className="mb-3 inline-block rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-blue-600 dark:text-[#4DA6FF]">
+                                ★ featured
+                              </span>
+                            )}
                             <div className="flex items-start justify-between gap-3">
                               <h3 className="text-base font-bold text-slate-900 transition-colors duration-150 group-hover:text-blue-600 dark:text-white dark:group-hover:text-[#4DA6FF]">
                                 {p.name}
@@ -247,10 +313,22 @@ export function Minimal({ data }: TemplateProps) {
                                 {p.tagline}
                               </p>
                             )}
+                            {p.bullets.length > 0 && (
+                              <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400/90">
+                                {p.bullets.slice(0, 3).map((b, j) => (
+                                  <li key={j} className="flex items-start gap-2">
+                                    <span className="shrink-0 font-mono text-blue-500/70 dark:text-[#4DA6FF]/70">
+                                      ›
+                                    </span>
+                                    <span>{b}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
 
                           {p.tech.length > 0 && (
-                            <div className="mt-6 flex flex-wrap gap-1.5">
+                            <div className="mt-6 flex flex-wrap gap-1.5 [transform:translateZ(12px)]">
                               {p.tech.map((t) => (
                                 <span
                                   key={t}
@@ -366,6 +444,50 @@ export function Minimal({ data }: TemplateProps) {
                   ))}
                 </Stagger>
               </Section>
+            )}
+
+            {/* Closing contact card */}
+            {(profile.email || links.length > 0) && (
+              <Reveal y={20}>
+                <Spotlight
+                  color="rgba(37,99,235,0.14)"
+                  size={520}
+                  className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-8 shadow-xs dark:border-slate-800/80 dark:bg-[#090F1C]/60 sm:p-10"
+                >
+                  <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-[#4DA6FF]">
+                    {"// open a channel"}
+                  </p>
+                  <h2 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
+                    {profile.openToWork
+                      ? "Available for new work — let's talk."
+                      : "Have something in mind? Let's talk."}
+                  </h2>
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    {profile.email && (
+                      <Magnetic strength={0.3}>
+                        <a
+                          href={`mailto:${profile.email}`}
+                          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 outline-none transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                        >
+                          {profile.email}
+                          <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                      </Magnetic>
+                    )}
+                    {links.slice(0, 3).map((l) => (
+                      <a
+                        key={l.url}
+                        href={l.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-xs text-slate-600 outline-none transition-colors hover:border-blue-500/40 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
+                      >
+                        {l.label || l.kind}
+                      </a>
+                    ))}
+                  </div>
+                </Spotlight>
+              </Reveal>
             )}
 
             {/* Mobile Footer */}

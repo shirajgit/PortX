@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { PortfolioData, TemplateProps } from "../types";
 import { useSoundEffects } from "../tem_comps/useSoundEffects";
 import { MatrixRain } from "../tem_comps/MatrixRain";
+import { TiltCard } from "../tem_comps/Motion";
+import { getInsights } from "../insights";
 
 /* ── Portxz · CLI flagship template ───────────────────────────────────────
    An interactive "developer OS" terminal. Boots with a typed sequence, then
@@ -64,6 +66,38 @@ function buildCommands(data: PortfolioData, username: string) {
           ? span(C.green, "● available for work & freelance")
           : span(C.dim, "○ not actively looking"))
     );
+    return out;
+  };
+
+  /* neofetch-style overview: one block bar per unit, capped at the bar width */
+  const insights = getInsights(data);
+  const statsOut = (): string[] => {
+    const W = 18;
+    const bar = (n: number) => {
+      const f = Math.min(W, Math.max(1, n));
+      return span(C.cyan, "█".repeat(f)) + span(C.faint, "░".repeat(W - f));
+    };
+    const out: string[] = [span(C.purple, "system overview")];
+    if (insights.current)
+      out.push(
+        "  " +
+          span(C.dim, pad("now", 18)) +
+          span(C.green, esc(insights.current.title)) +
+          (insights.current.organization
+            ? span(C.dim, " @ ") + span(C.purple, esc(insights.current.organization))
+            : "")
+      );
+    insights.stats.forEach((s) =>
+      out.push(
+        "  " + span(C.dim, pad(s.label.toLowerCase(), 18)) + bar(s.value) + " " + span(C.amber, `${s.value}${s.suffix}`)
+      )
+    );
+    if (insights.topTech.length)
+      out.push(
+        "  " +
+          span(C.dim, pad("top stack", 18)) +
+          insights.topTech.slice(0, 5).map((t) => span(C.cyan, "#" + esc(t))).join(" ")
+      );
     return out;
   };
 
@@ -154,12 +188,14 @@ function buildCommands(data: PortfolioData, username: string) {
     skills: skills.length > 0,
     education: educations.length > 0,
     contact: links.length > 0 || Boolean(profile.email),
+    stats: insights.stats.length > 0,
   };
 
   const commands: Record<string, Cmd> = {
     about: { run: whoami, desc: "core profile & status" },
     help: { run: () => [], desc: "list available commands" },
   };
+  if (has.stats) commands.stats = { run: statsOut, desc: "profile at a glance" };
   if (has.projects) commands.projects = { run: projectsOut, desc: "deployed builds & repos" };
   if (has.experience) commands.experience = { run: experienceOut, desc: "professional track record" };
   if (has.skills) commands.skills = { run: skillsOut, desc: "loaded tech capabilities" };
@@ -169,7 +205,7 @@ function buildCommands(data: PortfolioData, username: string) {
 
   // help output depends on the assembled command set
   commands.help.run = () => {
-    const order = ["about", "projects", "experience", "skills", "education", "contact", "resume", "clear"];
+    const order = ["about", "stats", "projects", "experience", "skills", "education", "contact", "resume", "clear"];
     const rows = order
       .filter((k) => k === "clear" || commands[k])
       .map((k) => {
@@ -184,6 +220,7 @@ function buildCommands(data: PortfolioData, username: string) {
     if (commands[target]) commands[name] = commands[target];
   };
   alias("whoami", "about");
+  alias("neofetch", "stats");
   alias("ls", "projects");
   alias("exp", "experience");
   alias("work", "experience");
@@ -203,6 +240,7 @@ function buildCommands(data: PortfolioData, username: string) {
       let n = 0;
       return [
         ...sec(++n, "ABOUT", whoami()),
+        ...(has.stats ? sec(++n, "STATS", statsOut()) : []),
         ...(has.projects ? sec(++n, "PROJECTS", projectsOut()) : []),
         ...(has.experience ? sec(++n, "EXPERIENCE", experienceOut()) : []),
         ...(has.skills ? sec(++n, "SKILLS", skillsOut()) : []),
@@ -407,6 +445,7 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
 
   const chips = [
     "about",
+    has.stats && "stats",
     has.projects && "projects",
     has.experience && "experience",
     has.skills && "skills",
@@ -432,8 +471,10 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-3xl space-y-4">
-        {/* terminal window */}
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#070C1E]/80 shadow-[0_0_60px_rgba(56,189,248,0.15)] backdrop-blur-2xl transition-colors duration-300 hover:border-sky-500/30">
+        {/* terminal window — swings up into place in 3D, then leans toward the cursor */}
+        <div className="pxz-cli-rise">
+        <TiltCard max={2.5} glareColor="rgba(56,189,248,0.07)" className="rounded-2xl">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#070C1E]/80 shadow-[0_0_60px_rgba(56,189,248,0.15),0_40px_80px_-30px_rgba(0,0,0,0.9)] backdrop-blur-2xl transition-colors duration-300 hover:border-sky-500/30">
           {/* top glow line */}
           <div aria-hidden className="pxz-cli-topglow h-px w-full bg-gradient-to-r from-transparent via-sky-400/70 to-transparent" />
 
@@ -535,6 +576,8 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
             </div>
           </div>
         </div>
+        </TiltCard>
+        </div>
 
         {/* command chips */}
         <div className="flex flex-wrap gap-2 pt-1">
@@ -582,13 +625,18 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
           animation: pxz-scan 8s linear infinite;
         }
         @keyframes pxz-scan { from { background-position: 0 0; } to { background-position: 0 60px; } }
+        @keyframes pxz-cli-rise {
+          from { opacity: 0; transform: perspective(1200px) rotateX(16deg) translateY(36px) scale(.96); }
+          to   { opacity: 1; transform: perspective(1200px) rotateX(0) translateY(0) scale(1); }
+        }
+        .pxz-cli-rise { animation: pxz-cli-rise 1s cubic-bezier(.22,1,.36,1) both; transform-origin: 50% 100%; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(56,189,248,.25); border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(56,189,248,.45); }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         @media (prefers-reduced-motion: reduce) {
           .pxz-cli-line, .pxz-caret, .pxz-pulse, .pxz-eq, .pxz-cli-mesh, .pxz-cli-mesh2,
-          .pxz-cli-topglow, .pxz-cli-scanlines { animation: none !important; }
+          .pxz-cli-topglow, .pxz-cli-scanlines, .pxz-cli-rise { animation: none !important; }
           .pxz-cli-line { opacity: 1 !important; transform: none !important; }
           .pxz-caret { opacity: 1; }
         }
