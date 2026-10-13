@@ -43,10 +43,11 @@ model Profile {
 model PaymentRequest {
   id         String   @id @default(uuid()) @db.Uuid
   profileId  String   @map("profile_id") @db.Uuid
-  plan       String   // "month" | "halfyear" | "year"
+  plan       String   // "launch" | "month" | "halfyear" | "year"
   amount     Int      // rupees, denormalized at claim time
-  utr        String   // UPI transaction reference entered by user
-  status     String   @default("pending") // pending | approved | rejected
+  utr        String   // Razorpay payment id once paid (legacy rows: payer's mobile/UPI ID)
+  orderId    String?  @unique @map("order_id") // Razorpay order id; null on legacy manual-UPI rows
+  status     String   @default("pending") // created (Razorpay order, unpaid) | pending | approved | rejected
   createdAt  DateTime @default(now()) @map("created_at")
   reviewedAt DateTime? @map("reviewed_at")
   profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)

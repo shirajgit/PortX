@@ -12,6 +12,7 @@ export async function GET() {
     return Response.json({ error: "forbidden" }, { status: 403 });
 
   const requests = await db.paymentRequest.findMany({
+    where: { status: { not: "created" } },
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     take: 50,
     include: { profile: { select: { username: true, fullName: true, plan: true, planExpiresAt: true } } },
