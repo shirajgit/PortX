@@ -59,9 +59,9 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico" },
-      { url: "/favicon.ico", type: "image/png", sizes: "32x32" },
+      { url: "/brand/portxz-mark.png", type: "image/png", sizes: "128x128" },
     ],
-    apple: [{ url: "/favicon.ico", sizes: "180x180" }],
+    apple: [{ url: "/brand/portxz-apple.png", sizes: "180x180" }],
   },
 };
 

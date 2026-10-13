@@ -4,6 +4,8 @@
    - fullscreen: centers in a min-h-screen navy backdrop (route loads)
    - inline (default): drops into a section where content will appear   */
 
+import { Logo } from "@/components/Logo";
+
 export function PortxzLoader({
   label = "Loading",
   fullscreen = false,
@@ -13,10 +15,8 @@ export function PortxzLoader({
 }) {
   const body = (
     <div className="flex flex-col items-center gap-4" role="status" aria-live="polite">
-      {/* wordmark */}
-      <span className="animate-portxz-pulse text-2xl font-bold tracking-tight text-white light:text-slate-900">
-        Port<span className="text-[#4DA6FF]">xz</span>
-      </span>
+      {/* logo */}
+      <Logo size="lg" className="animate-portxz-pulse text-white light:text-slate-900" />
 
       {/* indeterminate gradient sweep bar */}
       <div className="relative h-1 w-40 overflow-hidden rounded-full bg-[#1E2C52] light:bg-slate-200">

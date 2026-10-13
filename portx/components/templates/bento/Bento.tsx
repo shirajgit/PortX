@@ -155,7 +155,7 @@ export function Bento({ data }: TemplateProps) {
               <Label>Connect</Label>
               <div className="mt-4 flex flex-col gap-2.5">
                 {profile.email && (
-                  <Magnetic as="a" className="w-full" strength={0.25}>
+                  <Magnetic as="span" className="w-full" strength={0.25}>
                     <a
                       href={`mailto:${profile.email}`}
                       className="flex w-full items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-2.5 text-sm transition hover:border-[#7DD3FC]/50 hover:bg-white/[0.06]"
@@ -170,7 +170,7 @@ export function Bento({ data }: TemplateProps) {
                 {links.map((l) => (
                   <Magnetic
                     key={l.url}
-                    as="a"
+                    as="span"
                     className="w-full"
                     strength={0.25}
                   >
@@ -208,12 +208,12 @@ export function Bento({ data }: TemplateProps) {
               {stats.map((s) => (
                 <TiltCard key={s.label} className="h-full" max={9}>
                   <Tile className="items-start justify-center bg-gradient-to-br from-[#12141F] to-[#0B0D14]">
-                    <span className="text-4xl font-bold tracking-tight sm:text-5xl">
+                    <span className="block text-4xl font-bold tracking-tight sm:text-5xl">
                       <GradientText colors={ACCENT}>
                         <CountUp value={s.value} suffix={s.suffix} pad={2} />
                       </GradientText>
                     </span>
-                    <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                    <span className="mt-1 block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
                       {s.label}
                     </span>
                   </Tile>
@@ -456,7 +456,7 @@ export function Bento({ data }: TemplateProps) {
                   <GradientText colors={ACCENT}>Let&apos;s work together.</GradientText>
                 </h2>
                 <div className="mt-7 flex justify-center">
-                  <Magnetic as="a" strength={0.3}>
+                  <Magnetic as="span" strength={0.3}>
                     <a
                       href={`mailto:${profile.email}`}
                       className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0B0D16] transition hover:bg-[#7DD3FC]"

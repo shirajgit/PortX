@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Logo } from "@/components/Logo";
 
 /* ── inline SVG icon set (no deps) ─────────────────────────────────── */
 const ICONS: Record<string, React.ReactNode> = {
@@ -170,16 +171,8 @@ function NavLinks({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () =
 
 function Brand({ onNavigate, size = "lg" }: { onNavigate?: () => void; size?: "lg" | "sm" }) {
   return (
-    <Link href="/" onClick={onNavigate} className="flex items-center gap-2">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#4DA6FF] to-[#39D98A] text-sm font-black text-[#0A0F1E] shadow-[0_0_18px_-4px_#4DA6FF]">
-        P
-      </span>
-      <span className={`font-bold tracking-tight ${size === "lg" ? "text-xl" : "text-lg"}`}>
-        Port
-        <span className="bg-gradient-to-r from-[#4DA6FF] to-[#8FC4FF] bg-clip-text text-transparent">
-          xz
-        </span>
-      </span>
+    <Link href="/" onClick={onNavigate} className="flex items-center">
+      <Logo size="md" className={size === "lg" ? "" : "!text-lg"} />
     </Link>
   );
 }

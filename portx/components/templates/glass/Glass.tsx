@@ -62,16 +62,6 @@ export function Glass({ data }: TemplateProps) {
             size={620}
             className="group overflow-hidden rounded-[2rem] border border-white/12 bg-white/[0.055] p-7 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:p-10 lg:p-12"
           >
-            {/* inner top-edge light refraction */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent"
-            />
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-[2rem] bg-gradient-to-b from-white/[0.08] to-transparent"
-            />
-
             <div className="relative flex flex-col items-start gap-8 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-5 sm:gap-6">
                 {/* Avatar / monogram — floats inside orbiting 3D rings */}

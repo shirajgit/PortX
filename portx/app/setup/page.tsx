@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PortxzLoader } from "@/components/PortxzLoader";
 import { PhotoPicker } from "@/components/editor/PhotoPicker";
+import { Logo } from "@/components/Logo";
 
 /* ── portxz onboarding wizard ───────────────────────────────────────────
    New signups walk: Profile → Project → Experience → Skills → Education
@@ -245,7 +246,7 @@ export default function SetupWizard() {
       <div className="w-full max-w-lg">
         {/* header */}
         <div className="flex items-center justify-between">
-          <span className="text-xl font-bold">Port<span className="text-[#4DA6FF]">xz</span></span>
+          <Logo size="md" />
           <span className="font-mono text-xs text-[#8B98B8]">
             step {displayStep}/8{username ? ` · Portxz.vercel.app/${username}` : ""}
           </span>

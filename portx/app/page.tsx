@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Logo } from "@/components/Logo";
 
 /* ═══ Portxz landing — animated SaaS edition ═══ */
 
@@ -263,10 +264,7 @@ export default function Landing() {
 
       {/* nav */}
       <nav className="relative z-10 flex w-full items-center justify-between px-6 py-5 sm:px-12">
-        <span className="flex items-center gap-2 text-xl font-bold">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#4DA6FF] to-[#7C5CFF] text-sm text-white shadow-[0_4px_16px_rgba(77,166,255,0.4)]">P</span>
-          Port<span className="text-[#4DA6FF]">xz</span>
-        </span>
+        <Logo size="md" />
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <Link href="/sign-in" className="hidden text-sm text-[#8B98B8] hover:text-white sm:block">Sign in</Link>
@@ -577,10 +575,7 @@ export default function Landing() {
       {/* footer */}
       <footer className="relative z-10 border-t border-[#1E2C52]">
         <div className="flex w-full flex-col items-center justify-between gap-3 px-6 py-8 sm:flex-row sm:px-12">
-          <span className="flex items-center gap-2 font-bold">
-            <span className="grid h-6 w-6 place-items-center rounded bg-gradient-to-br from-[#4DA6FF] to-[#7C5CFF] text-xs text-white">P</span>
-            Port<span className="text-[#4DA6FF]">xz</span>
-          </span>
+          <Logo size="sm" />
           <p className="font-mono text-xs text-[#6B7A99]">© {new Date().getFullYear()} Portxz · one profile, always in sync</p>
         </div>
       </footer>

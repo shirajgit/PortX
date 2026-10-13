@@ -174,7 +174,7 @@ export function Executive({ data }: TemplateProps) {
             {(profile.email || primaryLinks.length > 0) && (
               <div className="relative mt-7 flex flex-wrap items-center gap-2.5">
                 {profile.email && (
-                  <Magnetic as="a" strength={0.25}>
+                  <Magnetic as="span" strength={0.25}>
                     <a
                       href={`mailto:${profile.email}`}
                       className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-shadow hover:shadow-lg hover:shadow-blue-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2"
@@ -186,7 +186,7 @@ export function Executive({ data }: TemplateProps) {
                   </Magnetic>
                 )}
                 {primaryLinks.map((l) => (
-                  <Magnetic key={l.url} as="a" strength={0.2}>
+                  <Magnetic key={l.url} as="span" strength={0.2}>
                     <a
                       href={l.url}
                       target="_blank"
@@ -414,7 +414,7 @@ export function Executive({ data }: TemplateProps) {
                     Let&apos;s start a conversation.
                   </h2>
                 </div>
-                <Magnetic as="a" strength={0.25}>
+                <Magnetic as="span" strength={0.25}>
                   <a
                     href={`mailto:${profile.email}`}
                     className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#16273D]"
