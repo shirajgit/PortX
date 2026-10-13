@@ -4,6 +4,7 @@ import { EnhanceButton } from "@/components/editor/EnhanceButton";
 import { usePlan } from "@/lib/usePlan";
 import { PlanChip } from "@/components/PlanChip";
 import { PortxzLoader } from "@/components/PortxzLoader";
+import { PhotoPicker } from "@/components/editor/PhotoPicker";
 
 type ProfileForm = {
   fullName: string;
@@ -26,6 +27,7 @@ const card = "rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-6";
 export default function ProfilePage() {
   const { pro, expiresAt } = usePlan();
   const [form, setForm] = useState<ProfileForm>(EMPTY);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null); // saved on its own by PhotoPicker
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -41,6 +43,7 @@ export default function ProfilePage() {
         location: p.location ?? "", email: p.email ?? "", phone: p.phone ?? "",
         openToWork: p.openToWork ?? true,
       });
+      setAvatarUrl(p.avatarUrl ?? null);
       setLoading(false);
     });
   }, []);
@@ -80,6 +83,11 @@ export default function ProfilePage() {
         {/* identity card */}
         <div className={card}>
           <h2 className="font-mono text-xs uppercase tracking-widest text-[#4DA6FF]">Identity</h2>
+
+          <label className={label}>Profile photo</label>
+          <div className="mt-2">
+            <PhotoPicker value={avatarUrl} name={form.fullName} onChange={setAvatarUrl} />
+          </div>
 
           <label className={label}>Full name</label>
           <input className={input} value={form.fullName}

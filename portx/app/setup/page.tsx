@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PortxzLoader } from "@/components/PortxzLoader";
+import { PhotoPicker } from "@/components/editor/PhotoPicker";
 
 /* ── portxz onboarding wizard ───────────────────────────────────────────
    New signups walk: Profile → Project → Experience → Skills → Education
@@ -34,6 +35,8 @@ export default function SetupWizard() {
   const [error, setError] = useState<string | null>(null);
 
   // step 1
+  const [fullName, setFullName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null); // saved on its own by PhotoPicker
   const [headline, setHeadline] = useState("");
   const [summary, setSummary] = useState("");
   const [location, setLocation] = useState("");
@@ -66,6 +69,8 @@ export default function SetupWizard() {
       const p = await r.json();
       if (p.onboardingStep >= 8) { router.replace("/dashboard"); return; }
       setUsername(p.username ?? "");
+      setFullName(p.fullName ?? "");
+      setAvatarUrl(p.avatarUrl ?? null);
       setHeadline(p.headline ?? "");
       setSummary(p.summary ?? "");
       setLocation(p.location ?? "");
@@ -105,6 +110,8 @@ export default function SetupWizard() {
     }
     const p = await res.json();
     setUsername(p.username);
+    setFullName(p.fullName ?? "");
+    setAvatarUrl(p.avatarUrl ?? null);
     setStep(1);
   }
 
@@ -278,6 +285,10 @@ export default function SetupWizard() {
 
           {step === 1 && (
             <>
+              <label className={label}>Your photo</label>
+              <div className="mb-2 mt-2">
+                <PhotoPicker value={avatarUrl} name={fullName} onChange={setAvatarUrl} />
+              </div>
               <label className={label}>Headline</label>
               <input className={input} value={headline} placeholder="Full Stack Developer (MERN / Next.js)"
                 onChange={(e) => setHeadline(e.target.value)} />

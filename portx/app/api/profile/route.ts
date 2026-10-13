@@ -71,6 +71,8 @@ const PatchInput = z.object({
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().max(20).optional(),
   openToWork: z.boolean().optional(),
+  // profile photo: an https image URL, or null to remove it
+  avatarUrl: z.string().url().max(500).startsWith("https://").nullable().optional(),
   template: z.enum(["minimal", "cli", "glass", "editorial", "noir", "bento", "executive", "aurora"]).optional(),
   isPublished: z.boolean().optional(),
   onboardingStep: z.number().int().min(1).max(8).optional(),
