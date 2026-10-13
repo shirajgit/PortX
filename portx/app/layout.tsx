@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s | Portxz",
   },
   description:
-    "Free developer portfolio builder. One profile generates your live portfolio website, ATS-friendly resume PDF, and GitHub README — always in sync. 3 templates including an interactive CLI terminal. Built for developers who ship.",
+    "Free developer portfolio builder. One profile generates your live portfolio website, ATS-friendly resume PDF, and GitHub README — always in sync. 8 templates including an interactive CLI terminal. Built for developers who ship.",
   keywords: [
     "portfolio builder",
     "developer portfolio builder",

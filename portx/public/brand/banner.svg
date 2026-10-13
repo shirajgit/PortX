@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4DA6FF"/>
+      <stop offset="1" stop-color="#7C5CFF"/>
+    </linearGradient>
+    <linearGradient id="headline" gradientUnits="userSpaceOnUse" x1="120" y1="0" x2="900" y2="0">
+      <stop offset="0" stop-color="#4DA6FF"/>
+      <stop offset="0.5" stop-color="#8FC4FF"/>
+      <stop offset="1" stop-color="#7C5CFF"/>
+    </linearGradient>
+    <filter id="blur" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="130"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#0A0F1E"/>
+  <g filter="url(#blur)">
+    <circle cx="960" cy="-40" r="320" fill="#4DA6FF" opacity="0.28"/>
+    <circle cx="80" cy="1040" r="260" fill="#7C5CFF" opacity="0.24"/>
+    <circle cx="1860" cy="520" r="240" fill="#39D98A" opacity="0.14"/>
+  </g>
+
+  <!-- logo -->
+  <rect x="120" y="90" width="72" height="72" rx="16" fill="url(#mark)"/>
+  <text x="156" y="142" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF">P</text>
+  <text x="212" y="144" font-family="'Segoe UI', Arial, sans-serif" font-size="50" font-weight="700" fill="#E8EDF7">Port<tspan fill="#4DA6FF">xz</tspan></text>
+
+  <!-- launch offer pill -->
+  <rect x="120" y="216" width="640" height="54" rx="27" fill="#0E2018" stroke="#39D98A" stroke-opacity="0.5" stroke-width="2"/>
+  <circle cx="150" cy="243" r="6" fill="#39D98A"/>
+  <text x="172" y="251" font-family="Consolas, 'Courier New', monospace" font-size="23" fill="#39D98A">Launch offer — Pro for ₹49 · first 50 users</text>
+
+  <!-- headline -->
+  <g font-family="'Segoe UI', Arial, sans-serif" font-size="88" font-weight="700">
+    <text x="120" y="400" fill="#E8EDF7">One profile.</text>
+    <text x="120" y="500" fill="url(#headline)">Portfolio, resume</text>
+    <text x="120" y="600" fill="url(#headline)">&amp; README</text>
+    <text x="120" y="700" fill="#E8EDF7">— always in sync.</text>
+  </g>
+
+  <g font-family="'Segoe UI', Arial, sans-serif" font-size="30" fill="#8B98B8">
+    <text x="120" y="776">Edit once — your live portfolio, ATS-ready resume PDF,</text>
+    <text x="120" y="818">and GitHub README all update instantly.</text>
+  </g>
+
+  <!-- CTA -->
+  <rect x="120" y="876" width="480" height="84" rx="20" fill="#4DA6FF"/>
+  <text x="360" y="929" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="30" font-weight="700" fill="#04101F">Claim your username — free</text>
+  <text x="630" y="927" font-family="Consolas, 'Courier New', monospace" font-size="22" fill="#6B7A99">live in 3 minutes</text>
+
+  <!-- terminal -->
+  <rect x="1130" y="280" width="670" height="470" rx="24" fill="#070C1A" stroke="#1E2C52" stroke-width="2"/>
+  <path d="M1131 340 V304 a23 23 0 0 1 23 -23 H1776 a23 23 0 0 1 23 23 V340 Z" fill="#0F1730"/>
+  <line x1="1131" y1="340" x2="1799" y2="340" stroke="#1E2C52" stroke-width="2"/>
+  <circle cx="1166" cy="311" r="8" fill="#FF5F57"/>
+  <circle cx="1192" cy="311" r="8" fill="#FFB454"/>
+  <circle cx="1218" cy="311" r="8" fill="#39D98A"/>
+  <text x="1246" y="318" font-family="Consolas, 'Courier New', monospace" font-size="18" fill="#6B7A99">visitor@you — portfolio</text>
+  <rect x="1716" y="298" width="60" height="26" rx="6" fill="#4DA6FF" fill-opacity="0.12"/>
+  <text x="1746" y="317" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="15" fill="#4DA6FF">LIVE</text>
+
+  <g font-family="Consolas, 'Courier New', monospace" font-size="23">
+    <text x="1164" y="396"><tspan fill="#39D98A">visitor</tspan><tspan fill="#6B7A99">@</tspan><tspan fill="#4DA6FF">you</tspan><tspan fill="#6B7A99">:~$ </tspan><tspan fill="#E8EDF7">whoami</tspan></text>
+    <text x="1164" y="432" fill="#8B98B8">designer · developer · shipping real things</text>
+    <text x="1164" y="492"><tspan fill="#39D98A">visitor</tspan><tspan fill="#6B7A99">@</tspan><tspan fill="#4DA6FF">you</tspan><tspan fill="#6B7A99">:~$ </tspan><tspan fill="#E8EDF7">resume</tspan></text>
+    <text x="1164" y="528" fill="#8B98B8">view resume | download PDF — always in sync</text>
+    <text x="1164" y="588"><tspan fill="#39D98A">visitor</tspan><tspan fill="#6B7A99">@</tspan><tspan fill="#4DA6FF">you</tspan><tspan fill="#6B7A99">:~$ </tspan><tspan fill="#E8EDF7">sudo hire-me</tspan></text>
+    <text x="1164" y="624" fill="#39D98A">✓ permission granted.</text>
+    <text x="1164" y="684"><tspan fill="#39D98A">visitor</tspan><tspan fill="#6B7A99">@</tspan><tspan fill="#4DA6FF">you</tspan><tspan fill="#6B7A99">:~$ </tspan></text>
+    <rect x="1358" y="664" width="13" height="24" fill="#4DA6FF"/>
+  </g>
+
+  <!-- three outputs -->
+  <g font-family="'Segoe UI', Arial, sans-serif" font-size="24" font-weight="600" fill="#E8EDF7" text-anchor="middle">
+    <rect x="1130" y="786" width="210" height="64" rx="16" fill="#0F1730" stroke="#1E2C52" stroke-width="2"/>
+    <text x="1235" y="827">Portfolio</text>
+    <rect x="1360" y="786" width="210" height="64" rx="16" fill="#0F1730" stroke="#1E2C52" stroke-width="2"/>
+    <text x="1465" y="827">Resume PDF</text>
+    <rect x="1590" y="786" width="210" height="64" rx="16" fill="#0F1730" stroke="#1E2C52" stroke-width="2"/>
+    <text x="1695" y="827">README</text>
+  </g>
+</svg>

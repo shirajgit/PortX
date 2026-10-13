@@ -175,6 +175,20 @@ const SHOWCASE = [
       <div className="relative mt-2 h-7 w-2/3 rounded-xl border border-white/15 bg-white/5 backdrop-blur" />
     </div>
   )},
+  { name: "Editorial", tag: "serif magazine, light", el: (
+    <div className="h-full w-full bg-[#FAF7F1] p-4">
+      <div className="h-3 w-24 rounded-sm bg-[#191714]" />
+      <div className="mt-1.5 h-1.5 w-16 rounded-sm bg-[#B4532A]/70" />
+      <div className="mt-3 border-t-2 border-[#191714] pt-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] text-[#B4532A]">01</span>
+          <div className="h-1.5 w-20 rounded bg-[#8A8377]" />
+        </div>
+        <div className="mt-1.5 h-1.5 w-32 rounded bg-[#D8D2C6]" />
+        <div className="mt-1 h-1.5 w-24 rounded bg-[#D8D2C6]" />
+      </div>
+    </div>
+  )},
   { name: "Noir", tag: "black & gold luxury", el: (
     <div className="flex h-full w-full flex-col items-center justify-center bg-[#0B0B0D] p-4">
       <div className="h-3 w-24 rounded-sm bg-[#EDEAE2]" />
@@ -183,6 +197,15 @@ const SHOWCASE = [
       <div className="mt-3 flex gap-2">
         <div className="h-1.5 w-8 rounded bg-[#D4B36A]/70" /><div className="h-1.5 w-8 rounded bg-[#D4B36A]/70" />
       </div>
+    </div>
+  )},
+  { name: "Bento", tag: "modern tile grid", el: (
+    <div className="grid h-full w-full grid-cols-3 gap-1.5 bg-[#0C0E14] p-3">
+      <div className="col-span-2 rounded-lg bg-gradient-to-br from-[#182036] to-[#10131D]" />
+      <div className="rounded-lg bg-[#11151F]" />
+      <div className="rounded-lg bg-gradient-to-br from-[#1A2440] to-[#111524]" />
+      <div className="rounded-lg bg-gradient-to-br from-[#241A3E] to-[#141021]" />
+      <div className="rounded-lg bg-[#11151F]" />
     </div>
   )},
   { name: "Executive", tag: "interview-ready, light", el: (
@@ -316,7 +339,7 @@ export default function Landing() {
 
         {/* stat strip */}
         <motion.div {...fadeUp} className="mt-12 grid w-full max-w-2xl grid-cols-3 divide-x divide-[#1E2C52] rounded-2xl border border-[#1E2C52] bg-[#0F1730]/60 backdrop-blur">
-          {[["6", "templates"], ["1-click", "GitHub import"], ["3 min", "to publish"]].map(([v, l]) => (
+          {[["8", "templates"], ["1-click", "GitHub import"], ["3 min", "to publish"]].map(([v, l]) => (
             <div key={l} className="px-2 py-4">
               <p className="text-xl font-bold text-[#4DA6FF] sm:text-2xl">{v}</p>
               <p className="font-mono text-[10px] uppercase tracking-wider text-[#6B7A99] sm:text-xs">{l}</p>
@@ -330,7 +353,7 @@ export default function Landing() {
         <div className="flex w-max gap-10 font-mono text-xs uppercase tracking-[0.2em] text-[#6B7A99]" style={{ animation: "marquee 22s linear infinite" }}>
           {[...Array(2)].map((_, i) => (
             <div key={i} className="flex gap-10">
-              {["live portfolio", "✦", "ats resume pdf", "✦", "github readme", "✦", "ai review", "✦", "cli terminal", "✦", "6 templates", "✦", "analytics", "✦"].map((t, j) => (
+              {["live portfolio", "✦", "ats resume pdf", "✦", "github readme", "✦", "ai review", "✦", "cli terminal", "✦", "8 templates", "✦", "analytics", "✦"].map((t, j) => (
                 <span key={j}>{t}</span>
               ))}
             </div>
@@ -364,7 +387,7 @@ export default function Landing() {
         <motion.h2 {...fadeUp} className="mt-3 text-center text-3xl font-bold sm:text-4xl">Your whole professional identity</motion.h2>
         <div className="mt-12 grid gap-4 sm:grid-cols-3">
           {[
-            { icon: "🖥️", title: "6 premium templates", desc: "Minimal, interactive CLI terminal, glass, black-gold Noir, corporate Executive, glowing Aurora. Switch anytime — same data." },
+            { icon: "🖥️", title: "8 templates", desc: "Minimal, interactive CLI terminal, glass, serif Editorial, black-gold Noir, tiled Bento, corporate Executive, glowing Aurora. Switch anytime — same data." },
             { icon: "📄", title: "ATS resume PDF", desc: "Single-column, parser-friendly, recruiter-ready. Edit your profile — the PDF updates itself." },
             { icon: "🐙", title: "GitHub README", desc: "One-click profile README with badges, projects, and stats. Paste and push." },
             { icon: "⚡", title: "GitHub import", desc: "Pull your repos in one click, pick your best, polish with AI." },
@@ -384,13 +407,13 @@ export default function Landing() {
       {/* ═══ template showcase ═══ */}
       <section className="relative z-10 w-full px-6 pb-24 sm:px-12">
         <motion.p {...fadeUp} className="text-center font-mono text-xs uppercase tracking-[0.25em] text-[#4DA6FF]">the wardrobe</motion.p>
-        <motion.h2 {...fadeUp} className="mt-3 text-center text-3xl font-bold sm:text-4xl">Six looks. One profile. Zero rework.</motion.h2>
+        <motion.h2 {...fadeUp} className="mt-3 text-center text-3xl font-bold sm:text-4xl">Eight looks. One profile. Zero rework.</motion.h2>
         <motion.p {...fadeUp} className="mx-auto mt-3 max-w-lg text-center text-[#8B98B8]">
           Switch templates like outfits — your content never moves. Preview every one with demo data before you commit.
         </motion.p>
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {SHOWCASE.map((t, i) => (
-            <motion.div key={t.name} {...fadeUp} transition={{ ...fadeUp.transition, delay: (i % 3) * 0.1 }}>
+            <motion.div key={t.name} {...fadeUp} transition={{ ...fadeUp.transition, delay: (i % 4) * 0.1 }}>
               <TiltCard className="overflow-hidden rounded-2xl border border-[#1E2C52] shadow-xl transition hover:border-[#4DA6FF]/50">
                 <div className="aspect-[16/10]">{t.el}</div>
                 <div className="flex items-center justify-between border-t border-[#1E2C52] bg-[#0F1730] px-4 py-3">
@@ -413,7 +436,7 @@ export default function Landing() {
         </motion.p>
         <div className="mt-12 grid gap-4 sm:grid-cols-3">
           {[
-            { icon: "🌐", t: "The Portfolio", pts: ["Your own link: portxz…/you", "6 templates, switch anytime", "Interactive CLI mode visitors love", "View analytics built in"] },
+            { icon: "🌐", t: "The Portfolio", pts: ["Your own link: portxz…/you", "8 templates, switch anytime", "Interactive CLI mode visitors love", "View analytics built in"] },
             { icon: "📄", t: "The Resume", pts: ["ATS-parseable single column", "Rendered from the same data", "One-click PDF download", "AI-polished bullet points"] },
             { icon: "🐙", t: "The README", pts: ["GitHub profile README generator", "Badges, projects & stats included", "Copy, paste, push — done", "Stays consistent with the rest"] },
           ].map((c, i) => (
@@ -466,7 +489,7 @@ export default function Landing() {
           {[
             ["Published portfolio + your link", "✓", "✓"],
             ["GitHub import & README", "✓", "✓"],
-            ["Templates", "Minimal", "All 6"],
+            ["Templates", "Minimal", "All 8"],
             ["Projects / experience / links", "5 each", "Unlimited"],
             ["AI enhance", "5 / month", "Unlimited"],
             ["AI portfolio review", "—", "✓"],
@@ -499,7 +522,7 @@ export default function Landing() {
             <span className="text-xl text-[#8B98B8]">/month</span>
           </h2>
           <p className="relative mx-auto mt-4 max-w-md text-[#8B98B8]">
-            Less than a coffee. All 5 premium templates, AI review, synced resume PDF,
+            Less than a coffee. All 7 premium templates, AI review, synced resume PDF,
             unlimited everything — for the first 50 people who believe early.
           </p>
           <div className="relative mx-auto mt-7 grid max-w-lg grid-cols-2 gap-2 text-left text-sm sm:grid-cols-2">

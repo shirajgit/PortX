@@ -19,7 +19,7 @@
 ## ✨ Features
 
 - **🧭 Guided onboarding wizard** — 8 steps from signup to a published page: claim your username, add your work, pick a look, go live
-- **🎨 6 templates** — Minimal (free), plus premium: an **interactive CLI terminal** (visitors literally type commands — try `sudo hire-me`), Glassmorphism, black-and-gold **Noir**, corporate-clean **Executive**, and glowing **Aurora**. Switch anytime — same data, new look
+- **🎨 8 templates** — Minimal (free), plus premium: an **interactive CLI terminal** (visitors literally type commands — try `sudo hire-me`), Glassmorphism, serif-magazine **Editorial**, black-and-gold **Noir**, tile-grid **Bento**, corporate-clean **Executive**, and glowing **Aurora**. Switch anytime — same data, new look
 - **📄 ATS-ready resume** — single-column, parser-friendly resume rendered from your profile, downloadable as PDF. No Word wrestling
 - **🐙 GitHub tools** — one-click repo import (repos become portfolio projects) and a generated profile README with badges, projects, and stats
 - **🤖 AI assist** — Enhance rewrites weak bullets; the AI Portfolio Review scores your profile against a recruiter-style rubric with specific fixes
@@ -87,7 +87,7 @@ portx/
 │   ├── preview/[template]/   # full-screen template previews (demo data)
 │   ├── dashboard/            # editors, template gallery, billing, AI review, admin
 │   └── api/                  # profile, projects, skills, billing, AI, pdf, github import
-├── components/templates/     # minimal · cli · glass · noir · executive · aurora
+├── components/templates/     # minimal · cli · glass · editorial · noir · bento · executive · aurora
 ├── lib/                      # db, billing rules, AI critic, readme generator, demo data
 └── prisma/                   # schema + migrations
 ```
@@ -98,7 +98,7 @@ portx/
 |---|---|---|
 | Published portfolio + your link | ✅ | ✅ |
 | GitHub import & README | ✅ | ✅ |
-| Templates | Minimal | All 6 |
+| Templates | Minimal | All 8 |
 | Projects / experience / links | 5 each | Unlimited |
 | AI Enhance | 5 / month | Unlimited |
 | AI Portfolio Review | — | ✅ |
