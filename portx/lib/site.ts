@@ -1,7 +1,7 @@
 /* Canonical site address — one place, used by metadata, sitemap, robots and
    structured data. Override with NEXT_PUBLIC_APP_URL (no trailing slash needed). */
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "https://portxz.xyz").replace(/\/+$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://portxz.xyz").replace(/\/+$/, "");
 
 export const SITE_NAME = "Portxz";
 
