@@ -19,6 +19,8 @@ const PASSES: Pass[] = [
   { id: "year", label: "Pro — 1 Year", short: "1 year", price: 999, days: 365 },
 ];
 const MONTHLY = 149;
+const savePct = (p: Pass) => Math.round((1 - p.price / (MONTHLY * (p.days / 30))) * 100);
+const perMonthOf = (p: Pass) => Math.round(p.price / (p.days / 30));
 
 const BENEFITS = [
   { icon: Palette, title: "All 8 premium designs", text: "Executive, Editorial, Noir, Aurora and more. Switch anytime — your details stay the same." },
@@ -65,23 +67,29 @@ export default function BillingPage() {
   const [requests, setRequests] = useState<PayReq[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [paying, setPaying] = useState<string | null>(null); // pass id being paid for
+  const [choice, setChoice] = useState<string | null>(null); // plan picked in the phone list
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [prefill, setPrefill] = useState<{ name?: string; email?: string }>({});
 
   const load = async () => {
-    const [b, p] = await Promise.all([fetch("/api/billing/claim"), fetch("/api/profile")]);
-    if (b.ok) {
-      const d = await b.json();
-      setPlan(d.plan);
-      setExpires(d.planExpiresAt);
-      setRequests(d.requests);
+    try {
+      const [b, p] = await Promise.all([fetch("/api/billing/claim"), fetch("/api/profile")]);
+      if (b.ok) {
+        const d = await b.json();
+        setPlan(d.plan);
+        setExpires(d.planExpiresAt);
+        setRequests(d.requests);
+      }
+      if (p.ok) {
+        const d = await p.json();
+        setPrefill({ name: d.fullName ?? undefined, email: d.email ?? undefined });
+      }
+    } catch {
+      setError("We couldn't load your plan details. Please check your connection and refresh.");
+    } finally {
+      setLoaded(true); // never leave the page stuck on the loading skeleton
     }
-    if (p.ok) {
-      const d = await p.json();
-      setPrefill({ name: d.fullName ?? undefined, email: d.email ?? undefined });
-    }
-    setLoaded(true);
   };
   useEffect(() => { load(); }, []);
 
@@ -92,6 +100,9 @@ export default function BillingPage() {
     ? Math.ceil((new Date(expires).getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : 0;
   const showPasses = !pending && (!pro || daysLeft <= 7);
+  // phone list: launch offer by default, best value once the offer is used
+  const pick = choice && !(choice === "launch" && launchUsed) ? choice : launchUsed ? "year" : "launch";
+  const chosen = loaded && showPasses ? PASSES.find((p) => p.id === pick) ?? null : null;
 
   async function pay(pass: Pass) {
     setError(null);
@@ -159,7 +170,7 @@ export default function BillingPage() {
   const PLAN_NAME: Record<string, string> = Object.fromEntries(PASSES.map((p) => [p.id, p.label]));
 
   return (
-    <div className="space-y-8">
+    <div className={`space-y-6 sm:space-y-8 ${chosen ? "pb-28 sm:pb-0" : ""}`}>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       {success && <Notice tone="success">Payment successful — welcome to Pro! Everything is unlocked.</Notice>}
@@ -179,24 +190,25 @@ export default function BillingPage() {
         <section className="lp-gradient-border relative overflow-hidden rounded-3xl">
           <div aria-hidden className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
           <div aria-hidden className="pointer-events-none absolute -bottom-40 right-10 h-96 w-96 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
-          <div className="relative grid items-center gap-8 p-7 sm:p-10 lg:grid-cols-[1.1fr_1fr]">
+          <div className="relative grid items-center gap-8 p-5 sm:p-10 lg:grid-cols-[1.1fr_1fr]">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-lp-accent-soft px-3 py-1 text-xs font-semibold text-lp-accent">
                 <Sparkles className="h-3.5 w-3.5" /> Portxz Pro
               </span>
-              <h1 className="mt-4 text-[2rem] font-semibold leading-[1.1] tracking-[-0.035em] sm:text-[2.6rem]">
+              <h1 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.035em] sm:text-[2.6rem]">
                 Look like the <span className="lp-serif lp-gradient-text pr-1">obvious</span> choice.
               </h1>
-              <p className="mt-4 max-w-md text-[15px] leading-relaxed text-lp-muted">
-                Unlock every premium design, a ready-to-send resume and AI that helps you write — everything you need to impress recruiters.
+              <p className="mt-3 max-w-md text-[15px] leading-relaxed text-lp-muted sm:mt-4">
+                Every premium design, a ready-to-send resume and AI that helps you write — all you need to impress recruiters.
               </p>
-              <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 sm:mt-6">
                 <span className="text-4xl font-semibold tracking-tight">₹49</span>
                 <span className="text-lg text-lp-subtle line-through">₹149</span>
                 <span className="text-sm text-lp-muted">for your first month</span>
               </div>
               <p className="mt-1 text-[13px] font-medium text-lp-green">Launch offer · first 50 users only</p>
-              <div className="mt-6 flex flex-wrap gap-3">
+              {/* phones use the sticky pay bar instead */}
+              <div className="mt-6 hidden flex-wrap gap-3 sm:flex">
                 {!launchUsed && showPasses ? (
                   <button onClick={() => pay(PASSES[0])} disabled={!!paying} className={btn("primary", "lg")}>
                     {paying === "launch" ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening payment…</> : <>Get Pro for ₹49</>}
@@ -227,43 +239,56 @@ export default function BillingPage() {
         </section>
       )}
 
-      {/* ── what you get ── */}
-      {loaded && !pro && (
-        <section>
-          <h2 className="text-xl font-semibold tracking-tight">Everything you get with Pro</h2>
-          <p className="mt-1 text-[15px] text-lp-muted">Made for job seekers, freelancers and anyone who wants to be taken seriously.</p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {BENEFITS.map((b, i) => (
-              <motion.div key={b.title} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                className="lp-card rounded-2xl p-5">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-lp-accent-soft text-lp-accent">
-                  <b.icon className="h-5 w-5" />
-                </span>
-                <p className="mt-4 font-semibold">{b.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-lp-muted">{b.text}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* ── plans ── */}
       {loaded && showPasses && (
         <section id="plans" className="scroll-mt-24">
-          <h2 className="text-xl font-semibold tracking-tight">
+          <h2 className="text-lg font-semibold tracking-tight sm:text-xl">
             {pro ? `Your Pro ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — extend it` : "Choose your plan"}
           </h2>
-          <p className="mt-1 text-[15px] text-lp-muted">Pay once. No subscription — you&apos;ll never be charged again unless you choose to.</p>
+          <p className="mt-1 text-sm text-lp-muted sm:text-[15px]">Pay once. No subscription — you&apos;ll never be charged again unless you choose to.</p>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* phones: compact tappable list + sticky pay bar */}
+          <div className="mt-4 space-y-2.5 sm:hidden" role="radiogroup" aria-label="Plans">
+            {PASSES.map((p) => {
+              const disabled = p.id === "launch" && launchUsed;
+              const on = pick === p.id;
+              const save = savePct(p);
+              return (
+                <button key={p.id} type="button" role="radio" aria-checked={on} disabled={disabled}
+                  onClick={() => setChoice(p.id)}
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition disabled:opacity-50 ${
+                    on ? "border-lp-accent bg-lp-accent-soft ring-4 ring-lp-accent-soft" : "border-lp-border bg-lp-surface"}`}>
+                  <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${on ? "border-lp-accent" : "border-lp-border-strong"}`}>
+                    {on && <span className="h-2.5 w-2.5 rounded-full bg-lp-accent" />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[15px] font-semibold">{p.id === "launch" ? "First month" : p.short}</span>
+                      {p.id === "launch" && !launchUsed && <span className="rounded-full bg-lp-accent px-1.5 py-0.5 text-[10px] font-semibold text-white">Launch offer</span>}
+                      {p.id === "year" && <span className="rounded-full bg-lp-green px-1.5 py-0.5 text-[10px] font-semibold text-white">Best value</span>}
+                    </span>
+                    <span className="mt-0.5 block text-[13px] text-lp-muted">
+                      {disabled ? "Already used" : p.days === 30 ? "for 30 days" : `₹${perMonthOf(p)} a month`}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-right">
+                    <span className="block text-lg font-semibold tracking-tight">₹{p.price}</span>
+                    {save > 0 && <span className="block text-[11px] font-semibold text-lp-green">Save {save}%</span>}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* tablets & desktop: cards */}
+          <div className="mt-5 hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-4">
             {PASSES.map((p) => {
               const featured = p.id === "launch" && !launchUsed;
               const disabled = p.id === "launch" && launchUsed;
-              const save = Math.round((1 - p.price / (MONTHLY * (p.days / 30))) * 100);
-              const perMonth = Math.round(p.price / (p.days / 30));
+              const save = savePct(p);
               return (
                 <div key={p.id}
-                  className={`relative flex flex-col rounded-2xl p-5 ${
+                  className={`relative flex min-w-0 flex-col rounded-2xl p-5 ${
                     featured ? "lp-gradient-border shadow-[0_24px_60px_-28px_rgba(79,110,255,0.7)]" : "lp-card"} ${disabled ? "opacity-60" : ""}`}>
                   {featured && (
                     <span className="absolute -top-3 left-5 inline-flex items-center gap-1 rounded-full bg-lp-accent px-2.5 py-1 text-[11px] font-semibold text-white shadow">
@@ -279,7 +304,7 @@ export default function BillingPage() {
                     {save > 0 && <span className="text-sm text-lp-subtle line-through">₹{MONTHLY * (p.days / 30)}</span>}
                   </p>
                   <p className="mt-1 text-[13px] text-lp-muted">
-                    {p.days === 30 ? "for 30 days" : `just ₹${perMonth} a month`}
+                    {p.days === 30 ? "for 30 days" : `just ₹${perMonthOf(p)} a month`}
                   </p>
                   <div className="mt-3 h-6">
                     {save > 0 && (
@@ -301,10 +326,10 @@ export default function BillingPage() {
             })}
           </div>
 
-          <div className="mt-5 grid gap-3 rounded-2xl border border-lp-border bg-lp-surface/60 p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 rounded-2xl border border-lp-border bg-lp-surface/60 p-4 sm:mt-5 lg:grid-cols-4">
             {TRUST.map((t) => (
-              <p key={t.text} className="flex items-center gap-2.5 text-sm text-lp-muted">
-                <t.icon className="h-4 w-4 shrink-0 text-lp-green" /> {t.text}
+              <p key={t.text} className="flex items-start gap-2 text-[13px] leading-snug text-lp-muted sm:items-center sm:text-sm">
+                <t.icon className="mt-0.5 h-4 w-4 shrink-0 text-lp-green sm:mt-0" /> {t.text}
               </p>
             ))}
           </div>
@@ -313,6 +338,58 @@ export default function BillingPage() {
             <a href="/terms" target="_blank" className="underline underline-offset-2 hover:text-lp-accent">Terms</a> and{" "}
             <a href="/refund-policy" target="_blank" className="underline underline-offset-2 hover:text-lp-accent">Refund Policy</a>.
           </p>
+
+          {/* sticky pay bar — phones only */}
+          {chosen && (
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t border-lp-border bg-lp-bg/90 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:hidden">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-semibold">₹{chosen.price} <span className="text-[13px] font-normal text-lp-muted">· {chosen.id === "launch" ? "first month" : chosen.short}</span></p>
+                  <p className="flex items-center gap-1 text-[11px] text-lp-muted"><ShieldCheck className="h-3 w-3 text-lp-green" /> Secure · no auto-renewal</p>
+                </div>
+                <button onClick={() => pay(chosen)} disabled={!!paying} className={btn("primary", "lg", "px-5")}>
+                  {paying === chosen.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : <>Pay ₹{chosen.price}</>}
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── what you get ── */}
+      {loaded && !pro && (
+        <section>
+          <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Everything you get with Pro</h2>
+          <p className="mt-1 text-sm text-lp-muted sm:text-[15px]">Made for job seekers, freelancers and anyone who wants to be taken seriously.</p>
+
+          {/* phones: one compact list */}
+          <div className="lp-card mt-4 divide-y divide-lp-border rounded-2xl sm:hidden">
+            {BENEFITS.map((b) => (
+              <div key={b.title} className="flex items-start gap-3 p-4">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-lp-accent-soft text-lp-accent">
+                  <b.icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold">{b.title}</p>
+                  <p className="mt-0.5 text-[13px] leading-relaxed text-lp-muted">{b.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* tablets & desktop: cards */}
+          <div className="mt-5 hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
+            {BENEFITS.map((b, i) => (
+              <motion.div key={b.title} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                className="lp-card rounded-2xl p-5">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-lp-accent-soft text-lp-accent">
+                  <b.icon className="h-5 w-5" />
+                </span>
+                <p className="mt-4 font-semibold">{b.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-lp-muted">{b.text}</p>
+              </motion.div>
+            ))}
+          </div>
         </section>
       )}
 
