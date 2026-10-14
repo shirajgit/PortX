@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string } = {}) {
   const [light, setLight] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -39,7 +39,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label="Toggle theme"
       title="Toggle theme"
-      className="rounded-lg border border-[#1E2C52] p-2 text-[#8B98B8] transition hover:border-[#4DA6FF] hover:text-[#4DA6FF]"
+      className={className ?? "rounded-lg border border-[#1E2C52] p-2 text-[#8B98B8] transition hover:border-[#4DA6FF] hover:text-[#4DA6FF]"}
     >
       {mounted && light ? (
         // Moon icon (currently light, click to dark)

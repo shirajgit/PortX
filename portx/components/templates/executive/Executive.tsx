@@ -42,7 +42,7 @@ function highlightMetrics(text: string): React.ReactNode {
 }
 
 export function Executive({ data }: TemplateProps) {
-  const { profile, links, experiences, projects, skills, educations } = data;
+  const { profile, links, experiences, projects, skills, educations, sections } = data;
 
   const primaryLinks = links.slice(0, 3);
 
@@ -391,6 +391,35 @@ export function Executive({ data }: TemplateProps) {
                 </div>
               </Reveal>
             )}
+          </div>
+        )}
+
+        {/* CUSTOM SECTIONS */}
+        {sections.length > 0 && (
+          <div className="mt-6 grid gap-6 sm:grid-cols-2">
+            {sections.map((sec, si) => (
+              <Reveal key={sec.title} y={18} delay={(si % 2) * 0.08}>
+                <div className="h-full rounded-2xl border border-slate-200/70 bg-white p-6 shadow-xs">
+                  <SectionLabel title={sec.title} />
+                  <div className="mt-4 space-y-4 text-xs">
+                    {sec.items.map((it, i) => (
+                      <div key={i} className="space-y-1 border-l-2 border-blue-100 pl-3 transition-colors hover:border-[#2563EB]/50">
+                        {it.url ? (
+                          <a href={it.url} target="_blank" rel="noreferrer" className="text-sm font-bold text-slate-900 hover:text-[#2563EB]">
+                            {it.title} ↗
+                          </a>
+                        ) : (
+                          <p className="text-sm font-bold text-slate-900">{it.title}</p>
+                        )}
+                        {it.subtitle && <p className="font-medium text-slate-700">{it.subtitle}</p>}
+                        {it.date && <p className="font-mono text-slate-400">{it.date}</p>}
+                        {it.description && <p className="leading-relaxed text-slate-500">{it.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         )}
 

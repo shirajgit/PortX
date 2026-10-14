@@ -29,7 +29,7 @@ import { getInsights } from "../insights";
    profile feeling complete.                                            */
 
 export function Minimal({ data }: TemplateProps) {
-  const { profile, links, experiences, projects, skills, educations } = data;
+  const { profile, links, experiences, projects, skills, educations, sections } = data;
   const { initials, current, stats } = getInsights(data);
 
   // Default to light mode, fall back to localStorage if set
@@ -445,6 +445,34 @@ export function Minimal({ data }: TemplateProps) {
                 </Stagger>
               </Section>
             )}
+
+            {/* Custom sections */}
+            {sections.map((sec) => (
+              <Section key={sec.title} title={sec.title}>
+                <Stagger stagger={0.07} className="grid gap-4 sm:grid-cols-2">
+                  {sec.items.map((it, i) => (
+                    <Item key={i} y={16}>
+                      <div className="h-full rounded-xl border border-slate-200/80 bg-white/60 p-4 text-xs shadow-xs transition-colors hover:border-blue-500/30 dark:border-slate-800/60 dark:bg-[#080E1A]/30 dark:hover:border-blue-500/30">
+                        <div className="flex items-baseline justify-between gap-2">
+                          {it.url ? (
+                            <a href={it.url} target="_blank" rel="noreferrer" className="font-bold text-slate-900 underline-offset-2 hover:text-blue-600 hover:underline dark:text-slate-100 dark:hover:text-[#4DA6FF]">
+                              {it.title} ↗
+                            </a>
+                          ) : (
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{it.title}</span>
+                          )}
+                          {it.date && (
+                            <span className="shrink-0 font-mono text-[10px] text-slate-400 dark:text-slate-500">{it.date}</span>
+                          )}
+                        </div>
+                        {it.subtitle && <p className="mt-1.5 text-slate-600 dark:text-slate-400">{it.subtitle}</p>}
+                        {it.description && <p className="mt-1.5 leading-relaxed text-slate-500 dark:text-slate-500">{it.description}</p>}
+                      </div>
+                    </Item>
+                  ))}
+                </Stagger>
+              </Section>
+            ))}
 
             {/* Closing contact card */}
             {(profile.email || links.length > 0) && (

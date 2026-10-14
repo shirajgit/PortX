@@ -33,7 +33,7 @@ export function PhotoPicker({
       body: JSON.stringify({ avatarUrl: url }),
     });
     if (!res.ok) {
-      setError(`Could not save photo (HTTP ${res.status})`);
+      setError("We couldn't save your photo. Please try again.");
       return false;
     }
     onChange(url);
@@ -71,7 +71,7 @@ export function PhotoPicker({
   return (
     <div>
       <div className="flex items-center gap-4">
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[#1E2C52] bg-gradient-to-br from-[#4DA6FF] to-[#7C5CFF]">
+        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-lp-border bg-gradient-to-br from-lp-accent to-lp-violet">
           {value ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={value} alt="Your profile photo" className="h-full w-full object-cover" />
@@ -79,7 +79,7 @@ export function PhotoPicker({
             <span className="grid h-full w-full place-items-center text-2xl font-bold text-white">{initials}</span>
           )}
           {busy && (
-            <span className="absolute inset-0 grid place-items-center bg-black/60 font-mono text-[10px] text-white">
+            <span className="absolute inset-0 grid place-items-center bg-black/60 text-[11px] font-medium text-white">
               saving…
             </span>
           )}
@@ -87,22 +87,22 @@ export function PhotoPicker({
         <div className="min-w-0">
           <div className="flex flex-wrap gap-2">
             <button type="button" disabled={busy} onClick={() => fileRef.current?.click()}
-              className="rounded-lg bg-[#4DA6FF] px-4 py-2 text-sm font-semibold text-[#04101F] transition hover:bg-[#8FC4FF] disabled:opacity-40">
+              className="inline-flex h-9 items-center rounded-lg border border-lp-border bg-lp-surface px-3.5 text-sm font-medium shadow-sm transition hover:border-lp-border-strong disabled:opacity-50">
               {value ? "Change photo" : "Upload photo"}
             </button>
             {value && (
               <button type="button" disabled={busy} onClick={remove}
-                className="rounded-lg border border-[#1E2C52] px-4 py-2 text-sm text-[#8B98B8] transition hover:border-[#5C2B2B] hover:text-[#FF9B9B] disabled:opacity-40">
+                className="inline-flex h-9 items-center rounded-lg px-3 text-sm text-lp-muted transition hover:bg-lp-danger/10 hover:text-lp-danger disabled:opacity-50">
                 Remove
               </button>
             )}
           </div>
-          <p className="mt-2 text-xs text-[#8B98B8]">
+          <p className="mt-2 text-xs text-lp-muted">
             A clear, front-facing photo works best. JPG or PNG, up to 5 MB. No photo? We show your initials.
           </p>
         </div>
       </div>
-      {error && <p className="mt-2 font-mono text-xs text-[#FF9B9B]">{error}</p>}
+      {error && <p className="mt-2 text-[13px] text-lp-danger">{error}</p>}
       <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={onFile} />
     </div>
   );

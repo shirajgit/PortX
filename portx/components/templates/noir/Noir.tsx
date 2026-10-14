@@ -50,7 +50,7 @@ const slow = {
 };
 
 export function Noir({ data }: TemplateProps) {
-  const { profile, links, experiences, projects, skills, educations } = data;
+  const { profile, links, experiences, projects, skills, educations, sections } = data;
   const { initials, current, stats } = getInsights(data);
 
   return (
@@ -459,6 +459,34 @@ export function Noir({ data }: TemplateProps) {
             </Stagger>
           </NoirSection>
         )}
+
+        {/* CUSTOM SECTIONS */}
+        {sections.map((sec) => (
+          <NoirSection key={sec.title} title={sec.title}>
+            <Stagger className="space-y-5 text-sm font-light" stagger={0.07}>
+              {sec.items.map((it, i) => (
+                <Item key={i}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <div>
+                      {it.url ? (
+                        <a href={it.url} target="_blank" rel="noreferrer" className="font-serif text-base font-normal underline decoration-[#D4B36A]/40 underline-offset-4 transition-colors hover:decoration-[#D4B36A]" style={{ color: INK }}>
+                          {it.title}
+                        </a>
+                      ) : (
+                        <span className="font-serif text-base font-normal" style={{ color: INK }}>{it.title}</span>
+                      )}
+                      {it.subtitle && <span className="ml-2" style={{ color: BODY }}>— {it.subtitle}</span>}
+                    </div>
+                    {it.date && (
+                      <span className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: DIM }}>{it.date}</span>
+                    )}
+                  </div>
+                  {it.description && <p className="mt-1.5 leading-relaxed" style={{ color: DIM }}>{it.description}</p>}
+                </Item>
+              ))}
+            </Stagger>
+          </NoirSection>
+        ))}
 
         {/* ENQUIRIES */}
         {(profile.email || links.length > 0) && (

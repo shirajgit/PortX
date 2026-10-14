@@ -37,6 +37,12 @@ export type PortfolioData = {
     endYear: number | null;
     score: string;
   }[];
+  /** User-defined sections (Certifications, Awards…) — only ones with entries. */
+  sections: {
+    title: string;
+    kind: string;
+    items: { title: string; subtitle: string; date: string; url: string; description: string }[];
+  }[];
 };
 
 export type TemplateProps = { data: PortfolioData; username?: string };

@@ -6,6 +6,7 @@ const isProtected = createRouteMatcher([
   "/api/projects(.*)",
   "/api/experiences(.*)",
   "/api/skills(.*)",
+  "/api/sections(.*)",
   "/api/import(.*)",
   "/api/ai(.*)",
 ]);

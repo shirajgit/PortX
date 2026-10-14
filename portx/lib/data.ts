@@ -1,6 +1,7 @@
 import { db } from "./db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import type { PortfolioData } from "@/components/templates/types";
+import { parseItems } from "./sections";
 
 const fmtMonth = (d: Date | null) =>
   d ? d.toLocaleDateString("en-US", { month: "short", year: "numeric" }) : null;
@@ -13,6 +14,7 @@ const INCLUDE = {
   projects: { orderBy: [{ featured: "desc" }, { sort: "asc" }] },
   skills: { orderBy: { sort: "asc" } },
   educations: { orderBy: { sort: "asc" } },
+  customSections: { orderBy: { sort: "asc" } },
 } satisfies Prisma.ProfileInclude;
 
 type ProfileWithRelations = Prisma.ProfileGetPayload<{ include: typeof INCLUDE }>;
@@ -77,6 +79,9 @@ function assemble(p: ProfileWithRelations) {
         endYear: ed.endYear,
         score: ed.score ?? "",
       })),
+      sections: p.customSections
+        .map((c) => ({ title: c.title, kind: c.kind, items: parseItems(c.items) }))
+        .filter((c) => c.items.length > 0),
     },
   };
 }

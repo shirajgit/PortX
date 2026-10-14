@@ -155,4 +155,21 @@ export const DEMO_DATA: PortfolioData = {
       score: "Completed",
     },
   ],
+  sections: [
+    {
+      title: "Certifications",
+      kind: "certifications",
+      items: [
+        { title: "Google UX Design Certificate", subtitle: "Coursera", date: "2024", url: "", description: "" },
+        { title: "Accessibility for Designers", subtitle: "Interaction Design Foundation", date: "2023", url: "", description: "" },
+      ],
+    },
+    {
+      title: "Awards",
+      kind: "awards",
+      items: [
+        { title: "Best Fintech UX — Product Hunt", subtitle: "Ledgerly", date: "2025", url: "", description: "Top 3 product of the day with 1,200+ upvotes." },
+      ],
+    },
+  ],
 };

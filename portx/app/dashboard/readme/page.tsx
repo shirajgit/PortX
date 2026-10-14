@@ -1,15 +1,26 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Check, Copy, Download } from "lucide-react";
 import { PortxzLoader } from "@/components/PortxzLoader";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, Notice, btn } from "@/components/ui";
+
+const STEPS = [
+  "Click “Copy text” below.",
+  "On GitHub, create a new repository with exactly the same name as your GitHub username.",
+  "Open its README.md file, paste, and save. It now shows on your GitHub profile.",
+];
 
 export default function ReadmePage() {
   const [markdown, setMarkdown] = useState("");
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch("/api/readme").then(async (r) => {
       if (r.ok) setMarkdown((await r.json()).markdown);
+      else setFailed(true);
       setLoading(false);
     });
   }, []);
@@ -30,30 +41,43 @@ export default function ReadmePage() {
   }
 
   return (
-    <div className="w-full max-w-none">
-      <h1 className="text-2xl font-bold">GitHub README</h1>
-      <p className="mt-1 text-sm text-[#8B98B8]">
-        Generated from the same profile as your portfolio and resume. Paste it into your
-        GitHub profile repo (<span className="font-mono">username/username</span> → README.md).
-      </p>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Share · Optional"
+        title="GitHub README"
+        description="Only useful if you have a GitHub account. We turn your details into a ready-made introduction for your GitHub profile."
+        actions={
+          !loading && !failed && (
+            <>
+              <button onClick={download} className={btn("secondary")}><Download className="h-4 w-4" /> Download</button>
+              <button onClick={copy} className={btn("primary")}>
+                {copied ? <><Check className="h-4 w-4" /> Copied</> : <><Copy className="h-4 w-4" /> Copy text</>}
+              </button>
+            </>
+          )
+        }
+      />
+
+      <Card title="How to add it to GitHub">
+        <ol className="space-y-3">
+          {STEPS.map((s, i) => (
+            <li key={i} className="flex items-start gap-3 text-[15px] text-lp-muted">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lp-accent-soft text-xs font-semibold text-lp-accent">{i + 1}</span>
+              <span className="pt-0.5">{s}</span>
+            </li>
+          ))}
+        </ol>
+      </Card>
 
       {loading ? (
-        <PortxzLoader label="Generating README" />
+        <PortxzLoader label="Writing your README" />
+      ) : failed ? (
+        <Notice tone="error">We couldn&apos;t create your README right now. Please refresh the page to try again.</Notice>
       ) : (
-        <>
-          <div className="mt-6 flex gap-3">
-            <button onClick={copy}
-              className="rounded-lg bg-[#4DA6FF] px-5 py-2.5 text-sm font-semibold text-[#04101F]">
-              {copied ? "Copied ✓" : "Copy README.md"}
-            </button>
-            <button onClick={download}
-              className="rounded-lg border border-[#1E2C52] px-5 py-2.5 text-sm font-semibold hover:border-[#4DA6FF]">
-              Download .md
-            </button>
-          </div>
-          <textarea readOnly value={markdown} rows={24}
-            className="mt-4 w-full resize-y rounded-xl border border-[#1E2C52] bg-[#0F1730] p-4 font-mono text-xs leading-relaxed outline-none" />
-        </>
+        <Card title="Preview of the text" description="This is what you'll paste. It updates whenever you change your details.">
+          <textarea readOnly value={markdown} rows={18} aria-label="README text"
+            className="lp-scroll w-full resize-y rounded-xl border border-lp-border bg-lp-surface-2/50 p-4 font-mono text-[13px] leading-relaxed text-lp-muted outline-none" />
+        </Card>
       )}
     </div>
   );

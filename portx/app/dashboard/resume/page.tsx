@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FileText, Download, Eye, Terminal, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { BadgeCheck, Download, Eye, FileText, Hash, ListChecks, Lock, Search } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, Notice, btn } from "@/components/ui";
+
+const TIPS = [
+  { icon: ListChecks, title: "Keep it simple", text: "Hiring software reads plain, single-column resumes best — that's exactly the format we use." },
+  { icon: Hash, title: "Use numbers", text: "“Grew followers by 40%” is stronger than “Managed social media”. Add results to your highlights." },
+  { icon: Search, title: "Match the job", text: "Use the same words the job post uses for skills and tools — that's what recruiters search for." },
+];
 
 export default function ResumePage() {
   const [username, setUsername] = useState("");
@@ -22,97 +30,84 @@ export default function ResumePage() {
   }, []);
 
   return (
-    <div className="w-full max-w-none space-y-8 transition-colors duration-200">
-      {/* Header */}
-      <div className="border-b border-[#1E2C52]/50 pb-5 light:border-slate-200">
-        <h1 className="text-2xl font-bold text-white light:text-slate-900 flex items-center gap-2">
-          <FileText className="h-6 w-6 text-[#4DA6FF]" /> ATS Resume Engine
-          <span className="ml-1 rounded bg-[#FFB454]/10 px-2 py-0.5 font-mono text-xs text-[#FFB454] font-bold">PRO</span>
-        </h1>
-        <p className="mt-1 text-sm text-[#8B98B8] light:text-slate-500">
-          Generated directly from your active data workspace into standard, machine-readable text parameters.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Share"
+        title="Resume"
+        description="A clean, professional resume made from your details. Whenever you update your info, your resume updates too."
+      />
 
       {!loaded ? (
-        <div className="h-40 w-full rounded-xl border border-dashed border-[#1E2C52] bg-[#0F1730]/20 animate-pulse light:border-slate-200" />
-      ) : !pro ? (
-        /* Paywall Container */
-        <div className="w-full rounded-xl border border-[#1E2C52] bg-[#0F1730] p-6 light:bg-white light:border-slate-200 shadow-sm">
-          <p className="font-semibold text-white light:text-slate-800">The ATS resume viewer is a Pro feature.</p>
-          <p className="mt-1 text-sm text-[#8B98B8] light:text-slate-500">
-            Go Pro to instantly access your synced plain-text layout previews and raw binary PDF file download exports.
-          </p>
-          <Link href="/dashboard/billing"
-            className="mt-4 inline-block rounded-lg bg-[#39D98A] px-5 py-2.5 text-sm font-semibold text-[#04101F] hover:bg-opacity-90 transition">
-            Upgrade Workspace — from ₹149
-          </Link>
-        </div>
-      ) : !published ? (
-        /* Not Published Warning Flag */
-        <p className="w-full rounded-xl border border-[#1E2C52] bg-[#111A36] p-4 text-sm text-[#FFB454] light:bg-amber-50/50 light:border-amber-200">
-          ⚠️ Please publish your portfolio data first. The document rendering engines process your assets directly from your live public link layouts.
-        </p>
+        <div className="h-48 animate-pulse rounded-2xl border border-lp-border bg-lp-surface" />
       ) : (
-        /* Simple Clean Full-Width Output Dashboard Panel */
-        <div className="w-full rounded-xl border border-[#1E2C52] bg-[#0F1730] p-6 light:bg-white light:border-slate-200 shadow-sm space-y-4">
-          <h3 className="font-semibold text-white light:text-slate-800 text-sm uppercase tracking-wider font-mono">Document Compilation Export</h3>
-          <p className="text-xs text-[#8B98B8] light:text-slate-500 max-w-xl">
-            This workspace translates data fields into a strict single-column layout without tables, charts, or vector shapes to safeguard perfect grading scores across resume sorting parsers.
-          </p>
-          
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <a href={`/${username}/resume`} target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#1E2C52] bg-[#111A36]/40 px-4 py-2.5 text-xs font-semibold text-white transition hover:border-[#4DA6FF] light:bg-white light:border-slate-200 light:text-slate-700">
-              <Eye className="h-3.5 w-3.5" /> Plaintext Layout Preview
-            </a>
-            <a href={`/api/pdf?username=${username}`}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#4DA6FF] px-4 py-2.5 text-xs font-bold text-[#04101F] transition hover:bg-opacity-90 shadow-sm">
-              <Download className="h-3.5 w-3.5" /> Download Standard PDF
-            </a>
+        <Card className="overflow-hidden !p-0">
+          <div className="grid md:grid-cols-[1fr_260px]">
+            <div className="p-6 sm:p-8">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-lp-green/10 px-2.5 py-1 text-xs font-medium text-lp-green">
+                <BadgeCheck className="h-3.5 w-3.5" /> Works with hiring software (ATS)
+              </span>
+              <h2 className="mt-4 text-xl font-semibold tracking-tight">Your resume is ready to download</h2>
+              <p className="mt-2 max-w-md text-[15px] leading-relaxed text-lp-muted">
+                One page, easy to read, and formatted the way recruiters and job portals expect.
+              </p>
+
+              {!pro ? (
+                <div className="mt-6 space-y-3">
+                  <Notice tone="info">Downloading your resume is part of Pro.</Notice>
+                  <Link href="/dashboard/billing" className={btn("primary", "lg")}>
+                    <Lock className="h-4 w-4" /> Unlock with Pro
+                  </Link>
+                </div>
+              ) : !published ? (
+                <div className="mt-6 space-y-3">
+                  <Notice tone="warning">Publish your page first — your resume is created from it.</Notice>
+                  <Link href="/dashboard/template" className={btn("primary", "lg")}>Go to Design &amp; publish</Link>
+                </div>
+              ) : (
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <a href={`/api/pdf?username=${username}`} className={btn("primary", "lg")}>
+                    <Download className="h-4 w-4" /> Download PDF
+                  </a>
+                  <a href={`/${username}/resume`} target="_blank" rel="noreferrer" className={btn("secondary", "lg")}>
+                    <Eye className="h-4 w-4" /> Preview
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* paper preview */}
+            <div aria-hidden className="relative hidden border-l border-lp-border bg-lp-surface-2/60 p-6 md:block">
+              <div className="relative mx-auto w-[180px] rotate-[2deg] rounded-md bg-white p-4 shadow-xl ring-1 ring-black/5">
+                <div className="mx-auto h-2 w-20 rounded bg-[#0A0F1D]" />
+                <div className="mx-auto mt-1.5 h-1 w-28 rounded bg-[#C8CDD8]" />
+                <div className="mt-3 h-px bg-[#0A0F1D]" />
+                {[0, 1, 2].map((s) => (
+                  <div key={s} className="mt-3">
+                    <div className="h-1 w-12 rounded bg-[#0A0F1D]" />
+                    <div className="mt-1.5 space-y-1">
+                      {[92, 80, 86].map((w, i) => <div key={i} className="h-1 rounded bg-[#E2E5EC]" style={{ width: `${w}%` }} />)}
+                    </div>
+                  </div>
+                ))}
+                <FileText className="absolute bottom-3 right-3 h-4 w-4 text-[#C8CDD8]" />
+              </div>
+            </div>
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* ATS Core Facts Section */}
-      <div className="w-full space-y-4 pt-4">
-        <div className="flex items-center gap-2 border-b border-[#1E2C52] pb-2 light:border-slate-100">
-          <Terminal className="h-4 w-4 text-[#4DA6FF]" />
-          <h2 className="font-mono text-xs font-bold uppercase tracking-widest text-[#8B98B8] light:text-slate-500">
-            How ATS Parsers Read Your Resume
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-xl border border-[#1E2C52]/60 bg-[#111A36] p-5 light:bg-slate-50/50 light:border-slate-200 space-y-2">
-            <div className="flex items-center gap-2 text-[#FFB454]">
-              <ShieldAlert className="h-4 w-4 shrink-0" />
-              <h4 className="text-xs font-bold uppercase font-mono tracking-wide">01. Layout Pitfalls</h4>
+      <div>
+        <h2 className="text-[15px] font-semibold">Tips for a resume that gets noticed</h2>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          {TIPS.map((t) => (
+            <div key={t.title} className="lp-card rounded-2xl p-5">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-lp-accent-soft text-lp-accent">
+                <t.icon className="h-4 w-4" />
+              </span>
+              <p className="mt-3 font-medium">{t.title}</p>
+              <p className="mt-1 text-sm leading-relaxed text-lp-muted">{t.text}</p>
             </div>
-            <p className="text-xs text-[#8B98B8] light:text-slate-600 leading-relaxed">
-              Multi-column configurations, horizontal lines, tables, text boxes, graphic icons, and custom canvases completely scramble modern parser hierarchies, turning your application into unreadable source code.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-[#1E2C52]/60 bg-[#111A36] p-5 light:bg-slate-50/50 light:border-slate-200 space-y-2">
-            <div className="flex items-center gap-2 text-[#39D98A]">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <h4 className="text-xs font-bold uppercase font-mono tracking-wide">02. Formatting Standards</h4>
-            </div>
-            <p className="text-xs text-[#8B98B8] light:text-slate-600 leading-relaxed">
-              Tracking systems extract plain text and look for standard header flags like <code className="text-white light:text-slate-800 font-mono text-[11px]">PROFESSIONAL EXPERIENCE</code> or <code className="text-white light:text-slate-800 font-mono text-[11px]">TECHNICAL SKILLS</code> to categorize metrics safely.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-[#1E2C52]/60 bg-[#111A36] p-5 light:bg-slate-50/50 light:border-slate-200 space-y-2">
-            <div className="flex items-center gap-2 text-[#4DA6FF]">
-              <FileText className="h-4 w-4 shrink-0" />
-              <h4 className="text-xs font-bold uppercase font-mono tracking-wide">03. Context Match Optimization</h4>
-            </div>
-            <p className="text-xs text-[#8B98B8] light:text-slate-600 leading-relaxed">
-              Systems scan keyword proximity rankings. Ensure your core experience points contain explicit structural details, listing technical frameworks, metrics, and project parameters directly inline.
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </div>

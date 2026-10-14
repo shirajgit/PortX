@@ -8,8 +8,25 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-lp-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-lp-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* landing-page tokens — values live on .lp below, swapped by html.light */
+  --color-lp-bg: var(--lp-bg);
+  --color-lp-surface: var(--lp-surface);
+  --color-lp-surface-2: var(--lp-surface-2);
+  --color-lp-border: var(--lp-border);
+  --color-lp-border-strong: var(--lp-border-strong);
+  --color-lp-text: var(--lp-text);
+  --color-lp-muted: var(--lp-muted);
+  --color-lp-subtle: var(--lp-subtle);
+  --color-lp-accent: var(--lp-accent);
+  --color-lp-accent-soft: var(--lp-accent-soft);
+  --color-lp-on-accent: var(--lp-on-accent);
+  --color-lp-violet: var(--lp-violet);
+  --color-lp-green: var(--lp-green);
+  --color-lp-warning: var(--lp-warning);
+  --color-lp-danger: var(--lp-danger);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -119,4 +136,126 @@ html:not(.light) select, html:not(.light) input, html:not(.light) textarea { col
     --secondary: 217.2 32.6% 12%;
     --primary: 217.2 91.2% 59.8%;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Portxz THEME TOKENS
+   One palette for the landing page and the dashboard. Tokens are exposed
+   to Tailwind as lp-* colors (see @theme above): bg-lp-surface, etc.
+   html.light swaps them; .lp applies the brand font + base colors.
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --lp-bg: #06080F;
+  --lp-surface: #0C101B;
+  --lp-surface-2: #121726;
+  --lp-border: rgba(255, 255, 255, 0.07);
+  --lp-border-strong: rgba(255, 255, 255, 0.14);
+  --lp-text: #EEF1F8;
+  --lp-muted: #8C95AB;
+  --lp-subtle: #5E677D;
+  --lp-accent: #4F8BFF;
+  --lp-accent-soft: rgba(79, 139, 255, 0.12);
+  --lp-on-accent: #FFFFFF;
+  --lp-violet: #7C6BFF;
+  --lp-green: #34D399;
+  --lp-warning: #FBBF24;
+  --lp-danger: #F87171;
+  --lp-grid: rgba(255, 255, 255, 0.045);
+  --lp-glow: rgba(79, 110, 255, 0.28);
+  --lp-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 24px 60px -24px rgba(0,0,0,0.7);
+}
+html.light {
+  --lp-bg: #FAFAFC;
+  --lp-surface: #FFFFFF;
+  --lp-surface-2: #F3F4F8;
+  --lp-border: rgba(15, 23, 42, 0.08);
+  --lp-border-strong: rgba(15, 23, 42, 0.16);
+  --lp-text: #0A0F1D;
+  --lp-muted: #535D73;
+  --lp-subtle: #8A92A6;
+  --lp-accent: #2F6BFF;
+  --lp-accent-soft: rgba(47, 107, 255, 0.08);
+  --lp-on-accent: #FFFFFF;
+  --lp-violet: #5B4BF0;
+  --lp-green: #059669;
+  --lp-warning: #B45309;
+  --lp-danger: #DC2626;
+  --lp-grid: rgba(15, 23, 42, 0.05);
+  --lp-glow: rgba(79, 110, 255, 0.16);
+  --lp-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 24px 60px -28px rgba(15,23,42,0.22);
+}
+.lp {
+  font-family: var(--font-lp-sans), ui-sans-serif, system-ui, sans-serif;
+  background: var(--lp-bg);
+  color: var(--lp-text);
+  -webkit-font-smoothing: antialiased;
+}
+.lp ::selection { background: rgba(79, 139, 255, 0.3); }
+
+.lp-mono  { font-family: var(--font-lp-mono), ui-monospace, monospace; }
+.lp-serif { font-family: var(--font-lp-serif), Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+
+.lp-gradient-text {
+  background: linear-gradient(100deg, #3B9BFF 0%, #5B5BF6 55%, #A16BFF 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.lp-card {
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  box-shadow: var(--lp-shadow);
+}
+.lp-grid-bg {
+  background-image:
+    linear-gradient(var(--lp-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--lp-grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, #000 25%, transparent 75%);
+          mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, #000 25%, transparent 75%);
+}
+/* gradient hairline border for highlighted cards */
+.lp-gradient-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--lp-surface), var(--lp-surface)) padding-box,
+    linear-gradient(140deg, #3B9BFF, #5B5BF6 45%, rgba(161,107,255,0.25) 80%) border-box;
+}
+.lp-btn-primary {
+  background: linear-gradient(180deg, #5A93FF, #3A6DF0);
+  color: var(--lp-on-accent);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 24px -8px rgba(58,109,240,0.65);
+}
+.lp-btn-primary:hover { filter: brightness(1.08); }
+.lp-btn-success {
+  background: linear-gradient(180deg, #34D399, #10B981);
+  color: #FFFFFF;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 24px -8px rgba(16,185,129,0.6);
+}
+.lp-btn-success:hover { filter: brightness(1.06); }
+.lp-btn-primary:disabled, .lp-btn-success:disabled { filter: none; box-shadow: none; }
+
+/* dashboard inputs — one focus style everywhere */
+.lp input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file])::placeholder,
+.lp textarea::placeholder { color: var(--lp-subtle); }
+.lp-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.lp-scroll::-webkit-scrollbar-thumb { background: var(--lp-border-strong); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+
+@keyframes lp-float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+@keyframes lp-blink { 0%,49% { opacity: 1 } 50%,100% { opacity: 0 } }
+.lp-float   { animation: lp-float 6s ease-in-out infinite; }
+.lp-float-2 { animation: lp-float 7.5s ease-in-out -2s infinite; }
+.lp-caret   { animation: lp-blink 1s step-end infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .lp-float, .lp-float-2, .lp-caret { animation: none; }
+}
+
+/* thin scrollbar that only shows while hovering (dashboard sidebar) */
+.lp-scroll-thin { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+.lp-scroll-thin:hover { scrollbar-color: var(--lp-border-strong) transparent; }
+.lp-scroll-thin::-webkit-scrollbar { width: 6px; }
+.lp-scroll-thin::-webkit-scrollbar-thumb { background: transparent; border-radius: 999px; }
+.lp-scroll-thin:hover::-webkit-scrollbar-thumb { background: var(--lp-border-strong); }
+/* soft top/bottom fade so a scrollable menu hints there is more */
+.lp-fade-y {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 18px), transparent);
+          mask-image: linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 18px), transparent);
 }

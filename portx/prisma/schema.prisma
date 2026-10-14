@@ -34,6 +34,7 @@ model Profile {
   projects    Project[]
   skills      Skill[]
   educations  Education[]
+  customSections CustomSection[]
   pageViews   PageView[]
   paymentRequests PaymentRequest[]
 
@@ -126,6 +127,21 @@ model Education {
   profile     Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@map("educations")
+}
+
+/* User-defined sections — Certifications, Awards, Languages, etc.
+   items: [{ title, subtitle?, date?, url?, description? }] */
+model CustomSection {
+  id        String  @id @default(uuid()) @db.Uuid
+  profileId String  @map("profile_id") @db.Uuid
+  title     String
+  kind      String  @default("custom") // certifications | awards | volunteering | languages | publications | custom
+  items     Json    @default("[]")
+  sort      Int     @default(0)
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("custom_sections")
 }
 
 model PageView {

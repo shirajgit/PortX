@@ -1,147 +1,57 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 import { usePlan } from "@/lib/usePlan";
-import { PlanChip } from "@/components/PlanChip";
+import { PageHeader } from "@/components/PageHeader";
+import { ArrowRight, ArrowUpRight, Check, Copy, EyeOff, Globe, Lock, Rocket, Sparkles } from "lucide-react";
+import { Card, Notice, UpgradeLink, btn, friendlyError } from "@/components/ui";
 
 /* ── Template & Publish — gallery edition ───────────────────────────────
-   3-wide grid of template cards, each with a hand-drawn CSS thumbnail
-   that mimics the template's real look. No screenshots needed.        */
+   3-wide grid of template cards, each showing a real screenshot. */
 
 const OPTIONS = [
-  { id: "minimal", name: "Minimal", note: "Blue-black, fast, readable.", proOnly: false },
-  { id: "cli", name: "CLI Terminal", note: "Visitors type commands to explore. The shareable one.", proOnly: true },
-  { id: "glass", name: "Glassmorphism", note: "Frosted cards over gradient orbs.", proOnly: true },
-  { id: "editorial", name: "Editorial", note: "Serif magazine style, light.", proOnly: true },
-  { id: "noir", name: "Noir", note: "Black & gold quiet luxury.", proOnly: true },
-  { id: "bento", name: "Bento", note: "Modern tile grid.", proOnly: true },
-  { id: "executive", name: "Executive", note: "Corporate-clean & light. Interview-ready.", proOnly: true },
-  { id: "aurora", name: "Aurora", note: "Glowing gradient washes. Luminous.", proOnly: true },
+  { id: "minimal", name: "Minimal", note: "Clean and simple. Free for everyone.", proOnly: false },
+  { id: "executive", name: "Executive", note: "Light and professional — great for interviews.", proOnly: true },
+  { id: "editorial", name: "Editorial", note: "Elegant, like a magazine page.", proOnly: true },
+  { id: "noir", name: "Noir", note: "Black and gold, quietly luxurious.", proOnly: true },
+  { id: "aurora", name: "Aurora", note: "Dark with soft glowing colours.", proOnly: true },
+  { id: "glass", name: "Glass", note: "Modern frosted-glass look.", proOnly: true },
+  { id: "bento", name: "Bento", note: "Neat tiles, easy to scan.", proOnly: true },
+  { id: "cli", name: "Terminal", note: "Looks like a computer terminal — fun for developers.", proOnly: true },
 ];
 
-/* miniature CSS previews per template */
-function Thumb({ id }: { id: string }) {
-  const base = "pointer-events-none h-full w-full overflow-hidden";
-  switch (id) {
-    case "minimal":
-      return (
-        <div className={`${base} bg-[#0A0F1E] p-3`}>
-          <div className="h-2 w-16 rounded bg-[#4DA6FF]" />
-          <div className="mt-1.5 h-1.5 w-24 rounded bg-[#3A4664]" />
-          <div className="mt-3 space-y-1.5">
-            <div className="h-6 rounded border border-[#1E2C52] bg-[#111A36]" />
-            <div className="h-6 rounded border border-[#1E2C52] bg-[#111A36]" />
-          </div>
-        </div>
-      );
-    case "cli":
-      return (
-        <div className={`${base} bg-[#070C1A] p-3 font-mono`}>
-          <div className="flex gap-1">
-            <i className="h-1.5 w-1.5 rounded-full bg-[#FF5F57]" />
-            <i className="h-1.5 w-1.5 rounded-full bg-[#FFB454]" />
-            <i className="h-1.5 w-1.5 rounded-full bg-[#39D98A]" />
-          </div>
-          <p className="mt-2 text-[8px] text-[#39D98A]">visitor@you:~$ <span className="text-[#E8EDF7]">whoami</span></p>
-          <div className="mt-1 h-1.5 w-20 rounded bg-[#2A3550]" />
-          <p className="mt-2 text-[8px] text-[#39D98A]">visitor@you:~$ <span className="inline-block h-2 w-1 animate-pulse bg-[#4DA6FF] align-middle" /></p>
-        </div>
-      );
-    case "glass":
-      return (
-        <div className={`${base} relative bg-[#0A0F1E] p-3`}>
-          <div className="absolute -left-3 -top-3 h-12 w-12 rounded-full bg-[#4DA6FF]/40 blur-lg" />
-          <div className="absolute -bottom-3 -right-3 h-12 w-12 rounded-full bg-[#7C5CFF]/40 blur-lg" />
-          <div className="relative mt-2 h-8 rounded-lg border border-white/20 bg-white/10 backdrop-blur" />
-          <div className="relative mt-1.5 h-5 w-2/3 rounded-lg border border-white/15 bg-white/5 backdrop-blur" />
-        </div>
-      );
-    case "editorial":
-      return (
-        <div className={`${base} bg-[#FAF7F1] p-3`}>
-          <div className="h-2.5 w-20 rounded-sm bg-[#191714]" />
-          <div className="mt-1 h-1.5 w-14 rounded-sm bg-[#B4532A]/70" />
-          <div className="mt-2.5 border-t-2 border-[#191714] pt-1.5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[7px] text-[#B4532A]">01</span>
-              <div className="h-1 w-16 rounded bg-[#8A8377]" />
-            </div>
-            <div className="mt-1 h-1 w-24 rounded bg-[#D8D2C6]" />
-            <div className="mt-0.5 h-1 w-20 rounded bg-[#D8D2C6]" />
-          </div>
-        </div>
-      );
-    case "noir":
-      return (
-        <div className={`${base} flex flex-col items-center justify-center bg-[#0B0B0D] p-3`}>
-          <div className="h-2.5 w-20 rounded-sm bg-[#EDEAE2]" />
-          <div className="mt-1.5 h-px w-10 bg-[#D4B36A]" />
-          <div className="mt-1.5 h-1 w-14 rounded bg-[#8F8A7E]/60" />
-          <div className="mt-2 flex gap-2">
-            <div className="h-1 w-6 rounded bg-[#D4B36A]/70" />
-            <div className="h-1 w-6 rounded bg-[#D4B36A]/70" />
-          </div>
-        </div>
-      );
-    case "bento":
-      return (
-        <div className={`${base} grid grid-cols-3 gap-1 bg-[#0C0E14] p-2`}>
-          <div className="col-span-2 rounded-md bg-gradient-to-br from-[#182036] to-[#10131D]" />
-          <div className="rounded-md bg-[#11151F]" />
-          <div className="rounded-md bg-gradient-to-br from-[#1A2440] to-[#111524]" />
-          <div className="rounded-md bg-gradient-to-br from-[#241A3E] to-[#141021]" />
-          <div className="rounded-md bg-[#11151F]" />
-        </div>
-      );
-    case "executive":
-      return (
-        <div className={`${base} bg-[#F6F8FB]`}>
-          <div className="h-1.5 w-full bg-gradient-to-r from-[#1E3A5F] to-[#2563EB]" />
-          <div className="p-2.5">
-            <div className="rounded-md border border-[#E2E8F0] bg-white p-1.5 shadow-sm">
-              <div className="h-1.5 w-14 rounded bg-[#1E3A5F]" />
-              <div className="mt-1 h-1 w-10 rounded bg-[#2563EB]/60" />
-            </div>
-            <div className="mt-1.5 flex gap-1.5">
-              <div className="h-4 flex-1 rounded-md border border-[#E2E8F0] bg-white" />
-              <div className="h-4 flex-1 rounded-md border border-[#E2E8F0] bg-white" />
-            </div>
-          </div>
-        </div>
-      );
-    case "aurora":
-      return (
-        <div className={`${base} relative bg-[#070912] p-3`}>
-          <div className="absolute -left-2 -top-4 h-10 w-16 rotate-12 rounded-full bg-[#22D3EE]/30 blur-lg" />
-          <div className="absolute -right-2 top-2 h-10 w-12 rounded-full bg-[#8B5CF6]/30 blur-lg" />
-          <div className="absolute bottom-0 left-4 h-8 w-14 rounded-full bg-[#EC4899]/20 blur-lg" />
-          <div className="relative mt-1 h-2.5 w-20 rounded bg-gradient-to-r from-[#67E8F9] via-[#A78BFA] to-[#F472B6]" />
-          <div className="relative mt-1.5 h-1 w-14 rounded bg-[#3A4258]" />
-          <div className="relative mt-2 h-5 rounded-lg border border-white/10 bg-white/5" />
-        </div>
-      );
-    default:
-      return <div className={`${base} bg-[#0A0F1E]`} />;
-  }
+/* real screenshot of each template, cropped to its header */
+function Thumb({ id, name }: { id: string; name: string }) {
+  return (
+    <Image src={`/brand/templates/${id}.png`} alt={`${name} template`} fill
+      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+      className="pointer-events-none object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]" />
+  );
 }
 
 export default function TemplatePage() {
-  const { pro, expiresAt } = usePlan();
+  const { pro } = usePlan();
   const [savedTemplate, setSavedTemplate] = useState("minimal");
   const [selected, setSelected] = useState("minimal");
   const [published, setPublished] = useState(false);
   const [username, setUsername] = useState("");
+  const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [confirmOffline, setConfirmOffline] = useState(false);
   const [upgradeFor, setUpgradeFor] = useState<string | null>(null); // template name that triggered the popup
 
   useEffect(() => {
     fetch("/api/profile").then(async (r) => {
-      if (!r.ok) { setError(`Could not load profile (HTTP ${r.status})`); return; }
+      if (!r.ok) { setError((await friendlyError(r)).message); setLoaded(true); return; }
       const p = await r.json();
       setSavedTemplate(p.template ?? "minimal");
       setSelected(p.template ?? "minimal");
       setPublished(p.isPublished ?? false);
       setUsername(p.username ?? "");
+      setLoaded(true);
     });
   }, []);
 
@@ -155,185 +65,207 @@ export default function TemplatePage() {
     });
     setSaving(false);
     if (!res.ok) {
-      const b = await res.json().catch(() => ({}));
-      setError(
-        b.error === "pro_required"
-          ? "That template is a Pro feature — unlock all 7 premium templates from ₹49 on the Billing page."
-          : `Save failed (HTTP ${res.status}): ${JSON.stringify(b.error ?? b)}`
-      );
+      const f = await friendlyError(res);
+      setError(f.upgrade ? "That design is part of Pro. Upgrade to use it, or pick Minimal for free." : f.message);
       return false;
     }
     return true;
   }
 
-  async function applyAndPublish() {
+  async function publish() {
     const ok = await patch({ template: selected, isPublished: true });
     if (ok) { setSavedTemplate(selected); setPublished(true); }
   }
-  async function applyOnly() {
+  async function applyDesign() {
     const ok = await patch({ template: selected });
     if (ok) setSavedTemplate(selected);
   }
-  async function unpublish() {
+  async function takeOffline() {
     const ok = await patch({ isPublished: false });
-    if (ok) setPublished(false);
+    if (ok) { setPublished(false); setConfirmOffline(false); }
+  }
+  async function copyLink() {
+    await navigator.clipboard.writeText(`${window.location.origin}/${username}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   const dirty = selected !== savedTemplate;
+  const nameOf = (id: string) => OPTIONS.find((o) => o.id === id)?.name ?? id;
 
   return (
-    <div className="w-full max-w-none">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">Template &amp; Publish</h1>
-        <PlanChip pro={pro} expiresAt={expiresAt} />
-      </div>
-      <p className="mt-1 text-sm text-[#8B98B8]">
-        Pick a look, preview it, then apply. Nothing changes on your live page until you do.
-      </p>
+    <div className="space-y-6 pb-24">
+      <PageHeader
+        eyebrow="Share"
+        title="Design & publish"
+        description="Choose how your page looks, then publish it to get your link. You can switch designs anytime — your details stay exactly the same."
+      />
 
-      {error && (
-        <p className="mt-4 rounded-lg border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">
-          {error}
-        </p>
-      )}
+      {error && <Notice tone="error" action={!pro ? <UpgradeLink /> : undefined}>{error}</Notice>}
 
-      {/* gallery grid */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {OPTIONS.map((o) => {
-          const isSelected = selected === o.id;
-          const isLive = savedTemplate === o.id && published;
-          return (
-            <div key={o.id}
-              onClick={() => {
-                if (o.proOnly && !pro) { setUpgradeFor(o.name); return; }
-                setSelected(o.id);
-              }}
-              className={`group cursor-pointer overflow-hidden rounded-2xl border transition-all ${
-                isSelected
-                  ? "border-[#4DA6FF] shadow-[0_0_0_1px_#4DA6FF,0_12px_32px_rgba(77,166,255,0.15)]"
-                  : "border-[#1E2C52] hover:border-[#2A3E6E] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]"}`}>
-              {/* thumbnail */}
-              <div className="relative aspect-[16/10]">
-                <Thumb id={o.id} />
-                {/* hover overlay with preview */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
-                  <a href={`/preview/${o.id}`} target="_blank"
-                    onClick={(e) => e.stopPropagation()}
-                    className="rounded-lg bg-white/95 px-4 py-2 text-sm font-semibold text-[#0A0F1E] shadow-lg">
-                    Preview ↗
+      {/* status */}
+      {loaded && (
+        <Card>
+          {published ? (
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-lp-green/10 text-lp-green">
+                  <Globe className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold">Your page is live</p>
+                  <a href={`/${username}`} target="_blank" className="mt-0.5 block truncate text-sm text-lp-accent hover:underline">
+                    portxz.xyz/{username}
                   </a>
+                  <p className="mt-0.5 text-[13px] text-lp-muted">Design: {nameOf(savedTemplate)}</p>
                 </div>
-                {/* badges */}
-                <div className="absolute left-2 top-2 flex gap-1.5">
-                  {isLive && (
-                    <span className="rounded-full bg-[#0E2018]/90 px-2 py-0.5 font-mono text-[10px] text-[#39D98A] backdrop-blur">● live</span>
-                  )}
-                  {isSelected && !isLive && (
-                    <span className="rounded-full bg-[#1F1A08]/90 px-2 py-0.5 font-mono text-[10px] text-[#FFB454] backdrop-blur">○ selected</span>
-                  )}
-                </div>
-                {o.proOnly && !pro && (
-                  <span className="absolute right-2 top-2 rounded-full bg-[#FFB454]/90 px-2 py-0.5 font-mono text-[10px] font-bold text-[#1F1A08]">PRO</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {confirmOffline ? (
+                  <>
+                    <span className="text-sm text-lp-muted">Hide your page from everyone?</span>
+                    <button onClick={() => setConfirmOffline(false)} className={btn("ghost", "sm")}>Keep it live</button>
+                    <button onClick={takeOffline} disabled={saving} className={btn("danger", "sm")}>
+                      {saving ? "Hiding…" : "Yes, take offline"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => setConfirmOffline(true)} className={btn("ghost", "sm", "hover:text-lp-danger")}>Take offline</button>
+                    <button onClick={copyLink} className={btn("secondary")}>
+                      {copied ? <><Check className="h-4 w-4" /> Copied</> : <><Copy className="h-4 w-4" /> Copy link</>}
+                    </button>
+                    <a href={`/${username}`} target="_blank" className={btn("primary")}>
+                      View my page <ArrowUpRight className="h-4 w-4" />
+                    </a>
+                  </>
                 )}
               </div>
-              {/* meta */}
-              <div className="border-t border-[#1E2C52] bg-[#0F1730] p-4">
-                <p className="font-semibold">{o.name}</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-[#8B98B8]">{o.note}</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-lp-warning/10 text-lp-warning">
+                  <EyeOff className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-semibold">Your page isn&apos;t public yet</p>
+                  <p className="mt-0.5 text-sm text-lp-muted">
+                    Pick a design below, then publish to get your link: <span className="text-lp-text">portxz.xyz/{username}</span>
+                  </p>
+                </div>
+              </div>
+              <button onClick={publish} disabled={saving} className={btn("success", "lg")}>
+                <Rocket className="h-4 w-4" /> {saving ? "Publishing…" : "Publish my page"}
+              </button>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* gallery */}
+      <div>
+        <h2 className="text-[15px] font-semibold">Choose a design</h2>
+        <p className="mt-0.5 text-sm text-lp-muted">Click a design to select it. Use “Preview” to see it full size with sample details.</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {OPTIONS.map((o) => {
+            const isSelected = selected === o.id;
+            const isLive = savedTemplate === o.id && published;
+            const locked = o.proOnly && !pro;
+            return (
+              <div key={o.id}
+                className={`group overflow-hidden rounded-2xl border bg-lp-surface transition-all ${
+                  isSelected
+                    ? "border-lp-accent ring-4 ring-lp-accent-soft"
+                    : "border-lp-border hover:border-lp-border-strong hover:shadow-lg"}`}>
+                <button type="button" aria-pressed={isSelected}
+                  onClick={() => (locked ? setUpgradeFor(o.name) : setSelected(o.id))}
+                  className="relative block aspect-[16/10] w-full overflow-hidden bg-lp-surface-2 text-left">
+                  <Thumb id={o.id} name={o.name} />
+                  <span className="absolute left-2.5 top-2.5 flex gap-1.5">
+                    {isLive && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-lp-green px-2 py-0.5 text-[11px] font-semibold text-white shadow">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live
+                      </span>
+                    )}
+                    {isSelected && !isLive && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-lp-accent px-2 py-0.5 text-[11px] font-semibold text-white shadow">
+                        <Check className="h-3 w-3" /> Selected
+                      </span>
+                    )}
+                  </span>
+                  {locked && (
+                    <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                      <Lock className="h-3 w-3" /> Pro
+                    </span>
+                  )}
+                </button>
+                <div className="flex items-center justify-between gap-3 border-t border-lp-border p-4">
+                  <div className="min-w-0">
+                    <p className="font-semibold">{o.name}</p>
+                    <p className="mt-0.5 truncate text-[13px] text-lp-muted">{o.note}</p>
+                  </div>
+                  <a href={`/preview/${o.id}`} target="_blank" className={btn("ghost", "sm")}>
+                    Preview <ArrowUpRight className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* apply bar — only when a different design is picked on a live page */}
+      <AnimatePresence>
+        {published && dirty && (
+          <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 36 }}
+            className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4 lg:pl-[256px]">
+            <div className="flex w-full max-w-xl items-center justify-between gap-4 rounded-2xl border border-lp-border-strong bg-lp-surface/95 px-4 py-3 shadow-2xl backdrop-blur">
+              <p className="text-sm text-lp-muted">Switch your page to <span className="font-medium text-lp-text">{nameOf(selected)}</span>?</p>
+              <div className="flex gap-2">
+                <button onClick={() => setSelected(savedTemplate)} disabled={saving} className={btn("ghost", "sm")}>Cancel</button>
+                <button onClick={applyDesign} disabled={saving} className={btn("primary", "sm")}>
+                  {saving ? "Applying…" : "Use this design"}
+                </button>
               </div>
             </div>
-          );
-        })}
-        {/* coming soon — placeholder, not selectable */}
-        <div aria-disabled="true"
-          className="cursor-default overflow-hidden rounded-2xl border border-dashed border-[#2A3E6E]">
-          <div className="relative grid aspect-[16/10] place-items-center bg-[#0A0F1E]">
-            <div className="absolute -left-4 -top-4 h-20 w-20 rounded-full bg-[#4DA6FF]/15 blur-2xl" />
-            <div className="absolute -bottom-4 -right-4 h-20 w-20 rounded-full bg-[#7C5CFF]/15 blur-2xl" />
-            <span className="relative grid h-10 w-10 place-items-center rounded-xl border border-dashed border-[#2A3E6E] text-xl text-[#6B7A99]">+</span>
-            <span className="absolute right-2 top-2 rounded-full bg-[#111A36]/90 px-2 py-0.5 font-mono text-[10px] text-[#8FC4FF] backdrop-blur">COMING SOON</span>
-          </div>
-          <div className="border-t border-dashed border-[#2A3E6E] bg-[#0F1730]/60 p-4">
-            <p className="font-semibold text-[#8B98B8]">Coming soon</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-[#6B7A99]">More templates are on the way.</p>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* apply / publish bar */}
-      <div className="sticky bottom-4 mt-8 rounded-2xl border border-[#1E2C52] bg-[#0F1730]/95 p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.4)] backdrop-blur">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="font-semibold">
-              {published ? "Published" : "Unpublished"}
-              {dirty && <span className="ml-2 font-mono text-xs text-[#FFB454]">unsaved template change</span>}
-            </p>
-            <p className="text-sm text-[#8B98B8]">
-              {published
-                ? <>Live at <a className="font-mono text-[#8FC4FF]" href={`/${username}`} target="_blank">portxz.xyz/{username}</a>{" "}
-                    with <span className="font-mono text-[#8FC4FF]">{savedTemplate}</span>.</>
-                : "Your page returns 404 until you publish."}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {published && dirty && (
-              <button onClick={applyOnly} disabled={saving}
-                className="rounded-lg bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
-                {saving ? "Applying…" : "Apply template"}
+      {/* upgrade popup — free user tapped a Pro design */}
+      <AnimatePresence>
+        {upgradeFor && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            onClick={() => setUpgradeFor(null)}>
+            <motion.div initial={{ scale: 0.95, y: 8 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 8 }}
+              onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true"
+              className="lp w-full max-w-sm rounded-2xl border border-lp-border bg-lp-surface p-6 text-center shadow-2xl">
+              <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-lp-accent-soft text-lp-accent">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <h2 className="mt-4 text-lg font-semibold">{upgradeFor} is a Pro design</h2>
+              <p className="mt-2 text-sm leading-relaxed text-lp-muted">
+                Pro unlocks all 8 designs, your resume PDF, AI feedback and unlimited everything.
+              </p>
+              <p className="mt-4 flex items-baseline justify-center gap-2">
+                <span className="text-sm text-lp-subtle line-through">₹149</span>
+                <span className="text-3xl font-semibold tracking-tight">₹49</span>
+                <span className="text-sm text-lp-muted">first month</span>
+              </p>
+              <p className="mt-1 text-xs text-lp-muted">Launch offer for the first 50 users</p>
+              <a href="/dashboard/billing" className={btn("primary", "lg", "mt-5 w-full")}>
+                See Pro plans <ArrowRight className="h-4 w-4" />
+              </a>
+              <button onClick={() => setUpgradeFor(null)} className={btn("ghost", "md", "mt-2 w-full")}>
+                Maybe later
               </button>
-            )}
-            {!published && (
-              <button onClick={applyAndPublish} disabled={saving}
-                className="rounded-lg bg-[#39D98A] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
-                {saving ? "Publishing…" : dirty ? "Apply & publish" : "Publish"}
-              </button>
-            )}
-            {published && !dirty && (
-              <button onClick={unpublish} disabled={saving}
-                className="rounded-lg bg-red-400 px-5 py-2 text-sm font-semibold text-white disabled:opacity-40">
-                Unpublish
-              </button>
-            )}
-            {published && dirty && (
-              <button onClick={() => setSelected(savedTemplate)} disabled={saving}
-                className="rounded-lg border border-[#1E2C52] px-4 py-2 text-sm text-[#8B98B8]">
-                Discard
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* upgrade popup — free user tapped a PRO template */}
-      {upgradeFor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={() => setUpgradeFor(null)}>
-          <div onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-sm rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-[#4DA6FF] to-[#7C5CFF] text-xl shadow-[0_8px_24px_rgba(77,166,255,0.35)]">
-              ✨
-            </span>
-            <h2 className="mt-4 text-lg font-bold">{upgradeFor} is a Pro template</h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#8B98B8]">
-              Unlock <span className="text-[#E8EDF7]">all premium templates</span>, the AI review,
-              resume PDF and unlimited everything.
-            </p>
-            <p className="mt-3 font-mono text-sm">
-              <span className="text-[#8B98B8] line-through">₹149</span>{" "}
-              <span className="text-2xl font-bold text-[#39D98A]">₹49</span>
-              <span className="text-xs text-[#FFB454]"> · launch offer, first 50 users</span>
-            </p>
-            <a href="/dashboard/billing"
-              className="mt-5 block rounded-xl bg-[#39D98A] px-5 py-2.5 text-sm font-semibold text-[#04101F] shadow-[0_8px_24px_rgba(57,217,138,0.3)]">
-              Upgrade for ₹49 →
-            </a>
-            <button onClick={() => setUpgradeFor(null)}
-              className="mt-3 text-sm text-[#8B98B8] hover:text-white">
-              Keep browsing
-            </button>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

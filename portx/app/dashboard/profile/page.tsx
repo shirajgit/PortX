@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check } from "lucide-react";
 import { EnhanceButton } from "@/components/editor/EnhanceButton";
-import { usePlan } from "@/lib/usePlan";
-import { PlanChip } from "@/components/PlanChip";
 import { PortxzLoader } from "@/components/PortxzLoader";
 import { PhotoPicker } from "@/components/editor/PhotoPicker";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, Field, Notice, Toggle, btn, friendlyError, inputCls } from "@/components/ui";
 
 type ProfileForm = {
   fullName: string;
@@ -20,129 +22,135 @@ const EMPTY: ProfileForm = {
   fullName: "", headline: "", summary: "", location: "", email: "", phone: "", openToWork: true,
 };
 
-const input = "mt-1 w-full rounded-xl border border-[#1E2C52] bg-[#111A36] px-4 py-2.5 text-sm outline-none transition focus:border-[#4DA6FF] focus:shadow-[0_0_0_3px_rgba(77,166,255,0.12)]";
-const label = "mt-4 block font-mono text-xs uppercase tracking-wider text-[#8B98B8]";
-const card = "rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-6";
-
 export default function ProfilePage() {
-  const { pro, expiresAt } = usePlan();
   const [form, setForm] = useState<ProfileForm>(EMPTY);
+  const [savedForm, setSavedForm] = useState<ProfileForm>(EMPTY);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null); // saved on its own by PhotoPicker
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/profile").then(async (r) => {
       if (r.status === 404) { window.location.href = "/setup"; return; }
-      if (!r.ok) { setError(`Could not load profile (HTTP ${r.status})`); setLoading(false); return; }
+      if (!r.ok) { setError((await friendlyError(r)).message); setLoading(false); return; }
       const p = await r.json();
-      setForm({
+      const f = {
         fullName: p.fullName ?? "", headline: p.headline ?? "", summary: p.summary ?? "",
         location: p.location ?? "", email: p.email ?? "", phone: p.phone ?? "",
         openToWork: p.openToWork ?? true,
-      });
+      };
+      setForm(f);
+      setSavedForm(f);
       setAvatarUrl(p.avatarUrl ?? null);
       setLoading(false);
     });
   }, []);
 
+  const dirty = JSON.stringify(form) !== JSON.stringify(savedForm);
+  const set = <K extends keyof ProfileForm>(k: K, v: ProfileForm[K]) => setForm({ ...form, [k]: v });
+
   async function save() {
-    setSaving(true); setSaved(false); setError(null);
+    setSaving(true); setError(null);
     const res = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
     setSaving(false);
-    if (!res.ok) {
-      const b = await res.json().catch(() => ({}));
-      setError(`Save failed (HTTP ${res.status}): ${JSON.stringify(b.error ?? b)}`);
-      return;
-    }
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (!res.ok) { setError((await friendlyError(res)).message); return; }
+    setSavedForm(form);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2500);
   }
 
-  if (loading) return <PortxzLoader label="Loading profile" />;
+  if (loading) return <PortxzLoader label="Loading your details" />;
 
   return (
-    <div className="w-full max-w-none">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">Profile</h1>
-        <PlanChip pro={pro} expiresAt={expiresAt} />
-      </div>
-      <p className="mt-1 text-sm text-[#8B98B8]">Shared by your portfolio and your resume.</p>
+    <div className="pb-24">
+      <PageHeader
+        eyebrow="Your details"
+        title="About you"
+        description="The basics about you. This appears at the top of your portfolio and your resume."
+      />
 
-      {error && (
-        <p className="mt-4 rounded-xl border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">{error}</p>
-      )}
+      {error && <Notice tone="error" className="mt-6">{error}</Notice>}
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        {/* identity card */}
-        <div className={card}>
-          <h2 className="font-mono text-xs uppercase tracking-widest text-[#4DA6FF]">Identity</h2>
-
-          <label className={label}>Profile photo</label>
-          <div className="mt-2">
-            <PhotoPicker value={avatarUrl} name={form.fullName} onChange={setAvatarUrl} />
+      <div className="mt-6 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+        <Card title="Introduce yourself" description="First impressions — keep it short and clear.">
+          <div className="space-y-5">
+            <Field group label="Profile photo" optional>
+              <PhotoPicker value={avatarUrl} name={form.fullName} onChange={setAvatarUrl} />
+            </Field>
+            <Field label="Full name">
+              <input className={inputCls} value={form.fullName} placeholder="e.g. Aarav Mehta"
+                onChange={(e) => set("fullName", e.target.value)} />
+            </Field>
+            <Field label="Headline" hint="Who you are in a few words. Shown right under your name.">
+              <input className={inputCls} value={form.headline} placeholder="e.g. Graphic Designer · Marketing Specialist"
+                onChange={(e) => set("headline", e.target.value)} />
+            </Field>
+            <Field group label="About me" hint="2–3 sentences: what you do, what you're good at, and what you're looking for.">
+              <textarea className={`${inputCls} resize-none leading-relaxed`} rows={5} value={form.summary}
+                aria-label="About me"
+                placeholder="I'm a designer who helps small brands look big. I love clean layouts and I'm looking for a full-time role in Pune."
+                onChange={(e) => set("summary", e.target.value)} />
+              <span className="mt-2 block">
+                <EnhanceButton mode="summary" text={form.summary} onAccept={(s) => set("summary", s)} />
+              </span>
+            </Field>
           </div>
+        </Card>
 
-          <label className={label}>Full name</label>
-          <input className={input} value={form.fullName}
-            onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-
-          <label className={label}>Headline</label>
-          <input className={input} value={form.headline} placeholder="Full Stack Developer (MERN / Next.js)"
-            onChange={(e) => setForm({ ...form, headline: e.target.value })} />
-
-          <label className={label}>Summary</label>
-          <textarea className={`${input} resize-none`} rows={5} value={form.summary}
-            placeholder="What you build, who you help, what you're looking for."
-            onChange={(e) => setForm({ ...form, summary: e.target.value })} />
-          <div className="mt-1">
-            <EnhanceButton mode="summary" text={form.summary}
-              onAccept={(s) => setForm({ ...form, summary: s })} />
-          </div>
-        </div>
-
-        {/* contact card */}
-        <div className={card}>
-          <h2 className="font-mono text-xs uppercase tracking-widest text-[#4DA6FF]">Contact & Status</h2>
-
-          <label className={label}>Public email</label>
-          <input className={input} value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })} />
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className={label}>Location</label>
-              <input className={input} value={form.location} placeholder="Bengaluru, India"
-                onChange={(e) => setForm({ ...form, location: e.target.value })} />
+        <div className="space-y-5">
+          <Card title="Contact details" description="How people can reach you.">
+            <div className="space-y-5">
+              <Field label="Email" hint="Shown on your page so people can contact you.">
+                <input type="email" className={inputCls} value={form.email} placeholder="you@example.com"
+                  onChange={(e) => set("email", e.target.value)} />
+              </Field>
+              <Field label="City" optional>
+                <input className={inputCls} value={form.location} placeholder="e.g. Bengaluru, India"
+                  onChange={(e) => set("location", e.target.value)} />
+              </Field>
+              <Field label="Phone" optional hint="Only printed on your resume — never shown on your public page.">
+                <input type="tel" className={inputCls} value={form.phone} placeholder="+91 98765 43210"
+                  onChange={(e) => set("phone", e.target.value)} />
+              </Field>
             </div>
-            <div>
-              <label className={label}>Phone</label>
-              <input className={input} value={form.phone} placeholder="resume only"
-                onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            </div>
-          </div>
-
-          <label className="mt-6 flex cursor-pointer items-center justify-between rounded-xl border border-[#1E2C52] bg-[#111A36] px-4 py-3">
-            <span className="text-sm">
-              Show <span className="text-[#39D98A]">“open to work”</span> badge
-              <span className="block text-xs text-[#8B98B8]">Appears on your public page</span>
-            </span>
-            <input type="checkbox" className="h-4 w-4 accent-[#39D98A]" checked={form.openToWork}
-              onChange={(e) => setForm({ ...form, openToWork: e.target.checked })} />
-          </label>
+          </Card>
+          <Card title="Availability">
+            <Toggle checked={form.openToWork} onChange={(v) => set("openToWork", v)}
+              label="I'm open to work" description="Adds a small “Open to work” badge to your page." />
+          </Card>
         </div>
       </div>
 
-      <button onClick={save} disabled={saving}
-        className="mt-6 rounded-xl bg-[#4DA6FF] px-6 py-2.5 font-semibold text-[#04101F] shadow-[0_4px_16px_rgba(77,166,255,0.25)] transition hover:bg-[#8FC4FF] disabled:opacity-40">
-        {saving ? "Saving…" : saved ? "Saved ✓" : "Save changes"}
-      </button>
+      {/* save bar — appears when something changed */}
+      <AnimatePresence>
+        {(dirty || justSaved) && (
+          <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 36 }}
+            className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4 lg:pl-[256px]">
+            <div className="flex w-full max-w-xl items-center justify-between gap-4 rounded-2xl border border-lp-border-strong bg-lp-surface/95 px-4 py-3 shadow-2xl backdrop-blur">
+              {justSaved && !dirty ? (
+                <p className="inline-flex items-center gap-2 text-sm font-medium text-lp-green"><Check className="h-4 w-4" /> All changes saved</p>
+              ) : (
+                <>
+                  <p className="text-sm text-lp-muted">You have unsaved changes</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => setForm(savedForm)} disabled={saving} className={btn("ghost", "sm")}>Undo</button>
+                    <button onClick={save} disabled={saving} className={btn("primary", "sm")}>
+                      {saving ? "Saving…" : "Save changes"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

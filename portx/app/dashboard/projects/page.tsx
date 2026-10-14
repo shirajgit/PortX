@@ -1,10 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
-import NextLink from "next/link";
+import { ExternalLink, FolderKanban, Plus, Star } from "lucide-react";
 import { BulletListEditor } from "@/components/editor/BulletListEditor";
 import { EnhanceButton } from "@/components/editor/EnhanceButton";
 import { usePlan, FREE_UI_LIMITS } from "@/lib/usePlan";
-import { PlanChip, LimitChip } from "@/components/PlanChip";
+import { PageHeader } from "@/components/PageHeader";
+import { GithubIcon } from "@/components/BrandIcons";
+import { EmptyState } from "@/components/EmptyState";
+import {
+  Field, ItemCard, Notice, Sheet, TagInput, Tags, Toggle, UpgradeLink, UsageNote,
+  btn, friendlyError, inputCls,
+} from "@/components/ui";
 
 type Project = {
   id?: string;
@@ -18,11 +24,10 @@ type Project = {
 };
 
 type Draft = { name: string; tagline: string; tech: string[]; repoUrl: string; liveUrl: string | null; githubRepo: string };
+type ApiProject = Partial<Project> & { bullets?: unknown; tech?: unknown };
+type Problem = { message: string; upgrade: boolean } | null;
 
 const EMPTY: Project = { name: "", tagline: "", bullets: [], tech: [], liveUrl: null, repoUrl: null, featured: false };
-
-const input = "mt-1 w-full rounded-xl border border-[#1E2C52] bg-[#111A36] px-4 py-2.5 text-sm outline-none transition focus:border-[#4DA6FF] focus:shadow-[0_0_0_3px_rgba(77,166,255,0.12)]";
-const label = "mt-4 block font-mono text-xs uppercase tracking-wider text-[#8B98B8]";
 
 function normalizeUrl(v: string | null): string | null {
   if (!v) return null;
@@ -32,31 +37,36 @@ function normalizeUrl(v: string | null): string | null {
 }
 
 export default function ProjectsPage() {
-  const { pro, expiresAt } = usePlan();
+  const { pro } = usePlan();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [ghOpen, setGhOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [problem, setProblem] = useState<Problem>(null);
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
     const r = await fetch("/api/projects");
-    if (!r.ok) { setError(`Could not load projects (HTTP ${r.status})`); return; }
+    if (!r.ok) { setProblem(await friendlyError(r, "projects")); setLoaded(true); return; }
     const data = await r.json();
     setProjects(
-      (Array.isArray(data) ? data : []).map((p: any) => ({
+      (Array.isArray(data) ? data : []).map((p: ApiProject) => ({
+        ...EMPTY,
         ...p,
         bullets: Array.isArray(p.bullets) ? p.bullets : [],
         tech: Array.isArray(p.tech) ? p.tech : [],
-      }))
+      }) as Project)
     );
+    setLoaded(true);
   };
   useEffect(() => { load(); }, []);
 
   const atLimit = !pro && projects.length >= FREE_UI_LIMITS.projects;
 
+  function startNew() { setProblem(null); setEditing({ ...EMPTY }); }
+
   async function save(p: Project) {
-    setError(null);
+    setProblem(null);
     setSaving(true);
     const isNew = !p.id;
     const res = await fetch(isNew ? "/api/projects" : `/api/projects/${p.id}`, {
@@ -68,173 +78,141 @@ export default function ProjectsPage() {
       }),
     });
     setSaving(false);
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      setError(
-        body.error === "free_limit_reached"
-          ? `Free plan allows ${body.limit} projects — upgrade on the Billing page for unlimited.`
-          : `Save failed (HTTP ${res.status}): ${JSON.stringify(body.error ?? body)}`
-      );
-      return;
-    }
+    if (!res.ok) { setProblem(await friendlyError(res, "projects")); return; }
     setEditing(null);
     load();
   }
 
   async function remove(id: string) {
     const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
-    if (!res.ok) setError(`Delete failed (HTTP ${res.status})`);
+    if (!res.ok) setProblem(await friendlyError(res, "projects"));
     load();
   }
 
   return (
-    <div className="w-full max-w-none">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Projects</h1>
-          <PlanChip pro={pro} expiresAt={expiresAt} />
-          <LimitChip used={projects.length} limit={FREE_UI_LIMITS.projects} pro={pro} />
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <button onClick={() => setGhOpen(true)}
-            className="rounded-xl border border-[#1E2C52] px-4 py-2 font-mono text-xs transition hover:border-[#4DA6FF]">
-            ⇣ import from GitHub
-          </button>
-          {atLimit ? (
-            <NextLink href="/dashboard/billing"
-              className="rounded-xl bg-[#39D98A] px-4 py-2 text-sm font-semibold text-[#04101F]">
-              Upgrade for more
-            </NextLink>
-          ) : (
-            <button onClick={() => { setError(null); setEditing({ ...EMPTY }); }}
-              className="rounded-xl bg-[#4DA6FF] px-4 py-2 text-sm font-semibold text-[#04101F] shadow-[0_4px_16px_rgba(77,166,255,0.25)] transition hover:bg-[#8FC4FF]">
-              + Add project
+    <div>
+      <PageHeader
+        eyebrow="Your details"
+        title="Projects"
+        description="Show the work you're proudest of. Each project appears on your portfolio and your resume."
+        actions={
+          <>
+            <button onClick={() => setGhOpen(true)} className={btn("secondary")}>
+              <GithubIcon className="h-4 w-4" /> Import from GitHub
             </button>
-          )}
-        </div>
-      </div>
+            <button onClick={startNew} disabled={atLimit} className={btn("primary")}>
+              <Plus className="h-4 w-4" /> Add project
+            </button>
+          </>
+        }
+      />
 
-      {error && (
-        <p className="mt-4 rounded-xl border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">{error}</p>
-      )}
-
-      {/* list */}
       <div className="mt-6 space-y-3">
+        <UsageNote used={projects.length} limit={FREE_UI_LIMITS.projects} pro={pro} thing="projects" />
+        {problem && !editing && (
+          <Notice tone="error" action={problem.upgrade ? <UpgradeLink /> : undefined}>{problem.message}</Notice>
+        )}
+
         {projects.map((p) => (
-          <div key={p.id}
-            className="group flex items-center justify-between gap-4 rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-5 transition hover:border-[#2A3E6E] hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
-            <div className="flex min-w-0 items-center gap-4">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#4DA6FF]/20 to-[#7C5CFF]/20 text-[#8FC4FF]">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
-                  strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
-                </svg>
-              </span>
-              <div className="min-w-0">
-                <p className="font-semibold">
-                  {p.name}{" "}
-                  {p.featured && (
-                    <span className="rounded-full border border-[#5C4A1E] bg-[#1F1A08] px-2 py-0.5 font-mono text-[10px] text-[#FFB454]">★ featured</span>
-                  )}
-                </p>
-                {p.tagline && <p className="mt-0.5 truncate text-sm text-[#8B98B8]">{p.tagline}</p>}
-                {p.tech.length > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {p.tech.slice(0, 5).map((t) => (
-                      <span key={t} className="rounded-full border border-[#1E2C52] bg-[#111A36] px-2.5 py-0.5 font-mono text-[11px] text-[#C7CFE5]">{t}</span>
-                    ))}
-                    {p.tech.length > 5 && (
-                      <span className="rounded-full px-1 py-0.5 font-mono text-[11px] text-[#5C6A87]">+{p.tech.length - 5}</span>
-                    )}
-                  </div>
+          <ItemCard key={p.id} icon={FolderKanban}
+            title={
+              <span className="inline-flex flex-wrap items-center gap-2">
+                {p.name}
+                {p.featured && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-lp-warning/10 px-2 py-0.5 text-[11px] font-medium text-lp-warning">
+                    <Star className="h-3 w-3 fill-current" /> Highlighted
+                  </span>
                 )}
-              </div>
+              </span>
+            }
+            subtitle={p.tagline || <span className="italic text-lp-subtle">No description yet</span>}
+            onEdit={() => { setProblem(null); setEditing(p); }}
+            onDelete={() => remove(p.id!)}>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Tags items={p.tech} />
+              {p.liveUrl && (
+                <a href={p.liveUrl} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-lp-accent hover:underline">
+                  <ExternalLink className="h-3 w-3" /> View project
+                </a>
+              )}
             </div>
-            <div className="flex shrink-0 gap-2 opacity-60 transition group-hover:opacity-100">
-              <button onClick={() => { setError(null); setEditing(p); }}
-                className="rounded-lg border border-[#1E2C52] px-3 py-1.5 font-mono text-xs text-[#8FC4FF] transition hover:border-[#4DA6FF]">edit</button>
-              <button onClick={() => remove(p.id!)}
-                className="rounded-lg border border-[#1E2C52] px-3 py-1.5 font-mono text-xs text-[#FF6B6B] transition hover:border-[#FF6B6B]">delete</button>
-            </div>
-          </div>
+          </ItemCard>
         ))}
-        {projects.length === 0 && !error && (
-          <div className="rounded-2xl border border-dashed border-[#2A3E6E] p-10 text-center">
-            <p className="text-3xl">📁</p>
-            <p className="mt-2 font-semibold">No projects yet</p>
-            <p className="mt-1 text-sm text-[#8B98B8]">Add your best work or import straight from GitHub.</p>
-          </div>
+
+        {loaded && projects.length === 0 && !problem && (
+          <EmptyState icon={FolderKanban} title="Add your first project"
+            description="Anything you've made counts — an app, a design, a campaign, a case study. You can also import projects from GitHub." />
         )}
       </div>
 
-      {/* editor */}
-      {editing && (
-        <div className="mt-8 rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-6 shadow-[0_16px_48px_rgba(0,0,0,0.3)]">
-          <h2 className="font-semibold">{editing.id ? "Edit project" : "New project"}</h2>
-
-          <label className={label}>Name</label>
-          <input className={input} value={editing.name}
-            onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
-
-          <label className={label}>Tagline</label>
-          <input className={input} value={editing.tagline}
-            onChange={(e) => setEditing({ ...editing, tagline: e.target.value })} />
-          <div className="mt-1">
-            <EnhanceButton mode="tagline" text={editing.tagline}
-              onAccept={(s) => setEditing({ ...editing, tagline: s })} />
-          </div>
-
-          <label className={label}>Resume bullets</label>
-          <BulletListEditor bullets={editing.bullets}
-            onChange={(b) => setEditing({ ...editing, bullets: b })} />
-
-          <label className={label}>Tech (comma separated)</label>
-          <input className={input} value={editing.tech.join(", ")}
-            onChange={(e) => setEditing({ ...editing, tech: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })} />
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className={label}>Live URL</label>
-              <input className={input} value={editing.liveUrl ?? ""} placeholder="myapp.vercel.app"
-                onChange={(e) => setEditing({ ...editing, liveUrl: e.target.value })} />
-            </div>
-            <div>
-              <label className={label}>Repo URL</label>
-              <input className={input} value={editing.repoUrl ?? ""} placeholder="github.com/you/repo"
-                onChange={(e) => setEditing({ ...editing, repoUrl: e.target.value })} />
-            </div>
-          </div>
-
-          <label className="mt-5 flex cursor-pointer items-center justify-between rounded-xl border border-[#1E2C52] bg-[#111A36] px-4 py-3">
-            <span className="text-sm">
-              Featured <span className="text-[#FFB454]">★</span>
-              <span className="block text-xs text-[#8B98B8]">Shown first on your portfolio</span>
-            </span>
-            <input type="checkbox" className="h-4 w-4 accent-[#FFB454]" checked={editing.featured}
-              onChange={(e) => setEditing({ ...editing, featured: e.target.checked })} />
-          </label>
-
-          <div className="mt-6 flex gap-3">
-            <button onClick={() => save(editing)} disabled={!editing.name.trim() || saving}
-              className="rounded-xl bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] shadow-[0_4px_16px_rgba(77,166,255,0.25)] disabled:opacity-40">
-              {saving ? "Saving…" : "Save"}
+      <Sheet
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        title={editing?.id ? "Edit project" : "Add a project"}
+        description="Only the name is required — you can fill in the rest later."
+        footer={
+          <>
+            <button onClick={() => setEditing(null)} className={btn("ghost")}>Cancel</button>
+            <button onClick={() => editing && save(editing)} disabled={!editing?.name.trim() || saving} className={btn("primary")}>
+              {saving ? "Saving…" : editing?.id ? "Save changes" : "Add project"}
             </button>
-            <button onClick={() => setEditing(null)} className="text-sm text-[#8B98B8] hover:text-white">Cancel</button>
-          </div>
-        </div>
-      )}
+          </>
+        }>
+        {editing && (
+          <>
+            {problem && <Notice tone="error" action={problem.upgrade ? <UpgradeLink /> : undefined}>{problem.message}</Notice>}
+            <Field label="Project name">
+              <input className={inputCls} value={editing.name} placeholder="e.g. Ledgerly" autoFocus
+                onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+            </Field>
+            <Field group label="Short description" hint="One sentence about what it is or what it does.">
+              <input className={inputCls} value={editing.tagline} placeholder="An app that sorts your expenses automatically"
+                onChange={(e) => setEditing({ ...editing, tagline: e.target.value })} />
+              <span className="mt-2 block">
+                <EnhanceButton mode="tagline" text={editing.tagline} onAccept={(s) => setEditing({ ...editing, tagline: s })} />
+              </span>
+            </Field>
+            <Field group label="Highlights" optional
+              hint="What did you do, and what happened because of it? Numbers help — e.g. “Grew sign-ups by 30%”.">
+              <BulletListEditor bullets={editing.bullets} onChange={(b) => setEditing({ ...editing, bullets: b })} />
+            </Field>
+            <Field group label="Tools & skills used" optional hint="Type one and press Enter.">
+              <TagInput value={editing.tech} onChange={(tech) => setEditing({ ...editing, tech })}
+                placeholder="e.g. Figma, React, Excel" />
+            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Project link" optional hint="Where people can see it.">
+                <input className={inputCls} value={editing.liveUrl ?? ""} placeholder="myproject.com"
+                  onChange={(e) => setEditing({ ...editing, liveUrl: e.target.value })} />
+              </Field>
+              <Field label="Code link" optional hint="For developers — e.g. GitHub.">
+                <input className={inputCls} value={editing.repoUrl ?? ""} placeholder="github.com/you/project"
+                  onChange={(e) => setEditing({ ...editing, repoUrl: e.target.value })} />
+              </Field>
+            </div>
+            <Toggle checked={editing.featured} onChange={(featured) => setEditing({ ...editing, featured })}
+              label="Highlight this project" description="Highlighted projects are shown first on your page." />
+          </>
+        )}
+      </Sheet>
 
-      {ghOpen && <GithubImport onClose={() => setGhOpen(false)} onDone={load} />}
+      <GithubImport open={ghOpen} onClose={() => setGhOpen(false)} onDone={load} />
     </div>
   );
 }
 
-function GithubImport({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+function GithubImport({ open, onClose, onDone }: { open: boolean; onClose: () => void; onDone: () => void }) {
   const [username, setUsername] = useState("");
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function close() {
+    setDrafts(null); setSelected(new Set()); setError(null);
+    onClose();
+  }
 
   async function fetchDrafts() {
     setError(null);
@@ -242,10 +220,10 @@ function GithubImport({ onClose, onDone }: { onClose: () => void; onDone: () => 
     const res = await fetch("/api/import/github", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username }),
+      body: JSON.stringify({ username: username.trim() }),
     });
     setBusy(false);
-    if (!res.ok) { setError(`Could not fetch repos (HTTP ${res.status}) — check the username.`); return; }
+    if (!res.ok) { setError("We couldn't find that GitHub account. Check the username and try again."); return; }
     setDrafts((await res.json()).drafts);
   }
 
@@ -267,67 +245,67 @@ function GithubImport({ onClose, onDone }: { onClose: () => void; onDone: () => 
       if (!r.ok) failures.push(d.name);
     }
     setBusy(false);
+    onDone();
     if (failures.length) {
-      setError(`Some imports failed (${failures.join(", ")}) — free plan allows 5 projects.`);
-      onDone();
+      setError(`${failures.length} couldn't be added (${failures.join(", ")}). The free plan includes up to 5 projects.`);
       return;
     }
-    onDone();
-    onClose();
+    close();
   }
 
   const toggle = (repo: string) => {
     const next = new Set(selected);
-    next.has(repo) ? next.delete(repo) : next.add(repo);
+    if (next.has(repo)) next.delete(repo); else next.add(repo);
     setSelected(next);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border border-[#1E2C52] bg-[#0F1730] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
-        <h2 className="font-semibold">Import from GitHub</h2>
-        {error && (
-          <p className="mt-3 rounded-xl border border-[#5C2B2B] bg-[#2A1414] px-4 py-3 font-mono text-xs text-[#FF9B9B]">{error}</p>
-        )}
-        {!drafts ? (
-          <>
-            <p className="mt-1 text-sm text-[#8B98B8]">We fetch your public repos — you pick which become projects.</p>
-            <input className="mt-4 w-full rounded-xl border border-[#1E2C52] bg-[#111A36] px-4 py-2.5 text-sm outline-none transition focus:border-[#4DA6FF] focus:shadow-[0_0_0_3px_rgba(77,166,255,0.12)]"
-              placeholder="github username" value={username} onChange={(e) => setUsername(e.target.value)} />
-            <div className="mt-4 flex gap-3">
-              <button onClick={fetchDrafts} disabled={!username.trim() || busy}
-                className="rounded-xl bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
-                {busy ? "Fetching…" : "Fetch repos"}
+    <Sheet open={open} onClose={close} title="Import from GitHub"
+      description={drafts ? "Pick your best 4–6. You can edit them afterwards." : "We'll list your public repositories — you choose which become projects."}
+      footer={
+        <>
+          <button onClick={close} className={btn("ghost")}>Cancel</button>
+          {!drafts ? (
+            <button onClick={fetchDrafts} disabled={!username.trim() || busy} className={btn("primary")}>
+              {busy ? "Looking…" : "Find my projects"}
+            </button>
+          ) : (
+            <button onClick={importSelected} disabled={selected.size === 0 || busy} className={btn("primary")}>
+              {busy ? "Importing…" : selected.size ? `Import ${selected.size} project${selected.size === 1 ? "" : "s"}` : "Select projects"}
+            </button>
+          )}
+        </>
+      }>
+      {error && <Notice tone="error">{error}</Notice>}
+      {!drafts ? (
+        <Field label="Your GitHub username" hint="The name in your GitHub address — github.com/username">
+          <input className={inputCls} placeholder="e.g. aaravmehta" value={username} autoFocus
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && username.trim() && fetchDrafts()} />
+        </Field>
+      ) : drafts.length === 0 ? (
+        <Notice tone="info">No public repositories found for this account.</Notice>
+      ) : (
+        <div className="space-y-2">
+          {drafts.map((d) => {
+            const on = selected.has(d.githubRepo);
+            return (
+              <button key={d.githubRepo} type="button" onClick={() => toggle(d.githubRepo)}
+                className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition ${
+                  on ? "border-lp-accent bg-lp-accent-soft" : "border-lp-border bg-lp-surface hover:border-lp-border-strong"}`}>
+                <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border ${
+                  on ? "border-lp-accent bg-lp-accent text-white" : "border-lp-border-strong"}`}>
+                  {on && <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 7" /></svg>}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold">{d.name}</span>
+                  <span className="block truncate text-[13px] text-lp-muted">{d.tagline || "No description"}</span>
+                </span>
               </button>
-              <button onClick={onClose} className="text-sm text-[#8B98B8] hover:text-white">Cancel</button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="mt-1 text-sm text-[#8B98B8]">Select 4–6 of your best. You can polish them after.</p>
-            <div className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
-              {drafts.map((d) => (
-                <label key={d.githubRepo}
-                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
-                    selected.has(d.githubRepo) ? "border-[#4DA6FF] bg-[#111A36]" : "border-[#1E2C52] bg-[#111A36]/50 hover:border-[#2A3E6E]"}`}>
-                  <input type="checkbox" className="mt-0.5 accent-[#4DA6FF]" checked={selected.has(d.githubRepo)} onChange={() => toggle(d.githubRepo)} />
-                  <span className="min-w-0">
-                    <span className="text-sm font-semibold">{d.name}</span>
-                    <span className="block truncate text-xs text-[#8B98B8]">{d.tagline || "no description"}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-            <div className="mt-4 flex gap-3">
-              <button onClick={importSelected} disabled={selected.size === 0 || busy}
-                className="rounded-xl bg-[#4DA6FF] px-5 py-2 text-sm font-semibold text-[#04101F] disabled:opacity-40">
-                {busy ? "Importing…" : `Import ${selected.size || ""}`}
-              </button>
-              <button onClick={onClose} className="text-sm text-[#8B98B8] hover:text-white">Cancel</button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+            );
+          })}
+        </div>
+      )}
+    </Sheet>
   );
 }

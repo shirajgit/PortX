@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
+
+/* Brand fonts — exposed as CSS variables; .lp (landing + dashboard) opts in. */
+const sans = Geist({ subsets: ["latin"], variable: "--font-lp-sans" });
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-lp-mono" });
+const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-lp-serif" });
 
 const TITLE = "Portxz — Portfolio, ATS Resume & GitHub README in Sync";
 
@@ -78,11 +84,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${serif.variable}`}>
         <head>
           <script
             dangerouslySetInnerHTML={{
-              __html: `try{if(localStorage.getItem('Portxz-theme')==='light')document.documentElement.classList.add('light')}catch(e){}`,
+              __html: `try{if(localStorage.getItem('Portxz-theme')!=='dark')document.documentElement.classList.add('light')}catch(e){}`,
             }}
           />
         </head>

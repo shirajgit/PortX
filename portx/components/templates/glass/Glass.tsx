@@ -23,7 +23,7 @@ import { getInsights } from "../insights";
    ──────────────────────────────────────────────────────────────────────── */
 
 export function Glass({ data }: TemplateProps) {
-  const { profile, links, experiences, projects, skills, educations } = data;
+  const { profile, links, experiences, projects, skills, educations, sections } = data;
 
   const { initials, current, stats } = getInsights(data);
 
@@ -428,6 +428,35 @@ export function Glass({ data }: TemplateProps) {
                 </Stagger>
               </div>
             )}
+          </section>
+        )}
+
+        {/* ─────────────── CUSTOM SECTIONS ─────────────── */}
+        {sections.length > 0 && (
+          <section className="mt-16 grid grid-cols-1 gap-6 sm:mt-20 lg:grid-cols-2">
+            {sections.map((sec) => (
+              <div key={sec.title}>
+                <SectionHeading eyebrow="More" title={sec.title} />
+                <Stagger className="space-y-4" stagger={0.08}>
+                  {sec.items.map((it, i) => (
+                    <Item key={i}>
+                      <div className="rounded-[1.4rem] border border-white/12 bg-white/[0.05] p-5 backdrop-blur-2xl">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <h3 className="text-base font-bold text-white">
+                            {it.url ? (
+                              <a href={it.url} target="_blank" rel="noreferrer" className="hover:text-indigo-200">{it.title} ↗</a>
+                            ) : it.title}
+                          </h3>
+                          {it.date && <span className="shrink-0 font-mono text-xs text-slate-400">{it.date}</span>}
+                        </div>
+                        {it.subtitle && <p className="mt-1 text-sm text-slate-300">{it.subtitle}</p>}
+                        {it.description && <p className="mt-1 text-xs leading-relaxed text-slate-400">{it.description}</p>}
+                      </div>
+                    </Item>
+                  ))}
+                </Stagger>
+              </div>
+            ))}
           </section>
         )}
 

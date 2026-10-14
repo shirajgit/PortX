@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { LEGAL_LINKS, SITE_NAME } from "@/lib/site";
+import { ArrowLeft } from "lucide-react";
 
 /* Shared shell for the policy pages: /terms, /privacy, /refund-policy,
    /shipping-policy and /contact. */
@@ -10,7 +11,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       <header className="border-b border-[#1E2C52]">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
           <Link href="/"><Logo size="sm" /></Link>
-          <Link href="/" className="font-mono text-xs text-[#8B98B8] hover:text-[#4DA6FF]">← Home</Link>
+          <Link href="/" className="inline-flex items-center gap-1 font-mono text-xs text-[#8B98B8] hover:text-[#4DA6FF]"><ArrowLeft className="h-3.5 w-3.5" /> Home</Link>
         </div>
       </header>
 

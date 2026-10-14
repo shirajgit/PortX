@@ -53,7 +53,7 @@ const chip =
   "rounded-full border border-white/[0.08] bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/70";
 
 export function Bento({ data }: TemplateProps) {
-  const { profile, links, experiences, projects, skills, educations } = data;
+  const { profile, links, experiences, projects, skills, educations, sections } = data;
 
   const featured = projects.filter((p) => p.featured);
   const shown = (featured.length ? featured : projects.slice(0, 2)).slice(0, 2);
@@ -397,6 +397,35 @@ export function Bento({ data }: TemplateProps) {
             </Tile>
           </Item>
         )}
+
+        {/* ── Custom sections ───────────────────────────────────────── */}
+        {sections.map((sec) => (
+          <Item key={sec.title} className="h-full sm:col-span-2 lg:col-span-3">
+            <Tile glow="rgba(125,211,252,0.12)" className="bg-[#0E1119]">
+              <Label>{sec.title}</Label>
+              <div className="mt-5 space-y-4">
+                {sec.items.map((it, i) => (
+                  <div key={i}>
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                      <div>
+                        {it.url ? (
+                          <a href={it.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-white/90 hover:text-white">
+                            {it.title} ↗
+                          </a>
+                        ) : (
+                          <p className="text-sm font-semibold text-white/90">{it.title}</p>
+                        )}
+                        {it.subtitle && <p className="text-xs text-white/55">{it.subtitle}</p>}
+                      </div>
+                      {it.date && <span className="text-[11px] tabular-nums text-white/40">{it.date}</span>}
+                    </div>
+                    {it.description && <p className="mt-1 text-xs leading-relaxed text-white/55">{it.description}</p>}
+                  </div>
+                ))}
+              </div>
+            </Tile>
+          </Item>
+        ))}
 
         {/* ── Remaining projects ────────────────────────────────────── */}
         {rest.map((p) => (

@@ -46,7 +46,7 @@ const pad = (s: string, n: number) => (s.length >= n ? s : s + " ".repeat(n - s.
 type Cmd = { run: () => string[]; desc: string };
 
 function buildCommands(data: PortfolioData, username: string) {
-  const { profile, links, experiences, projects, skills, educations } = data;
+  const { profile, links, experiences, projects, skills, educations, sections } = data;
 
   const whoami = (): string[] => {
     const out: string[] = [
@@ -165,6 +165,24 @@ function buildCommands(data: PortfolioData, username: string) {
       );
     });
 
+  const sectionOut = (sec: (typeof sections)[number]) => (): string[] =>
+    sec.items.flatMap((it) => {
+      const head =
+        span(C.green, "◆ ") +
+        (it.url ? link(it.url, esc(it.title)) : span(C.text, esc(it.title))) +
+        (it.subtitle ? span(C.dim, " — ") + span(C.text, esc(it.subtitle)) : "") +
+        (it.date ? span(C.dim, `  (${esc(it.date)})`) : "");
+      return it.description ? [head, "   " + span(C.dim, esc(it.description))] : [head];
+    });
+
+  // each section becomes a command named after it, e.g. "certifications"
+  const RESERVED = new Set(["about", "help", "stats", "projects", "experience", "skills", "education", "contact", "resume", "clear", "all"]);
+  const sectionCmds = sections.map((sec) => {
+    let name = sec.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "section";
+    if (RESERVED.has(name)) name = `my-${name}`;
+    return { name, sec };
+  }).filter((c, i, all) => all.findIndex((x) => x.name === c.name) === i);
+
   const contactOut = (): string[] => {
     const out = links.map(
       (l) => span(C.dim, pad(esc(l.label || l.kind), 14)) + link(l.url)
@@ -200,12 +218,13 @@ function buildCommands(data: PortfolioData, username: string) {
   if (has.experience) commands.experience = { run: experienceOut, desc: "professional track record" };
   if (has.skills) commands.skills = { run: skillsOut, desc: "loaded tech capabilities" };
   if (has.education) commands.education = { run: educationOut, desc: "academic credentials" };
+  for (const c of sectionCmds) commands[c.name] = { run: sectionOut(c.sec), desc: c.sec.title.toLowerCase() };
   if (has.contact) commands.contact = { run: contactOut, desc: "social & network endpoints" };
   commands.resume = { run: resume, desc: "view / download CV" };
 
   // help output depends on the assembled command set
   commands.help.run = () => {
-    const order = ["about", "stats", "projects", "experience", "skills", "education", "contact", "resume", "clear"];
+    const order = ["about", "stats", "projects", "experience", "skills", "education", ...sectionCmds.map((c) => c.name), "contact", "resume", "clear"];
     const rows = order
       .filter((k) => k === "clear" || commands[k])
       .map((k) => {
@@ -245,6 +264,7 @@ function buildCommands(data: PortfolioData, username: string) {
         ...(has.experience ? sec(++n, "EXPERIENCE", experienceOut()) : []),
         ...(has.skills ? sec(++n, "SKILLS", skillsOut()) : []),
         ...(has.education ? sec(++n, "EDUCATION", educationOut()) : []),
+        ...sectionCmds.flatMap((c) => sec(++n, c.sec.title.toUpperCase(), sectionOut(c.sec)())),
         ...(has.contact ? sec(++n, "CONTACT", contactOut()) : []),
       ];
     },
@@ -259,7 +279,7 @@ function buildCommands(data: PortfolioData, username: string) {
   commands.hello = { run: () => [span(C.green, "Hey there 👋  run ") + span(C.blue, "help") + span(C.green, " to explore.")], desc: "" };
   alias("hi", "hello");
 
-  return { commands, has };
+  return { commands, has, sectionNames: sectionCmds.map((c) => c.name) };
 }
 
 export function Cli({ data, username: usernameProp }: TemplateProps) {
@@ -267,7 +287,7 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
     usernameProp ?? (data.profile.fullName.toLowerCase().split(" ")[0] || "guest");
 
   const { playTypeSound, playEnterSound } = useSoundEffects();
-  const { commands, has } = useMemo(() => buildCommands(data, username), [data, username]);
+  const { commands, has, sectionNames } = useMemo(() => buildCommands(data, username), [data, username]);
 
   const prompt = useMemo(
     () =>
@@ -450,6 +470,7 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
     has.experience && "experience",
     has.skills && "skills",
     has.education && "education",
+    ...sectionNames,
     has.contact && "contact",
     "resume",
     "help",

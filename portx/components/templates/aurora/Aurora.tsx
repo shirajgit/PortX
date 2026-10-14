@@ -39,7 +39,7 @@ const STARS = Array.from({ length: 70 }, (_, i) => ({
 }));
 
 export function Aurora({ data }: TemplateProps) {
-  const { profile, links, experiences, projects, skills, educations } = data;
+  const { profile, links, experiences, projects, skills, educations, sections } = data;
 
   /* flatten skills for the drifting marquee strip (deterministic order) */
   const skillStrip = skills.flatMap((s) => s.items);
@@ -417,6 +417,35 @@ export function Aurora({ data }: TemplateProps) {
             </Reveal>
           </AuroraSection>
         )}
+
+        {/* custom sections */}
+        {sections.map((sec, si) => (
+          <AuroraSection key={sec.title} title={sec.title} glow={["#A78BFA", "#F472B6", "#67E8F9"][si % 3]}>
+            <Reveal>
+              <Spotlight
+                className={`${card} space-y-3 text-sm text-[#8B96B5]`}
+                color="rgba(167,139,250,0.14)"
+              >
+                {sec.items.map((it, i) => (
+                  <div key={i}>
+                    <p>
+                      {it.url ? (
+                        <a href={it.url} target="_blank" rel="noreferrer" className="font-semibold text-[#E9EDF7] hover:text-[#67E8F9]">
+                          {it.title} ↗
+                        </a>
+                      ) : (
+                        <span className="font-semibold text-[#E9EDF7]">{it.title}</span>
+                      )}
+                      {it.subtitle && ` — ${it.subtitle}`}
+                      {it.date && ` (${it.date})`}
+                    </p>
+                    {it.description && <p className="mt-0.5 text-[13px] leading-relaxed">{it.description}</p>}
+                  </div>
+                ))}
+              </Spotlight>
+            </Reveal>
+          </AuroraSection>
+        ))}
 
         {/* contact */}
         {(profile.email || links.length > 0) && (

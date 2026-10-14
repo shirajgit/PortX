@@ -30,7 +30,7 @@ const RULE = "#1B1713"; // rule ink
 const ACCENT = "#6E2436"; // oxblood
 
 export function Editorial({ data }: TemplateProps) {
-  const { profile, links, experiences, projects, skills, educations } = data;
+  const { profile, links, experiences, projects, skills, educations, sections } = data;
 
   // Pull-quote sourced from the strongest available editorial line.
   const featured = projects.find((p) => p.featured) ?? projects[0];
@@ -415,6 +415,45 @@ export function Editorial({ data }: TemplateProps) {
             </Stagger>
           </Section>
         )}
+
+        {/* ── Custom sections ─────────────────────────────────────── */}
+        {sections.map((sec) => (
+          <Section key={sec.title} title={sec.title}>
+            <Stagger className="space-y-0">
+              {sec.items.map((it, i) => (
+                <Item key={i} className="border-t border-[#1B17131f] py-6">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                    <div>
+                      {it.url ? (
+                        <a href={it.url} target="_blank" rel="noreferrer" className="pxz-d text-xl font-medium underline decoration-1 underline-offset-4" style={{ textDecorationColor: `${ACCENT}66` }}>
+                          {it.title}
+                        </a>
+                      ) : (
+                        <span className="pxz-d text-xl font-medium">{it.title}</span>
+                      )}
+                      {it.subtitle && (
+                        <span className="pxz-sans ml-2 text-sm" style={{ color: MUTE }}>
+                          {it.subtitle}
+                        </span>
+                      )}
+                    </div>
+                    {it.date && (
+                      <div className="pxz-mono text-xs uppercase tracking-[0.14em] tabular-nums" style={{ color: FAINT }}>
+                        {it.date}
+                      </div>
+                    )}
+                  </div>
+                  {it.description && (
+                    <p className="pxz-sans mt-2 max-w-2xl text-sm leading-relaxed" style={{ color: MUTE }}>
+                      {it.description}
+                    </p>
+                  )}
+                </Item>
+              ))}
+              <div className="border-t" style={{ borderColor: `${RULE}1f` }} />
+            </Stagger>
+          </Section>
+        ))}
 
         {/* ── Closing line ────────────────────────────────────────── */}
         {(profile.email || links.length > 0) && (
