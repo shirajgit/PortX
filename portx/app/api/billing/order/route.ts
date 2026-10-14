@@ -24,7 +24,8 @@ export async function POST(req: Request) {
         where: {
           plan: "launch",
           OR: [
-            { status: { in: ["pending", "approved"] } },
+            // "pending" rows are legacy manual-UPI claims that were never verified as paid
+            { status: "approved" },
             {
               status: "created",
               profileId: { not: profile.id },
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
       if (claimed >= LAUNCH_OFFER_LIMIT)
         return Response.json({ error: "launch_offer_over" }, { status: 410 });
       const already = await db.paymentRequest.findFirst({
-        where: { profileId: profile.id, plan: "launch", status: { in: ["pending", "approved"] } },
+        where: { profileId: profile.id, plan: "launch", status: "approved" },
       });
       if (already)
         return Response.json({ error: "launch_once_per_user" }, { status: 409 });
