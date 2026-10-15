@@ -45,7 +45,8 @@ model PaymentRequest {
   id         String   @id @default(uuid()) @db.Uuid
   profileId  String   @map("profile_id") @db.Uuid
   plan       String   // "launch" | "month" | "halfyear" | "year"
-  amount     Int      // rupees, denormalized at claim time
+  amount     Decimal  @db.Decimal(10, 2) // in `currency`, denormalized at claim time
+  currency   String   @default("INR") // INR | USD | EUR | GBP
   utr        String   // Razorpay payment id once paid (legacy rows: payer's mobile/UPI ID)
   orderId    String?  @unique @map("order_id") // Razorpay order id; null on legacy manual-UPI rows
   status     String   @default("pending") // created (Razorpay order, unpaid) | pending | approved | rejected

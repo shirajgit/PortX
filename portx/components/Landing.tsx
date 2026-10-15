@@ -6,7 +6,9 @@ import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, BarChart3, Briefcase, Check, CodeXml, FileText, Globe, Link2, Menu, Palette, PenLine, Plus, Rocket, ShieldCheck, Sparkles, Star, Terminal, WandSparkles, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
-import { FAQ } from "@/lib/faq";
+import { faqFor } from "@/lib/faq";
+import { PRICES, formatPrice } from "@/lib/pricing";
+import { useCurrency } from "@/lib/useCurrency";
 import { LEGAL_LINKS } from "@/lib/site";
 
 /* ═══ Portxz landing ═══
@@ -261,6 +263,7 @@ function HeroVisual() {
 }
 
 function Hero() {
+  const currency = useCurrency();
   return (
     <section className="relative pt-32 sm:pt-40">
       <div aria-hidden className="lp-grid-bg pointer-events-none absolute inset-x-0 top-0 h-[820px]" />
@@ -272,7 +275,7 @@ function Hero() {
             <a href="#pricing"
               className="group inline-flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface py-1 pl-1 pr-3 text-[13px] text-lp-muted shadow-sm transition hover:border-lp-border-strong">
               <span className="rounded-full bg-lp-green/15 px-2 py-0.5 text-[11px] font-semibold text-lp-green">Launch offer</span>
-              Pro for ₹49 · first 50 users
+              Pro for {formatPrice(PRICES[currency].launch, currency)} · first 50 users
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </a>
           </motion.div>
@@ -318,7 +321,7 @@ function Hero() {
             ["8", "portfolio templates"],
             ["1-click", "GitHub import"],
             ["3 min", "from sign-up to live"],
-            ["₹0", "to get started"],
+            [formatPrice(0, currency), "to get started"],
           ].map(([v, l]) => (
             <div key={l} className="bg-lp-bg px-5 py-6 text-center sm:text-left">
               <p className="text-2xl font-semibold tracking-tight sm:text-3xl">{v}</p>
@@ -729,6 +732,9 @@ function Steps() {
 /* ── pricing ─────────────────────────────────────────────────────── */
 
 function Pricing() {
+  const currency = useCurrency();
+  const fmt = (n: number) => formatPrice(n, currency);
+  const p = PRICES[currency];
   const free = ["Published portfolio + your link", "GitHub import & README", "Minimal template", "5 projects, experiences & links", "5 AI enhances / month"];
   const pro = ["Everything in Free", "All 8 templates", "Unlimited projects, experience & links", "200 AI rewrites a month", "AI portfolio review", "ATS resume view + PDF"];
 
@@ -744,7 +750,7 @@ function Pricing() {
             <p className="font-medium">Free</p>
             <p className="mt-1 text-sm text-lp-muted">Everything you need to get online.</p>
             <p className="mt-6 flex items-baseline gap-1">
-              <span className="text-5xl font-semibold tracking-tight">₹0</span>
+              <span className="text-5xl font-semibold tracking-tight">{fmt(0)}</span>
               <span className="text-lp-muted">/ forever</span>
             </p>
             <ul className="mt-8 flex-1 space-y-3 text-sm">
@@ -767,8 +773,8 @@ function Pricing() {
             </div>
             <p className="relative mt-1 text-sm text-lp-muted">The full kit, for less than a coffee.</p>
             <p className="relative mt-6 flex items-baseline gap-2">
-              <span className="text-xl text-lp-subtle line-through">₹149</span>
-              <span className="text-5xl font-semibold tracking-tight">₹49</span>
+              <span className="text-xl text-lp-subtle line-through">{fmt(p.month)}</span>
+              <span className="text-5xl font-semibold tracking-tight">{fmt(p.launch)}</span>
               <span className="text-lp-muted">/ month</span>
             </p>
             <ul className="relative mt-8 flex-1 space-y-3 text-sm">
@@ -782,7 +788,7 @@ function Pricing() {
               ))}
             </ul>
             <PrimaryButton href="/sign-up" className="relative mt-8">Claim your spot</PrimaryButton>
-            <p className="lp-mono relative mt-3 text-center text-[11px] text-lp-subtle">then ₹149/mo · ₹649/6mo · ₹999/yr</p>
+            <p className="lp-mono relative mt-3 text-center text-[11px] text-lp-subtle">then {fmt(p.month)}/mo · {fmt(p.halfyear)}/6mo · {fmt(p.year)}/yr</p>
           </motion.div>
         </div>
       </div>
@@ -793,6 +799,7 @@ function Pricing() {
 /* ── faq ─────────────────────────────────────────────────────────── */
 
 function Faq() {
+  const FAQ = faqFor(useCurrency());
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section id="faq" className="relative scroll-mt-24 border-t border-lp-border py-20 sm:py-28">

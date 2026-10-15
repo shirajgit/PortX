@@ -1,10 +1,11 @@
 /* ── Billing: manual UPI passes ─────────────────────────────────────── */
 
+/* Prices per currency live in lib/pricing.ts. */
 export const PASSES = {
-  launch:   { id: "launch",   label: "Launch Offer — 1 Month", price: 49, days: 30 },
-  month:    { id: "month",    label: "Pro — 1 Month",   price: 149, days: 30 },
-  halfyear: { id: "halfyear", label: "Pro — 6 Months",  price: 649, days: 180 },
-  year:     { id: "year",     label: "Pro — 1 Year",    price: 999, days: 365 },
+  launch:   { id: "launch",   label: "Launch Offer — 1 Month", days: 30 },
+  month:    { id: "month",    label: "Pro — 1 Month",   days: 30 },
+  halfyear: { id: "halfyear", label: "Pro — 6 Months",  days: 180 },
+  year:     { id: "year",     label: "Pro — 1 Year",    days: 365 },
 } as const;
 
 export type PassId = keyof typeof PASSES;

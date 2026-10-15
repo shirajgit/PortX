@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { db } from "./db";
 import { PASSES, newExpiry, type PassId } from "./billing";
+import { toMinorUnits, type Currency } from "./pricing";
 
 /* ── Razorpay: orders, signature checks, fulfilment ─────────────────── */
 
@@ -14,15 +15,20 @@ function hmacMatches(payload: string, secret: string, signature: string): boolea
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
-/** Create a Razorpay order. `amount` is in rupees. */
-export async function createOrder(amount: number, receipt: string, notes: Record<string, string>) {
+/** Create a Razorpay order. `amount` is in the currency's major unit (rupees, dollars…). */
+export async function createOrder(
+  amount: number,
+  currency: Currency,
+  receipt: string,
+  notes: Record<string, string>,
+) {
   const basic = Buffer.from(
     `${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`,
   ).toString("base64");
   const res = await fetch("https://api.razorpay.com/v1/orders", {
     method: "POST",
     headers: { Authorization: `Basic ${basic}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ amount: amount * 100, currency: "INR", receipt, notes }),
+    body: JSON.stringify({ amount: toMinorUnits(amount), currency, receipt, notes }),
   });
   if (!res.ok) throw new Error(`razorpay order failed (${res.status}): ${await res.text()}`);
   return (await res.json()) as { id: string; amount: number; currency: string };

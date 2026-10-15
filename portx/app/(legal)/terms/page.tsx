@@ -56,9 +56,9 @@ export default function TermsPage() {
       <h2>5. Plans and payments</h2>
       <ul>
         <li>The free plan is available at no charge, with limits on content and features.</li>
-        <li>Pro is sold as a prepaid pass for a fixed period (for example 1 month, 6 months or 1 year). The price in Indian Rupees (INR) is shown before you pay.</li>
+        <li>Pro is sold as a prepaid pass for a fixed period (for example 1 month, 6 months or 1 year). The price is shown in your local currency before you pay: Indian Rupees (INR) in India, British Pounds (GBP) in the UK, Euros (EUR) in the eurozone and US Dollars (USD) elsewhere.</li>
         <li>Passes are one-time payments. They do not renew automatically and you are not charged again unless you buy another pass.</li>
-        <li>Payments are processed by Razorpay. We do not receive or store your card, UPI or bank details.</li>
+        <li>Payments are processed by Razorpay. We do not receive or store your card, UPI or bank details. International card payments may carry currency conversion charges from your bank.</li>
         <li>Buying a pass while one is active adds the new period on top of the remaining time.</li>
         <li>When a pass expires your account returns to the free plan. Your content is kept, but Pro-only features and templates stop being available.</li>
       </ul>

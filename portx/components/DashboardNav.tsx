@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { GithubIcon } from "@/components/BrandIcons";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PRICES, formatPrice } from "@/lib/pricing";
+import { useCurrency } from "@/lib/useCurrency";
 import { Logo } from "@/components/Logo";
 
 /* Grouped nav in plain words — the order follows how people build a page:
@@ -118,6 +120,7 @@ function PageLink({ username, published }: { username: string; published: boolea
 
 /* Slim upgrade strip — two lines, one click. */
 function UpgradeStrip({ onNavigate }: { onNavigate?: () => void }) {
+  const currency = useCurrency();
   return (
     <Link href="/dashboard/billing" onClick={onNavigate}
       className="lp-gradient-border group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 transition hover:shadow-[0_10px_28px_-14px_rgba(79,110,255,0.7)]">
@@ -126,7 +129,7 @@ function UpgradeStrip({ onNavigate }: { onNavigate?: () => void }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[13px] font-semibold">Upgrade to Pro</span>
-        <span className="block text-[11px] text-lp-muted">₹49 for your first month</span>
+        <span className="block text-[11px] text-lp-muted">{formatPrice(PRICES[currency].launch, currency)} for your first month</span>
       </span>
       <ArrowUpRight className="h-4 w-4 shrink-0 text-lp-subtle transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-lp-accent" />
     </Link>

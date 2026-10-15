@@ -10,17 +10,21 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, Notice, btn } from "@/components/ui";
+import type { PassId } from "@/lib/billing";
+import { PRICES, formatPrice, isCurrency, perMonth, type Currency } from "@/lib/pricing";
+import { useCurrency } from "@/lib/useCurrency";
 
-type Pass = { id: string; label: string; short: string; price: number; days: number };
-const PASSES: Pass[] = [
-  { id: "launch", label: "Launch Offer — 1 Month", short: "1 month", price: 49, days: 30 },
-  { id: "month", label: "Pro — 1 Month", short: "1 month", price: 149, days: 30 },
-  { id: "halfyear", label: "Pro — 6 Months", short: "6 months", price: 649, days: 180 },
-  { id: "year", label: "Pro — 1 Year", short: "1 year", price: 999, days: 365 },
+type PassInfo = { id: PassId; label: string; short: string; days: number };
+type Pass = PassInfo & { price: number };
+const PASS_INFO: PassInfo[] = [
+  { id: "launch", label: "Launch Offer — 1 Month", short: "1 month", days: 30 },
+  { id: "month", label: "Pro — 1 Month", short: "1 month", days: 30 },
+  { id: "halfyear", label: "Pro — 6 Months", short: "6 months", days: 180 },
+  { id: "year", label: "Pro — 1 Year", short: "1 year", days: 365 },
 ];
-const MONTHLY = 149;
-const savePct = (p: Pass) => Math.round((1 - p.price / (MONTHLY * (p.days / 30))) * 100);
-const perMonthOf = (p: Pass) => Math.round(p.price / (p.days / 30));
+/** Undiscounted cost of a pass: the monthly price for the same number of days. */
+const fullPrice = (p: Pass, monthly: number) => Math.round(monthly * (p.days / 30) * 100) / 100;
+const savePct = (p: Pass, monthly: number) => Math.round((1 - p.price / fullPrice(p, monthly)) * 100);
 
 const BENEFITS = [
   { icon: Palette, title: "All 8 premium designs", text: "Executive, Editorial, Noir, Aurora and more. Switch anytime — your details stay the same." },
@@ -40,14 +44,17 @@ const COMPARE: [string, string | boolean, string | boolean][] = [
   ["Resume PDF download", false, true],
 ];
 
-const TRUST = [
+const trustFor = (currency: Currency) => [
   { icon: ShieldCheck, text: "Secure payment by Razorpay" },
   { icon: RefreshCcw, text: "No subscription, no auto-renewal" },
   { icon: Zap, text: "Pro turns on instantly" },
-  { icon: Wallet, text: "UPI, cards, netbanking & wallets" },
+  // UPI, netbanking and wallets are India-only; international buyers pay by card.
+  { icon: Wallet, text: currency === "INR" ? "UPI, cards, netbanking & wallets" : "All major cards accepted" },
 ];
 
-type PayReq = { id: string; plan: string; amount: number; utr: string; status: string; createdAt: string };
+// amount arrives as a string — Prisma serializes Decimal columns that way.
+type PayReq = { id: string; plan: string; amount: number | string; currency: string; utr: string; status: string; createdAt: string };
+const paidAmount = (r: PayReq) => formatPrice(Number(r.amount), isCurrency(r.currency) ? r.currency : "INR");
 
 type RazorpayResult = { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string };
 type RazorpayFailure = { error?: { description?: string } };
@@ -71,6 +78,11 @@ export default function BillingPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [prefill, setPrefill] = useState<{ name?: string; email?: string }>({});
+  const currency = useCurrency();
+  const PASSES: Pass[] = PASS_INFO.map((p) => ({ ...p, price: PRICES[currency][p.id] }));
+  const MONTHLY = PRICES[currency].month;
+  const fmt = (n: number) => formatPrice(n, currency);
+  const TRUST = trustFor(currency);
 
   const load = async () => {
     try {
@@ -178,7 +190,7 @@ export default function BillingPage() {
       {error && <Notice tone="error">{error}</Notice>}
       {pending && (
         <Notice tone="warning">
-          <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4" /> We&apos;re checking your payment of ₹{pending.amount}. This usually takes a few hours.</span>
+          <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4" /> We&apos;re checking your payment of {paidAmount(pending)}. This usually takes a few hours.</span>
         </Notice>
       )}
 
@@ -203,8 +215,8 @@ export default function BillingPage() {
                 Every premium design, a ready-to-send resume and AI that helps you write — all you need to impress recruiters.
               </p>
               <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 sm:mt-6">
-                <span className="text-4xl font-semibold tracking-tight">₹49</span>
-                <span className="text-lg text-lp-subtle line-through">₹149</span>
+                <span className="text-4xl font-semibold tracking-tight">{fmt(PRICES[currency].launch)}</span>
+                <span className="text-lg text-lp-subtle line-through">{fmt(MONTHLY)}</span>
                 <span className="text-sm text-lp-muted">for your first month</span>
               </div>
               <p className="mt-1 text-[13px] font-medium text-lp-green">Launch offer · first 50 users only</p>
@@ -212,7 +224,7 @@ export default function BillingPage() {
               <div className="mt-6 hidden flex-wrap gap-3 sm:flex">
                 {!launchUsed && showPasses ? (
                   <button onClick={() => pay(PASSES[0])} disabled={!!paying} className={btn("primary", "lg")}>
-                    {paying === "launch" ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening payment…</> : <>Get Pro for ₹49</>}
+                    {paying === "launch" ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening payment…</> : <>Get Pro for {fmt(PRICES[currency].launch)}</>}
                   </button>
                 ) : null}
                 <a href="#plans" className={btn("secondary", "lg")}>See all plans <ArrowDown className="h-4 w-4" /></a>
@@ -253,7 +265,7 @@ export default function BillingPage() {
             {PASSES.map((p) => {
               const disabled = p.id === "launch" && launchUsed;
               const on = pick === p.id;
-              const save = savePct(p);
+              const save = savePct(p, MONTHLY);
               return (
                 <button key={p.id} type="button" role="radio" aria-checked={on} disabled={disabled}
                   onClick={() => setChoice(p.id)}
@@ -269,11 +281,11 @@ export default function BillingPage() {
                       {p.id === "year" && <span className="rounded-full bg-lp-green px-1.5 py-0.5 text-[10px] font-semibold text-white">Best value</span>}
                     </span>
                     <span className="mt-0.5 block text-[13px] text-lp-muted">
-                      {disabled ? "Already used" : p.days === 30 ? "for 30 days" : `₹${perMonthOf(p)} a month`}
+                      {disabled ? "Already used" : p.days === 30 ? "for 30 days" : `${fmt(perMonth(p.price, p.days, currency))} a month`}
                     </span>
                   </span>
                   <span className="shrink-0 text-right">
-                    <span className="block text-lg font-semibold tracking-tight">₹{p.price}</span>
+                    <span className="block text-lg font-semibold tracking-tight">{fmt(p.price)}</span>
                     {save > 0 && <span className="block text-[11px] font-semibold text-lp-green">Save {save}%</span>}
                   </span>
                 </button>
@@ -286,7 +298,7 @@ export default function BillingPage() {
             {PASSES.map((p) => {
               const featured = p.id === "launch" && !launchUsed;
               const disabled = p.id === "launch" && launchUsed;
-              const save = savePct(p);
+              const save = savePct(p, MONTHLY);
               return (
                 <div key={p.id}
                   className={`relative flex min-w-0 flex-col rounded-2xl p-5 ${
@@ -301,11 +313,11 @@ export default function BillingPage() {
                   )}
                   <p className="mt-1 text-sm font-medium text-lp-muted">{p.id === "launch" ? "First month" : p.short}</p>
                   <p className="mt-3 flex items-baseline gap-2">
-                    <span className="text-3xl font-semibold tracking-tight">₹{p.price}</span>
-                    {save > 0 && <span className="text-sm text-lp-subtle line-through">₹{MONTHLY * (p.days / 30)}</span>}
+                    <span className="text-3xl font-semibold tracking-tight">{fmt(p.price)}</span>
+                    {save > 0 && <span className="text-sm text-lp-subtle line-through">{fmt(fullPrice(p, MONTHLY))}</span>}
                   </p>
                   <p className="mt-1 text-[13px] text-lp-muted">
-                    {p.days === 30 ? "for 30 days" : `just ₹${perMonthOf(p)} a month`}
+                    {p.days === 30 ? "for 30 days" : `just ${fmt(perMonth(p.price, p.days, currency))} a month`}
                   </p>
                   <div className="mt-3 h-6">
                     {save > 0 && (
@@ -318,7 +330,7 @@ export default function BillingPage() {
                     ) : (
                       <button onClick={() => pay(p)} disabled={!!paying}
                         className={btn(featured ? "primary" : "secondary", "md", "w-full")}>
-                        {paying === p.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : `Get ${p.id === "launch" ? "Pro for ₹49" : p.short}`}
+                        {paying === p.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : `Get ${p.id === "launch" ? `Pro for ${fmt(p.price)}` : p.short}`}
                       </button>
                     )}
                   </div>
@@ -345,11 +357,11 @@ export default function BillingPage() {
             <div className="fixed inset-x-0 bottom-0 z-30 border-t border-lp-border bg-lp-bg/90 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:hidden">
               <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-semibold">₹{chosen.price} <span className="text-[13px] font-normal text-lp-muted">· {chosen.id === "launch" ? "first month" : chosen.short}</span></p>
+                  <p className="text-[15px] font-semibold">{fmt(chosen.price)} <span className="text-[13px] font-normal text-lp-muted">· {chosen.id === "launch" ? "first month" : chosen.short}</span></p>
                   <p className="flex items-center gap-1 text-[11px] text-lp-muted"><ShieldCheck className="h-3 w-3 text-lp-green" /> Secure · no auto-renewal</p>
                 </div>
                 <button onClick={() => pay(chosen)} disabled={!!paying} className={btn("primary", "lg", "px-5")}>
-                  {paying === chosen.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : <>Pay ₹{chosen.price}</>}
+                  {paying === chosen.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : <>Pay {fmt(chosen.price)}</>}
                 </button>
               </div>
             </div>
@@ -423,7 +435,7 @@ export default function BillingPage() {
               return (
                 <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm first:pt-0 last:pb-0">
                   <div>
-                    <p className="font-medium">{PLAN_NAME[r.plan] ?? r.plan} · ₹{r.amount}</p>
+                    <p className="font-medium">{PLAN_NAME[r.plan] ?? r.plan} · {paidAmount(r)}</p>
                     <p className="text-xs text-lp-subtle">{fmtDate(r.createdAt)}</p>
                   </div>
                   <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${s.cls}`}>{s.label}</span>

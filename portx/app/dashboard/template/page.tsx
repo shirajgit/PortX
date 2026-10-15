@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePlan } from "@/lib/usePlan";
+import { PRICES, formatPrice } from "@/lib/pricing";
+import { useCurrency } from "@/lib/useCurrency";
 import { PageHeader } from "@/components/PageHeader";
 import { ArrowRight, ArrowUpRight, Check, Copy, EyeOff, Globe, Lock, Rocket, Sparkles } from "lucide-react";
 import { Card, Notice, UpgradeLink, btn, friendlyError } from "@/components/ui";
@@ -42,6 +44,7 @@ export default function TemplatePage() {
   const [copied, setCopied] = useState(false);
   const [confirmOffline, setConfirmOffline] = useState(false);
   const [upgradeFor, setUpgradeFor] = useState<string | null>(null); // template name that triggered the popup
+  const currency = useCurrency();
 
   useEffect(() => {
     fetch("/api/profile").then(async (r) => {
@@ -251,8 +254,8 @@ export default function TemplatePage() {
                 Pro unlocks all 8 designs, your resume PDF, AI feedback and unlimited everything.
               </p>
               <p className="mt-4 flex items-baseline justify-center gap-2">
-                <span className="text-sm text-lp-subtle line-through">₹149</span>
-                <span className="text-3xl font-semibold tracking-tight">₹49</span>
+                <span className="text-sm text-lp-subtle line-through">{formatPrice(PRICES[currency].month, currency)}</span>
+                <span className="text-3xl font-semibold tracking-tight">{formatPrice(PRICES[currency].launch, currency)}</span>
                 <span className="text-sm text-lp-muted">first month</span>
               </p>
               <p className="mt-1 text-xs text-lp-muted">Launch offer for the first 50 users</p>

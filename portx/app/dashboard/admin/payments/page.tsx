@@ -3,11 +3,15 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { CheckCircle2 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
+import { formatPrice, isCurrency } from "@/lib/pricing";
 
 type Req = {
-  id: string; plan: string; amount: number; utr: string; status: string; createdAt: string;
+  id: string; plan: string; amount: number | string; currency: string; utr: string; status: string; createdAt: string;
   profile: { username: string; fullName: string; plan: string; planExpiresAt: string | null };
 };
+
+// amount arrives as a string (Prisma Decimal)
+const paid = (r: Req) => formatPrice(Number(r.amount), isCurrency(r.currency) ? r.currency : "INR");
 
 export default function AdminPaymentsPage() {
   const [rows, setRows] = useState<Req[] | null>(null);
@@ -67,7 +71,7 @@ export default function AdminPaymentsPage() {
                   {r.profile.fullName} <span className="font-mono text-xs text-lp-accent">/{r.profile.username}</span>
                 </p>
                 <p className="text-lp-muted">
-                  ₹{r.amount} · {r.plan} · Payer <span className="font-mono text-lp-warning">{r.utr}</span>
+                  {paid(r)} · {r.plan} · Payer <span className="font-mono text-lp-warning">{r.utr}</span>
                   {" · "}{new Date(r.createdAt).toLocaleString("en-IN")}
                 </p>
                 <p className="font-mono text-[11px] text-lp-muted">
@@ -95,7 +99,7 @@ export default function AdminPaymentsPage() {
           <div className="space-y-2">
             {done.map((r) => (
               <div key={r.id} className="flex items-center justify-between rounded-lg border border-lp-border bg-lp-surface-2 px-4 py-2 text-sm">
-                <span>/{r.profile.username} · ₹{r.amount} · {r.plan} · <span className="font-mono text-xs text-lp-muted">{r.utr}</span></span>
+                <span>/{r.profile.username} · {paid(r)} · {r.plan} · <span className="font-mono text-xs text-lp-muted">{r.utr}</span></span>
                 <span className="font-mono text-xs" style={{ color: r.status === "approved" ? "var(--lp-green)" : "var(--lp-danger)" }}>{r.status}</span>
               </div>
             ))}

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Landing } from "@/components/Landing";
-import { FAQ } from "@/lib/faq";
+import { faqFor } from "@/lib/faq";
+
+// Structured data is static, so it uses the home-market (INR) prices.
+const FAQ = faqFor("INR");
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, jsonLd } from "@/lib/site";
 
 export const metadata: Metadata = {

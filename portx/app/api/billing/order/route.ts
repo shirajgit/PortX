@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
 import { PASSES, LAUNCH_OFFER_LIMIT, type PassId } from "@/lib/billing";
 import { createOrder, razorpayConfigured } from "@/lib/razorpay";
+import { PRICES, currencyFromHeaders } from "@/lib/pricing";
 
 const Input = z.object({ plan: z.enum(["launch", "month", "halfyear", "year"]) });
 
@@ -44,14 +45,18 @@ export async function POST(req: Request) {
     }
 
     const pass = PASSES[body.data.plan as PassId];
+    // Currency comes from the request's IP country, never from the browser.
+    const currency = currencyFromHeaders(req.headers);
+    const price = PRICES[currency][pass.id];
     const id = randomUUID();
-    const order = await createOrder(pass.price, id, { profileId: profile.id, plan: pass.id });
+    const order = await createOrder(price, currency, id, { profileId: profile.id, plan: pass.id });
     await db.paymentRequest.create({
       data: {
         id,
         profileId: profile.id,
         plan: pass.id,
-        amount: pass.price,
+        amount: price,
+        currency,
         utr: "",
         orderId: order.id,
         status: "created",
