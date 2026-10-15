@@ -18,15 +18,24 @@ export default function ReadmePage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetch("/api/readme").then(async (r) => {
-      if (r.ok) setMarkdown((await r.json()).markdown);
-      else setFailed(true);
-      setLoading(false);
-    });
+    fetch("/api/readme", { cache: "no-store" })
+      .then(async (r) => {
+        if (!r.ok) throw new Error("readme_failed");
+        setMarkdown((await r.json()).markdown);
+      })
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false));
   }, []);
 
   async function copy() {
-    await navigator.clipboard.writeText(markdown);
+    try {
+      await navigator.clipboard.writeText(markdown);
+    } catch {
+      // Clipboard API blocked (insecure origin / permissions) — fall back to selecting the text.
+      const ta = document.querySelector<HTMLTextAreaElement>('textarea[aria-label="README text"]');
+      ta?.select();
+      document.execCommand("copy");
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
