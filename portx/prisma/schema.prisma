@@ -22,6 +22,7 @@ model Profile {
   openToWork  Boolean  @default(true) @map("open_to_work")
   template    String   @default("minimal")
   themeConfig Json     @default("{}") @map("theme_config")
+  resumeConfig Json    @default("{}") @map("resume_config") // template + resume-only edits, see lib/resume.ts
   isPublished Boolean  @default(false) @map("is_published")
   plan          String    @default("free")
   onboardingStep Int      @default(8) @map("onboarding_step")

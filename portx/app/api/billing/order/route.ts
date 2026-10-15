@@ -2,14 +2,12 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
-import { PASSES, LAUNCH_OFFER_LIMIT, type PassId } from "@/lib/billing";
+import { PASSES } from "@/lib/billing";
 import { createOrder, razorpayConfigured } from "@/lib/razorpay";
-import { PRICES, currencyFromHeaders } from "@/lib/pricing";
+import { SELLABLE_PASSES, currencyFromHeaders, priceOf } from "@/lib/pricing";
 
-const Input = z.object({ plan: z.enum(["launch", "month", "halfyear", "year"]) });
-
-/** An unpaid checkout holds its launch slot this long. */
-const LAUNCH_HOLD_MS = 15 * 60 * 1000;
+// "launch" (the old ₹49 first-50 pass) is no longer sold — the launch sale replaced it.
+const Input = z.object({ plan: z.enum(SELLABLE_PASSES) });
 
 export async function POST(req: Request) {
   try {
@@ -20,34 +18,11 @@ export async function POST(req: Request) {
     if (!razorpayConfigured())
       return Response.json({ error: "razorpay_not_configured" }, { status: 503 });
 
-    if (body.data.plan === "launch") {
-      const claimed = await db.paymentRequest.count({
-        where: {
-          plan: "launch",
-          OR: [
-            // "pending" rows are legacy manual-UPI claims that were never verified as paid
-            { status: "approved" },
-            {
-              status: "created",
-              profileId: { not: profile.id },
-              createdAt: { gt: new Date(Date.now() - LAUNCH_HOLD_MS) },
-            },
-          ],
-        },
-      });
-      if (claimed >= LAUNCH_OFFER_LIMIT)
-        return Response.json({ error: "launch_offer_over" }, { status: 410 });
-      const already = await db.paymentRequest.findFirst({
-        where: { profileId: profile.id, plan: "launch", status: "approved" },
-      });
-      if (already)
-        return Response.json({ error: "launch_once_per_user" }, { status: 409 });
-    }
-
-    const pass = PASSES[body.data.plan as PassId];
+    const pass = PASSES[body.data.plan];
     // Currency comes from the request's IP country, never from the browser.
     const currency = currencyFromHeaders(req.headers);
-    const price = PRICES[currency][pass.id];
+    // Sale or regular price, decided here at order time — the sale ends on its own.
+    const price = priceOf(body.data.plan, currency);
     const id = randomUUID();
     const order = await createOrder(price, currency, id, { profileId: profile.id, plan: pass.id });
     await db.paymentRequest.create({

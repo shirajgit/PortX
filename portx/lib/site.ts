@@ -6,7 +6,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://portxz.xyz"
 export const SITE_NAME = "Portxz";
 
 export const SITE_DESCRIPTION =
-  "Free portfolio builder for developers and professionals. One profile creates your live portfolio website, ATS-friendly resume PDF and GitHub README — always in sync.";
+  "Free portfolio builder and ATS resume maker. One profile creates your portfolio website, a resume you can tailor to any job description, and your GitHub README.";
 
 /* Who operates the site — shown on /contact and the policy pages. Payment
    gateways check these during website review; an empty field is left off the page. */

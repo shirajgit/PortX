@@ -2,6 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
 import { SectionItem, SECTION_KINDS } from "@/lib/sections";
+import { isPro } from "@/lib/billing";
 
 const SectionInput = z.object({
   title: z.string().trim().min(1).max(60),
@@ -25,6 +26,9 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const profile = await requireProfile();
+    // Custom sections are a Pro feature. Reading and deleting stay open to everyone.
+    if (!isPro(profile))
+      return Response.json({ error: "pro_required", upgrade: "/dashboard/billing" }, { status: 403 });
     const body = SectionInput.safeParse(await req.json());
     if (!body.success)
       return Response.json({ error: body.error.flatten() }, { status: 400 });

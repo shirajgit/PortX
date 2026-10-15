@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePlan } from "@/lib/usePlan";
-import { PRICES, formatPrice } from "@/lib/pricing";
+import { PRICES, SALE, SALE_PRICES, formatPrice, saleActive } from "@/lib/pricing";
 import { useCurrency } from "@/lib/useCurrency";
 import { PageHeader } from "@/components/PageHeader";
 import { ArrowRight, ArrowUpRight, Check, Copy, EyeOff, Globe, Lock, Rocket, Sparkles } from "lucide-react";
@@ -251,14 +251,16 @@ export default function TemplatePage() {
               </span>
               <h2 className="mt-4 text-lg font-semibold">{upgradeFor} is a Pro design</h2>
               <p className="mt-2 text-sm leading-relaxed text-lp-muted">
-                Pro unlocks all 8 designs, your resume PDF, AI feedback and unlimited everything.
+                Pro unlocks all 8 designs, 6 resume templates, resume tailoring for any job, AI feedback and unlimited everything.
               </p>
               <p className="mt-4 flex items-baseline justify-center gap-2">
-                <span className="text-sm text-lp-subtle line-through">{formatPrice(PRICES[currency].month, currency)}</span>
-                <span className="text-3xl font-semibold tracking-tight">{formatPrice(PRICES[currency].launch, currency)}</span>
-                <span className="text-sm text-lp-muted">first month</span>
+                {saleActive() && <span className="text-sm text-lp-subtle line-through">{formatPrice(PRICES[currency].month, currency)}</span>}
+                <span className="text-3xl font-semibold tracking-tight">
+                  {formatPrice(saleActive() ? SALE_PRICES[currency].month : PRICES[currency].month, currency)}
+                </span>
+                <span className="text-sm text-lp-muted">for 1 month</span>
               </p>
-              <p className="mt-1 text-xs text-lp-muted">Launch offer for the first 50 users</p>
+              {saleActive() && <p className="mt-1 text-xs text-lp-muted">Launch sale · {SALE.percent}% off every plan until {SALE.endsLabel}</p>}
               <a href="/dashboard/billing" className={btn("primary", "lg", "mt-5 w-full")}>
                 See Pro plans <ArrowRight className="h-4 w-4" />
               </a>

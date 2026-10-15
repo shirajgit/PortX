@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import {
-  ArrowDown, ArrowUp, BadgeCheck, BookOpen, HeartHandshake, Languages, LayoutList, Plus, Trash2, Trophy,
+  ArrowDown, ArrowUp, BadgeCheck, BookOpen, HeartHandshake, Languages, LayoutList, Lock, Plus, Sparkles, Trash2, Trophy,
   type LucideIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { Field, ItemCard, Notice, Sheet, btn, friendlyError, inputCls } from "@/components/ui";
+import Link from "next/link";
+import { Field, ItemCard, Notice, Sheet, UpgradeLink, btn, friendlyError, inputCls } from "@/components/ui";
+import { usePlan } from "@/lib/usePlan";
 import type { SectionKind } from "@/lib/sections";
 
 /* ── Custom sections ─────────────────────────────────────────────────
@@ -73,6 +75,9 @@ export default function SectionsPage() {
   const [editing, setEditing] = useState<Section | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [upgrade, setUpgrade] = useState(false); // the last error can be fixed by going Pro
+  const { pro, loading: planLoading } = usePlan();
+  const locked = !planLoading && !pro; // custom sections are a Pro feature
 
   const load = async () => {
     const r = await fetch("/api/sections");
@@ -90,6 +95,7 @@ export default function SectionsPage() {
 
   function startNew(p: Preset) {
     setProblem(null);
+    setUpgrade(false);
     setEditing({ title: p.kind === "custom" ? "" : p.name, kind: p.kind, items: [{ ...EMPTY_ENTRY }] });
   }
 
@@ -106,7 +112,12 @@ export default function SectionsPage() {
       body: JSON.stringify({ title: s.title.trim(), kind: s.kind, items }),
     });
     setSaving(false);
-    if (!res.ok) { setProblem((await friendlyError(res, "sections")).message); return; }
+    if (!res.ok) {
+      const f = await friendlyError(res, "sections");
+      setProblem(f.message);
+      setUpgrade(f.upgrade);
+      return;
+    }
     setEditing(null);
     load();
   }
@@ -143,13 +154,32 @@ export default function SectionsPage() {
       <div className="mt-6 space-y-3">
         {problem && !editing && <Notice tone="error">{problem}</Notice>}
 
+        {locked && (
+          <div className="lp-gradient-border flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-lp-accent-soft text-lp-accent">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="font-semibold">Custom sections are a Pro feature</p>
+                <p className="mt-0.5 text-sm text-lp-muted">
+                  {rows.length
+                    ? "Your sections are saved but hidden from your page. Go Pro to show and edit them again."
+                    : "Add certifications, awards, languages and more to your page and resume with Pro."}
+                </p>
+              </div>
+            </div>
+            <UpgradeLink />
+          </div>
+        )}
+
         {rows.map((s) => {
           const p = presetOf(s.kind);
           return (
             <ItemCard key={s.id} icon={p.icon}
               title={s.title}
               subtitle={`${s.items.length} ${s.items.length === 1 ? "entry" : "entries"}`}
-              onEdit={() => { setProblem(null); setEditing({ ...s, items: s.items.length ? s.items : [{ ...EMPTY_ENTRY }] }); }}
+              onEdit={() => { setProblem(null); setUpgrade(false); setEditing({ ...s, items: s.items.length ? s.items : [{ ...EMPTY_ENTRY }] }); }}
               onDelete={() => remove(s.id!)}>
               {s.items.length > 0 && (
                 <ul className="space-y-1 text-[13px] text-lp-muted">
@@ -173,7 +203,25 @@ export default function SectionsPage() {
           <h2 className="text-[15px] font-semibold">{rows.length ? "Add another section" : "What would you like to add?"}</h2>
           <p className="mt-0.5 text-sm text-lp-muted">Pick a type to start — you can rename it anytime.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {PRESETS.map((p) => (
+            {PRESETS.map((p) => locked ? (
+              // Free plan: same card, but it leads to the plans page instead of the editor.
+              <Link key={p.kind} href="/dashboard/billing"
+                className="lp-card group flex items-start gap-4 rounded-2xl p-5 text-left opacity-75 transition hover:opacity-100">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-lp-surface-2 text-lp-subtle">
+                  <p.icon className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="flex items-center gap-1.5 font-semibold">
+                    {p.name}
+                    <span className="inline-flex items-center gap-1 rounded-full bg-lp-accent-soft px-2 py-0.5 text-[11px] font-semibold text-lp-accent">
+                      <Lock className="h-3 w-3" /> Pro
+                    </span>
+                  </span>
+                  <span className="mt-0.5 block text-sm text-lp-muted">{p.blurb}</span>
+                  <span className="mt-2 block truncate text-xs text-lp-subtle">e.g. {p.example}</span>
+                </span>
+              </Link>
+            ) : (
               <button key={p.kind} type="button" onClick={() => startNew(p)}
                 className="lp-card group flex items-start gap-4 rounded-2xl p-5 text-left transition hover:-translate-y-0.5 hover:border-lp-accent/40">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-lp-accent-soft text-lp-accent transition group-hover:bg-lp-accent group-hover:text-white">
@@ -209,7 +257,11 @@ export default function SectionsPage() {
         }>
         {editing && preset && (
           <>
-            {problem && <Notice tone="error">{problem}</Notice>}
+            {problem && (
+              <Notice tone="error">
+                <span className="flex flex-wrap items-center justify-between gap-3">{problem}{upgrade && <UpgradeLink />}</span>
+              </Notice>
+            )}
             <Field label="Section name" hint="This is the heading visitors will see on your page.">
               <input className={inputCls} value={editing.title} placeholder="e.g. Certifications" autoFocus={editing.kind === "custom"}
                 onChange={(e) => setEditing({ ...editing, title: e.target.value })} />

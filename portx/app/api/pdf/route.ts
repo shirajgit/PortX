@@ -2,14 +2,13 @@ import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import { db } from "@/lib/db";
 import { createHash } from "crypto";
-import { isPro } from "@/lib/billing";
 import { getPortfolioData } from "@/lib/data";
 import { recordEvent } from "@/lib/track";
 
 export const maxDuration = 30;
 
 // Bump when the PDF layout changes (not the data), so cached copies are re-rendered.
-const PDF_LAYOUT = 2;
+const PDF_LAYOUT = 3;
 
 /* Caching: /api/pdf?username=x answers with a redirect to ?username=x&v=<content hash>.
    The versioned URL is CDN-cacheable, so Chrome only runs once per profile version
@@ -19,18 +18,16 @@ export async function GET(req: Request) {
   const username = url.searchParams.get("username")?.toLowerCase() ?? "";
   const profile = await db.profile.findUnique({
     where: { username },
-    select: { id: true, isPublished: true, plan: true, planExpiresAt: true },
+    select: { id: true, isPublished: true },
   });
   if (!profile?.isPublished)
     return Response.json({ error: "not_found" }, { status: 404 });
-  if (!isPro(profile))
-    return Response.json({ error: "pro_required" }, { status: 403 });
-
+  // Free plan downloads too — getPortfolioData gives non-Pro profiles the plain Classic resume.
   // forResume: the phone is printed, so it must change the version hash too.
   const portfolio = await getPortfolioData(username, { forResume: true });
   if (!portfolio) return Response.json({ error: "not_found" }, { status: 404 });
   const version = createHash("sha256")
-    .update(JSON.stringify([PDF_LAYOUT, portfolio.template, portfolio.data]))
+    .update(JSON.stringify([PDF_LAYOUT, portfolio.template, portfolio.data, portfolio.resumeConfig]))
     .digest("hex")
     .slice(0, 16);
 

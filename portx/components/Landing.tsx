@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
-import { ArrowRight, ArrowUpRight, BarChart3, Briefcase, Check, CodeXml, FileText, Globe, Link2, Menu, Palette, PenLine, Plus, Rocket, ShieldCheck, Sparkles, Star, Terminal, WandSparkles, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BarChart3, Briefcase, Check, CodeXml, FileText, Globe, Link2, Menu, Palette, PenLine, Plus, Rocket, ShieldCheck, Sparkles, Star, Target, Terminal, WandSparkles, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
 import { faqFor } from "@/lib/faq";
-import { PRICES, formatPrice } from "@/lib/pricing";
+import { PRICES, SALE, SALE_PRICES, formatPrice, saleActive } from "@/lib/pricing";
 import { useCurrency } from "@/lib/useCurrency";
 import { LEGAL_LINKS } from "@/lib/site";
 
@@ -30,6 +30,7 @@ const CONTAINER = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 const NAV_LINKS = [
   { href: "#features", label: "Features" },
   { href: "#templates", label: "Templates" },
+  { href: "#tailor", label: "Job tailoring" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ];
@@ -271,14 +272,16 @@ function Hero() {
 
       <div className={`${CONTAINER} relative grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-8`}>
         <div className="text-center lg:text-left">
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <a href="#pricing"
-              className="group inline-flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface py-1 pl-1 pr-3 text-[13px] text-lp-muted shadow-sm transition hover:border-lp-border-strong">
-              <span className="rounded-full bg-lp-green/15 px-2 py-0.5 text-[11px] font-semibold text-lp-green">Launch offer</span>
-              Pro for {formatPrice(PRICES[currency].launch, currency)} · first 50 users
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </a>
-          </motion.div>
+          {saleActive() && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <a href="#pricing"
+                className="group inline-flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface py-1 pl-1 pr-3 text-[13px] text-lp-muted shadow-sm transition hover:border-lp-border-strong">
+                <span className="rounded-full bg-lp-green/15 px-2 py-0.5 text-[11px] font-semibold text-lp-green">Launch sale</span>
+                {SALE.percent}% off Pro · from {formatPrice(SALE_PRICES[currency].month, currency)} until {SALE.endsLabel}
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </a>
+            </motion.div>
+          )}
 
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.08, ease }}
             className="mt-7 text-[2.75rem] font-semibold leading-[1.02] tracking-[-0.045em] sm:text-6xl lg:text-[4.4rem]">
@@ -292,6 +295,7 @@ function Hero() {
             One profile becomes your <span className="text-lp-text">live portfolio</span>, an{" "}
             <span className="text-lp-text">ATS-ready resume PDF</span> and your{" "}
             <span className="text-lp-text">GitHub README</span>. Edit a project once — all three update instantly.
+            Applying somewhere? <span className="text-lp-text">Tailor your resume to the job</span> in seconds.
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.24, ease }}
@@ -518,6 +522,79 @@ function BentoCard({
   );
 }
 
+/* Resume tailoring — the job post on the left, what Portxz does with it on the right. */
+function TailorCard() {
+  const keywords: [string, boolean][] = [["React", true], ["TypeScript", true], ["REST APIs", true], ["GraphQL", false], ["CI/CD", false]];
+  return (
+    <motion.div id="tailor" {...delayed(0.04)}
+      className="lp-card relative scroll-mt-24 overflow-hidden rounded-2xl p-6 md:col-span-6 sm:p-8">
+      <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
+      <div className="relative grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-lg border border-lp-border bg-lp-surface-2 text-lp-accent">
+              <Target className="h-[18px] w-[18px]" />
+            </span>
+            <h3 className="text-[17px] font-semibold tracking-tight">Tailor your resume to any job</h3>
+            <span className="rounded-full bg-lp-accent-soft px-2 py-0.5 text-[11px] font-semibold text-lp-accent">Pro</span>
+          </div>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-lp-muted">
+            Paste a job description. Get a match score, the keywords you&apos;re missing, your bullets rewritten in the
+            job&apos;s language and a tailored summary — then download a resume made for that role. Your portfolio stays untouched.
+          </p>
+          <ul className="mt-5 grid gap-2 text-sm sm:grid-cols-2">
+            {["Match score for every job", "Missing keywords, at a glance", "Bullets rewritten to fit", "Tailored ATS-ready PDF"].map((t) => (
+              <li key={t} className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-lp-green" />{t}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <div className="space-y-3">
+            <div className="rounded-xl border border-lp-border bg-lp-surface-2 p-4">
+              <p className="lp-mono text-[10px] uppercase tracking-widest text-lp-subtle">job description</p>
+              <p className="mt-2 text-[13px] leading-relaxed text-lp-muted">
+                Frontend Engineer · We&apos;re looking for strong <b className="font-semibold text-lp-text">React</b> and{" "}
+                <b className="font-semibold text-lp-text">TypeScript</b> skills, experience with <b className="font-semibold text-lp-text">GraphQL</b>…
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {keywords.map(([k, have]) => (
+                <span key={k} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                  have ? "bg-lp-green/10 text-lp-green" : "bg-lp-warning/10 text-lp-warning"}`}>
+                  {have ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}{k}
+                </span>
+              ))}
+            </div>
+            <div className="relative rounded-xl border border-lp-accent/30 bg-lp-accent-soft p-4 text-[13px] leading-relaxed">
+              <Sparkles className="absolute -top-2 right-4 h-4 w-4 text-lp-accent" />
+              Built <b className="font-semibold">React + TypeScript</b> dashboards consuming <b className="font-semibold">REST APIs</b> for 12k monthly users.
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-4 rounded-xl border border-lp-border bg-lp-surface-2 p-4 sm:flex-col">
+            {[["Before", 54, "var(--lp-subtle)"], ["After", 91, "var(--lp-green)"]].map(([label, v, color]) => (
+              <div key={label as string} className="text-center">
+                <div className="relative h-16 w-16">
+                  <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--lp-border-strong)" strokeWidth="3" />
+                    <motion.circle cx="18" cy="18" r="15.5" fill="none" stroke={color as string} strokeWidth="3" strokeLinecap="round"
+                      strokeDasharray="97.4" initial={{ strokeDashoffset: 97.4 }}
+                      whileInView={{ strokeDashoffset: 97.4 * (1 - (v as number) / 100) }}
+                      viewport={{ once: true }} transition={{ duration: 1.2, ease }} />
+                  </svg>
+                  <span className="absolute inset-0 grid place-items-center text-sm font-semibold">{v}%</span>
+                </div>
+                <p className="mt-1 text-[11px] text-lp-muted">{label} match</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function Features() {
   const bars = [32, 48, 40, 62, 55, 78, 70, 92, 84, 100];
   return (
@@ -526,7 +603,7 @@ function Features() {
         <SectionHead
           eyebrow="everything from one profile"
           title={<>All the tools to get <span className="lp-serif lp-gradient-text">noticed</span>.</>}
-          sub="Not just a website builder. Portxz writes, scores and ships your professional identity — wherever recruiters look."
+          sub="Not just a website builder. Portxz writes, scores, tailors and ships your professional identity — wherever recruiters look."
         />
 
         <div className="mt-14 grid gap-4 md:grid-cols-6">
@@ -562,6 +639,8 @@ function Features() {
               </ul>
             </div>
           </BentoCard>
+
+          <TailorCard />
 
           <BentoCard icon={Terminal} title="A portfolio visitors can type into" className="md:col-span-3" delay={0.04}
             desc="The CLI template turns your page into a real terminal. Recruiters remember the one where they ran sudo hire-me.">
@@ -684,7 +763,7 @@ function Steps() {
   const steps = [
     { icon: Link2, t: "Claim your link", d: "Pick a username. Guided setup walks you through, and GitHub import pulls your repos in one click." },
     { icon: PenLine, t: "Fill it once", d: "Projects, experience, skills — with AI that turns weak lines into recruiter-ready bullets." },
-    { icon: Rocket, t: "Publish everywhere", d: "Choose a template and hit publish. Portfolio live, resume PDF ready, README copied." },
+    { icon: Rocket, t: "Publish everywhere", d: "Choose a template and hit publish. Portfolio live, resume PDF ready — then tailor it to every job you apply for." },
   ];
   const audience = [
     { icon: CodeXml, t: "Developers", d: "GitHub import, the CLI template and a README that writes itself." },
@@ -735,8 +814,10 @@ function Pricing() {
   const currency = useCurrency();
   const fmt = (n: number) => formatPrice(n, currency);
   const p = PRICES[currency];
-  const free = ["Published portfolio + your link", "GitHub import & README", "Minimal template", "5 projects, experiences & links", "5 AI enhances / month"];
-  const pro = ["Everything in Free", "All 8 templates", "Unlimited projects, experience & links", "200 AI rewrites a month", "AI portfolio review", "ATS resume view + PDF"];
+  const sale = saleActive();
+  const now = sale ? SALE_PRICES[currency] : p;
+  const free = ["Published portfolio + your link", "GitHub import & README", "Minimal template", "Classic ATS resume PDF", "5 projects, experiences & links", "5 AI enhances / month"];
+  const pro = ["Everything in Free", "All 8 templates", "Unlimited projects, experience & links", "200 AI rewrites a month", "Tailor your resume to any job", "AI portfolio review", "6 resume templates + resume editor"];
 
   return (
     <section id="pricing" className="relative scroll-mt-24 py-20 sm:py-28">
@@ -764,17 +845,17 @@ function Pricing() {
             </Link>
           </motion.div>
 
-          <motion.div id="launch-offer" {...delayed(0.1)}
+          <motion.div id="pro" {...delayed(0.1)}
             className="lp-gradient-border relative flex scroll-mt-24 flex-col overflow-hidden rounded-3xl p-8 shadow-[0_30px_80px_-30px_rgba(79,110,255,0.45)]">
             <div aria-hidden className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
             <div className="relative flex items-center justify-between">
               <p className="font-medium">Pro</p>
-              <span className="rounded-full bg-lp-green/15 px-2.5 py-1 text-[11px] font-semibold text-lp-green">Launch offer · first 50</span>
+              {sale && <span className="rounded-full bg-lp-green/15 px-2.5 py-1 text-[11px] font-semibold text-lp-green">Launch sale · {SALE.percent}% off until {SALE.endsLabel}</span>}
             </div>
             <p className="relative mt-1 text-sm text-lp-muted">The full kit, for less than a coffee.</p>
             <p className="relative mt-6 flex items-baseline gap-2">
-              <span className="text-xl text-lp-subtle line-through">{fmt(p.month)}</span>
-              <span className="text-5xl font-semibold tracking-tight">{fmt(p.launch)}</span>
+              {sale && <span className="text-xl text-lp-subtle line-through">{fmt(p.month)}</span>}
+              <span className="text-5xl font-semibold tracking-tight">{fmt(now.month)}</span>
               <span className="text-lp-muted">/ month</span>
             </p>
             <ul className="relative mt-8 flex-1 space-y-3 text-sm">
@@ -787,8 +868,10 @@ function Pricing() {
                 </li>
               ))}
             </ul>
-            <PrimaryButton href="/sign-up" className="relative mt-8">Claim your spot</PrimaryButton>
-            <p className="lp-mono relative mt-3 text-center text-[11px] text-lp-subtle">then {fmt(p.month)}/mo · {fmt(p.halfyear)}/6mo · {fmt(p.year)}/yr</p>
+            <PrimaryButton href="/sign-up" className="relative mt-8">{sale ? "Get it at half price" : "Get Pro"}</PrimaryButton>
+            <p className="lp-mono relative mt-3 text-center text-[11px] text-lp-subtle">
+              or {fmt(now.halfyear)}/6mo · {fmt(now.year)}/yr{sale && ` (was ${fmt(p.halfyear)} · ${fmt(p.year)})`}
+            </p>
           </motion.div>
         </div>
       </div>
@@ -858,7 +941,7 @@ function FinalCta() {
             <span className="lp-serif text-[#8C95AB] line-through decoration-[#8C95AB]/60">PDF in an email</span>.
           </h2>
           <p className="relative mx-auto mt-5 max-w-md text-[#A3ABBE]">
-            One link that carries your portfolio, resume and README — and stays current forever.
+            One link that carries your portfolio, resume and README — plus a resume you can tailor to every job in seconds.
           </p>
           <div className="relative mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <PrimaryButton href="/sign-up">Claim your username</PrimaryButton>
@@ -879,7 +962,7 @@ function Footer() {
         <div>
           <Logo size="sm" />
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-lp-muted">
-            One profile. Portfolio, ATS resume and GitHub README — always in sync.
+            One profile. Portfolio, an ATS resume you can tailor to any job, and your GitHub README — always in sync.
           </p>
         </div>
         <div>

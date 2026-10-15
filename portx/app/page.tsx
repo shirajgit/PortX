@@ -37,6 +37,13 @@ const STRUCTURED_DATA = {
       url: SITE_URL,
       image: `${SITE_URL}/brand/og.png`,
       description: SITE_DESCRIPTION,
+      featureList: [
+        "Portfolio website builder with 8 templates",
+        "ATS-friendly resume PDF with 6 templates",
+        "Tailor your resume to any job description: match score, missing keywords, rewritten bullets",
+        "AI portfolio review and writing help",
+        "GitHub import and profile README generator",
+      ],
       offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
     },
     {

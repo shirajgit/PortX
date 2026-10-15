@@ -1,6 +1,7 @@
 import { db } from "./db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import type { PortfolioData } from "@/components/templates/types";
+import { DEFAULT_RESUME_CONFIG, parseResumeConfig, type ResumeConfig } from "@/lib/resume";
 import { parseItems } from "./sections";
 import { PRO_TEMPLATES, isPro } from "./billing";
 
@@ -25,25 +26,29 @@ type ProfileWithRelations = Prisma.ProfileGetPayload<{ include: typeof INCLUDE }
 export async function getPortfolioData(
   username: string,
   opts: { forResume?: boolean } = {}
-): Promise<{ template: string; data: PortfolioData; profileId: string } | null> {
+): Promise<{ template: string; data: PortfolioData; profileId: string; resumeConfig: ResumeConfig } | null> {
   const p = await db.profile.findUnique({ where: { username }, include: INCLUDE });
   if (!p || !p.isPublished) return null;
   const result = assemble(p);
   if (opts.forResume && p.phone) result.data.profile.phone = p.phone;
   // Pro designs need an active pass. The choice stays saved, so it comes back on renewal.
   if (PRO_TEMPLATES.has(result.template) && !isPro(p)) result.template = "minimal";
-  return result;
+  // Custom sections are Pro too — hidden after expiry, back on renewal.
+  if (!isPro(p)) result.data.sections = [];
+  // Free plan: plain Classic resume, no resume-only edits. Saved choices return on renewal.
+  const resumeConfig = isPro(p) ? parseResumeConfig(p.resumeConfig) : DEFAULT_RESUME_CONFIG;
+  return { ...result, resumeConfig };
 }
 
 /** Own data for dashboard tools — no publish check. Includes the phone (it's the owner's own data). */
 export async function getOwnPortfolioData(
   profileId: string
-): Promise<{ template: string; data: PortfolioData; profileId: string; username: string } | null> {
+): Promise<{ template: string; data: PortfolioData; profileId: string; username: string; resumeConfig: ResumeConfig } | null> {
   const p = await db.profile.findUnique({ where: { id: profileId }, include: INCLUDE });
   if (!p) return null;
   const result = assemble(p);
   if (p.phone) result.data.profile.phone = p.phone;
-  return { ...result, username: p.username };
+  return { ...result, username: p.username, resumeConfig: parseResumeConfig(p.resumeConfig) };
 }
 
 function assemble(p: ProfileWithRelations): { template: string; profileId: string; data: PortfolioData } {

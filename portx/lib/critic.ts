@@ -7,17 +7,32 @@ import { extractJson } from "@/lib/json";
    a readiness score with specific, actionable fixes. Strictly grounded:
    the model judges ONLY the provided data.                            */
 
+/** Trim to `max` chars, preferring a sentence end, then a word break. */
+function clip(text: string, max: number): string {
+  const t = text.trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const sentence = cut.lastIndexOf(". ");
+  if (sentence > max * 0.6) return cut.slice(0, sentence + 1);
+  return cut.slice(0, cut.lastIndexOf(" ") > 0 ? cut.lastIndexOf(" ") : max).replace(/[,;:s]+$/, "") + "…";
+}
+
+const Score = z.number().transform((n) => Math.round(Math.min(100, Math.max(0, n))));
+
+/* Lenient on length: models overshoot the limits in the prompt now and then, and a
+   slightly long review is still a good review — trim it rather than throw it away.
+   Only a structurally broken reply is rejected (and retried). */
 export const CriticResult = z.object({
-  score: z.number().min(0).max(100),
-  summary: z.string().max(400),
+  score: Score,
+  summary: z.string().min(1).transform((s) => clip(s, 450)),
   categories: z.array(
     z.object({
-      name: z.string().max(40),
-      score: z.number().min(0).max(100),
+      name: z.string().min(1).transform((s) => clip(s, 40)),
+      score: Score,
       verdict: z.enum(["good", "needs_work", "missing"]),
-      fixes: z.array(z.string().max(200)).max(4),
+      fixes: z.array(z.string()).transform((f) => f.slice(0, 4).map((x) => clip(x, 240))),
     })
-  ).min(3).max(8),
+  ).min(3).transform((c) => c.slice(0, 8)),
 });
 export type CriticResultT = z.infer<typeof CriticResult>;
 
@@ -41,7 +56,8 @@ RUBRIC — score each category 0-100 and give an overall weighted score:
 5. "Completeness"       — skills grouped sensibly, education present, links (LinkedIn minimum; GitHub for developers, Behance/Dribbble for designers)
 
 verdict per category: "good" (>=75), "needs_work" (40-74), "missing" (<40).
-summary: 2-3 sentences, honest, lead with the strongest thing then the #1 priority fix.
+summary: 2-3 sentences, under 350 characters, honest, lead with the strongest thing then the #1 priority fix.
+fixes: at most 4 per category, each ONE sentence under 180 characters.
 
 OUTPUT SHAPE (exactly):
 {"score":84,"summary":"...","categories":[{"name":"Projects","score":90,"verdict":"good","fixes":["..."]}]}`;

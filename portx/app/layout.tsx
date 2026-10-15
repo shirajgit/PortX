@@ -26,6 +26,11 @@ export const metadata: Metadata = {
     "portfolio website for developers",
     "ATS resume builder",
     "ATS friendly resume",
+    "tailor resume to job description",
+    "AI resume tailoring",
+    "resume job match score",
+    "resume keyword matcher",
+    "ATS resume checker",
     "GitHub profile README generator",
     "portfolio templates",
     "portfolio and resume in sync",
@@ -57,14 +62,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: TITLE,
     description:
-      "One profile → live portfolio + ATS resume PDF + GitHub README, always in sync. Free to start.",
+      "One profile → live portfolio + ATS resume you can tailor to any job + GitHub README, always in sync. Free to start.",
     images: [{ url: "/brand/og.png", width: 1200, height: 630, alt: "Portxz — one profile, always in sync" }],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description:
-      "One profile → portfolio + ATS resume + GitHub README, always in sync. Free to start.",
+      "One profile → portfolio + ATS resume tailored to any job + GitHub README, always in sync. Free to start.",
     creator: "@portxz",
     images: ["/brand/og.png"],
   },

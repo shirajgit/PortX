@@ -6,33 +6,43 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowDown, BadgeCheck, Check, Clock, FileText, Infinity as InfinityIcon, Loader2, Lock, Palette,
-  RefreshCcw, ShieldCheck, Sparkles, WandSparkles, Wallet, X, Zap,
+  RefreshCcw, ShieldCheck, Sparkles, Target, WandSparkles, Wallet, X, Zap,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, Notice, btn } from "@/components/ui";
-import type { PassId } from "@/lib/billing";
-import { PRICES, formatPrice, isCurrency, perMonth, type Currency } from "@/lib/pricing";
+import { PASSES as ALL_PASSES } from "@/lib/billing";
+import {
+  PRICES, SALE, formatPrice, isCurrency, perMonth, priceOf, saleActive, type Currency, type SellablePass,
+} from "@/lib/pricing";
 import { useCurrency } from "@/lib/useCurrency";
 
-type PassInfo = { id: PassId; label: string; short: string; days: number };
-type Pass = PassInfo & { price: number };
+type PassInfo = { id: SellablePass; label: string; short: string; days: number };
+/** price = what it costs now; was = the crossed-out comparison price. */
+type Pass = PassInfo & { price: number; was: number };
 const PASS_INFO: PassInfo[] = [
-  { id: "launch", label: "Launch Offer — 1 Month", short: "1 month", days: 30 },
   { id: "month", label: "Pro — 1 Month", short: "1 month", days: 30 },
   { id: "halfyear", label: "Pro — 6 Months", short: "6 months", days: 180 },
   { id: "year", label: "Pro — 1 Year", short: "1 year", days: 365 },
 ];
-/** Undiscounted cost of a pass: the monthly price for the same number of days. */
-const fullPrice = (p: Pass, monthly: number) => Math.round(monthly * (p.days / 30) * 100) / 100;
-const savePct = (p: Pass, monthly: number) => Math.round((1 - p.price / fullPrice(p, monthly)) * 100);
+/* During the sale a pass is compared with its own regular price (so every plan shows
+   50% off). Otherwise longer passes are compared with paying monthly for as long. */
+function passesFor(currency: Currency, sale: boolean): Pass[] {
+  const monthly = PRICES[currency].month;
+  return PASS_INFO.map((info) => ({
+    ...info,
+    price: priceOf(info.id, currency),
+    was: sale ? PRICES[currency][info.id] : Math.round(monthly * (info.days / 30) * 100) / 100,
+  }));
+}
+const savePct = (p: Pass) => Math.round((1 - p.price / p.was) * 100);
 
 const BENEFITS = [
   { icon: Palette, title: "All 8 premium designs", text: "Executive, Editorial, Noir, Aurora and more. Switch anytime — your details stay the same." },
-  { icon: FileText, title: "Resume PDF, ready to send", text: "A clean, one-page resume that job portals and hiring software read perfectly." },
+  { icon: FileText, title: "6 resume templates", text: "Modern, Executive, Technical and more — or design your own. All read perfectly by hiring software." },
   { icon: Sparkles, title: "AI feedback on your page", text: "A score out of 100 and simple, specific fixes — like a mentor reviewing your profile." },
   { icon: WandSparkles, title: "200 AI rewrites a month", text: "Turn rough notes into strong, professional lines with one click — 40× the free plan." },
   { icon: InfinityIcon, title: "No limits", text: "Add every project, job, skill and link you want — no caps like on the free plan." },
-  { icon: Zap, title: "Stand out from the crowd", text: "A polished page and resume make the first impression for you before you even say hello." },
+  { icon: Target, title: "Tailor to any job", text: "Paste a job post to get a match score, missing keywords and bullets rewritten to fit — then download that resume." },
 ];
 
 const COMPARE: [string, string | boolean, string | boolean][] = [
@@ -41,7 +51,8 @@ const COMPARE: [string, string | boolean, string | boolean][] = [
   ["Projects, jobs & links", "Up to 5", "Unlimited"],
   ["AI writing help", "5 a month", "200 a month"],
   ["AI feedback & score", false, true],
-  ["Resume PDF download", false, true],
+  ["Tailor resume to a job", false, "60 a month"],
+  ["Resume PDF", "Classic", "6 templates + editor"],
 ];
 
 const trustFor = (currency: Currency) => [
@@ -79,8 +90,8 @@ export default function BillingPage() {
   const [success, setSuccess] = useState(false);
   const [prefill, setPrefill] = useState<{ name?: string; email?: string }>({});
   const currency = useCurrency();
-  const PASSES: Pass[] = PASS_INFO.map((p) => ({ ...p, price: PRICES[currency][p.id] }));
-  const MONTHLY = PRICES[currency].month;
+  const sale = saleActive();
+  const PASSES = passesFor(currency, sale);
   const fmt = (n: number) => formatPrice(n, currency);
   const TRUST = trustFor(currency);
 
@@ -107,13 +118,12 @@ export default function BillingPage() {
 
   const pro = plan === "pro" && !!expires && new Date(expires) > new Date();
   const pending = requests.find((r) => r.status === "pending");
-  const launchUsed = requests.some((r) => r.plan === "launch" && r.status === "approved");
   const daysLeft = expires
     ? Math.ceil((new Date(expires).getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : 0;
   const showPasses = !pending && (!pro || daysLeft <= 7);
-  // phone list: launch offer by default, best value once the offer is used
-  const pick = choice && !(choice === "launch" && launchUsed) ? choice : launchUsed ? "year" : "launch";
+  // phone list: best value picked by default
+  const pick = choice ?? "year";
   const chosen = loaded && showPasses ? PASSES.find((p) => p.id === pick) ?? null : null;
 
   async function pay(pass: Pass) {
@@ -133,9 +143,7 @@ export default function BillingPage() {
       setPaying(null);
       const b = await res.json().catch(() => ({}));
       setError(
-        b.error === "launch_offer_over" ? "The launch offer has sold out — please choose one of the other plans."
-        : b.error === "launch_once_per_user" ? "The launch offer can only be used once — please choose one of the other plans."
-        : b.error === "razorpay_not_configured" ? "Payments are temporarily unavailable — please try again later."
+        b.error === "razorpay_not_configured" ? "Payments are temporarily unavailable — please try again later."
         : "We couldn't start the payment. Please try again."
       );
       return;
@@ -180,7 +188,9 @@ export default function BillingPage() {
     pending: { label: "Being checked", cls: "bg-lp-warning/10 text-lp-warning" },
     created: { label: "Not completed", cls: "bg-lp-surface-2 text-lp-muted" },
   };
-  const PLAN_NAME: Record<string, string> = Object.fromEntries(PASSES.map((p) => [p.id, p.label]));
+  // From lib/billing so old payments (e.g. the retired "launch" pass) keep their names.
+  const PLAN_NAME: Record<string, string> = Object.fromEntries(Object.values(ALL_PASSES).map((p) => [p.id, p.label]));
+  const month = PASSES[0];
 
   return (
     <div className={`space-y-6 sm:space-y-8 ${chosen ? "pb-28 sm:pb-0" : ""}`}>
@@ -215,16 +225,18 @@ export default function BillingPage() {
                 Every premium design, a ready-to-send resume and AI that helps you write — all you need to impress recruiters.
               </p>
               <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 sm:mt-6">
-                <span className="text-4xl font-semibold tracking-tight">{fmt(PRICES[currency].launch)}</span>
-                <span className="text-lg text-lp-subtle line-through">{fmt(MONTHLY)}</span>
-                <span className="text-sm text-lp-muted">for your first month</span>
+                <span className="text-4xl font-semibold tracking-tight">{fmt(month.price)}</span>
+                {sale && <span className="text-lg text-lp-subtle line-through">{fmt(month.was)}</span>}
+                <span className="text-sm text-lp-muted">for 1 month</span>
               </div>
-              <p className="mt-1 text-[13px] font-medium text-lp-green">Launch offer · first 50 users only</p>
+              {sale
+                ? <p className="mt-1 text-[13px] font-medium text-lp-green">Launch sale · {SALE.percent}% off every plan until {SALE.endsLabel}</p>
+                : <p className="mt-1 text-[13px] font-medium text-lp-muted">Or save more with a 6-month or yearly pass</p>}
               {/* phones use the sticky pay bar instead */}
               <div className="mt-6 hidden flex-wrap gap-3 sm:flex">
-                {!launchUsed && showPasses ? (
-                  <button onClick={() => pay(PASSES[0])} disabled={!!paying} className={btn("primary", "lg")}>
-                    {paying === "launch" ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening payment…</> : <>Get Pro for {fmt(PRICES[currency].launch)}</>}
+                {showPasses ? (
+                  <button onClick={() => pay(month)} disabled={!!paying} className={btn("primary", "lg")}>
+                    {paying === month.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening payment…</> : <>Get Pro for {fmt(month.price)}</>}
                   </button>
                 ) : null}
                 <a href="#plans" className={btn("secondary", "lg")}>See all plans <ArrowDown className="h-4 w-4" /></a>
@@ -258,16 +270,18 @@ export default function BillingPage() {
           <h2 className="text-lg font-semibold tracking-tight sm:text-xl">
             {pro ? `Your Pro ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — extend it` : "Choose your plan"}
           </h2>
-          <p className="mt-1 text-sm text-lp-muted sm:text-[15px]">Pay once. No subscription — you&apos;ll never be charged again unless you choose to.</p>
+          <p className="mt-1 text-sm text-lp-muted sm:text-[15px]">
+            {sale && <span className="font-medium text-lp-green">{SALE.percent}% off until {SALE.endsLabel}. </span>}
+            Pay once. No subscription — you&apos;ll never be charged again unless you choose to.
+          </p>
 
           {/* phones: compact tappable list + sticky pay bar */}
           <div className="mt-4 space-y-2.5 sm:hidden" role="radiogroup" aria-label="Plans">
             {PASSES.map((p) => {
-              const disabled = p.id === "launch" && launchUsed;
               const on = pick === p.id;
-              const save = savePct(p, MONTHLY);
+              const save = savePct(p);
               return (
-                <button key={p.id} type="button" role="radio" aria-checked={on} disabled={disabled}
+                <button key={p.id} type="button" role="radio" aria-checked={on}
                   onClick={() => setChoice(p.id)}
                   className={`flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition disabled:opacity-50 ${
                     on ? "border-lp-accent bg-lp-accent-soft ring-4 ring-lp-accent-soft" : "border-lp-border bg-lp-surface"}`}>
@@ -276,17 +290,19 @@ export default function BillingPage() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[15px] font-semibold">{p.id === "launch" ? "First month" : p.short}</span>
-                      {p.id === "launch" && !launchUsed && <span className="rounded-full bg-lp-accent px-1.5 py-0.5 text-[10px] font-semibold text-white">Launch offer</span>}
+                      <span className="text-[15px] font-semibold">{p.short}</span>
                       {p.id === "year" && <span className="rounded-full bg-lp-green px-1.5 py-0.5 text-[10px] font-semibold text-white">Best value</span>}
                     </span>
                     <span className="mt-0.5 block text-[13px] text-lp-muted">
-                      {disabled ? "Already used" : p.days === 30 ? "for 30 days" : `${fmt(perMonth(p.price, p.days, currency))} a month`}
+                      {p.days === 30 ? "for 30 days" : `${fmt(perMonth(p.price, p.days, currency))} a month`}
                     </span>
                   </span>
                   <span className="shrink-0 text-right">
-                    <span className="block text-lg font-semibold tracking-tight">{fmt(p.price)}</span>
-                    {save > 0 && <span className="block text-[11px] font-semibold text-lp-green">Save {save}%</span>}
+                    <span className="block text-lg font-semibold tracking-tight">
+                      {save > 0 && <span className="mr-1.5 text-[13px] font-normal text-lp-subtle line-through">{fmt(p.was)}</span>}
+                      {fmt(p.price)}
+                    </span>
+                    {save > 0 && <span className="block text-[11px] font-semibold text-lp-green">{sale ? `${save}% off` : `Save ${save}%`}</span>}
                   </span>
                 </button>
               );
@@ -294,45 +310,35 @@ export default function BillingPage() {
           </div>
 
           {/* tablets & desktop: cards */}
-          <div className="mt-5 hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 hidden gap-4 sm:grid sm:grid-cols-3">
             {PASSES.map((p) => {
-              const featured = p.id === "launch" && !launchUsed;
-              const disabled = p.id === "launch" && launchUsed;
-              const save = savePct(p, MONTHLY);
+              const featured = p.id === "year";
+              const save = savePct(p);
               return (
                 <div key={p.id}
                   className={`relative flex min-w-0 flex-col rounded-2xl p-5 ${
-                    featured ? "lp-gradient-border shadow-[0_24px_60px_-28px_rgba(79,110,255,0.7)]" : "lp-card"} ${disabled ? "opacity-60" : ""}`}>
+                    featured ? "lp-gradient-border shadow-[0_24px_60px_-28px_rgba(79,110,255,0.7)]" : "lp-card"}`}>
                   {featured && (
-                    <span className="absolute -top-3 left-5 inline-flex items-center gap-1 rounded-full bg-lp-accent px-2.5 py-1 text-[11px] font-semibold text-white shadow">
-                      <Sparkles className="h-3 w-3" /> Launch offer
-                    </span>
-                  )}
-                  {p.id === "year" && (
                     <span className="absolute -top-3 left-5 rounded-full bg-lp-green px-2.5 py-1 text-[11px] font-semibold text-white shadow">Best value</span>
                   )}
-                  <p className="mt-1 text-sm font-medium text-lp-muted">{p.id === "launch" ? "First month" : p.short}</p>
+                  <p className="mt-1 text-sm font-medium text-lp-muted">{p.short}</p>
                   <p className="mt-3 flex items-baseline gap-2">
                     <span className="text-3xl font-semibold tracking-tight">{fmt(p.price)}</span>
-                    {save > 0 && <span className="text-sm text-lp-subtle line-through">{fmt(fullPrice(p, MONTHLY))}</span>}
+                    {save > 0 && <span className="text-sm text-lp-subtle line-through">{fmt(p.was)}</span>}
                   </p>
                   <p className="mt-1 text-[13px] text-lp-muted">
                     {p.days === 30 ? "for 30 days" : `just ${fmt(perMonth(p.price, p.days, currency))} a month`}
                   </p>
                   <div className="mt-3 h-6">
                     {save > 0 && (
-                      <span className="inline-flex rounded-full bg-lp-green/10 px-2 py-0.5 text-xs font-semibold text-lp-green">Save {save}%</span>
+                      <span className="inline-flex rounded-full bg-lp-green/10 px-2 py-0.5 text-xs font-semibold text-lp-green">{sale ? `${save}% off · until ${SALE.endsLabel}` : `Save ${save}%`}</span>
                     )}
                   </div>
                   <div className="mt-auto pt-5">
-                    {disabled ? (
-                      <span className={btn("secondary", "md", "w-full cursor-default")}>Already used</span>
-                    ) : (
-                      <button onClick={() => pay(p)} disabled={!!paying}
-                        className={btn(featured ? "primary" : "secondary", "md", "w-full")}>
-                        {paying === p.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : `Get ${p.id === "launch" ? `Pro for ${fmt(p.price)}` : p.short}`}
-                      </button>
-                    )}
+                    <button onClick={() => pay(p)} disabled={!!paying}
+                      className={btn(featured ? "primary" : "secondary", "md", "w-full")}>
+                      {paying === p.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : `Get ${p.short}`}
+                    </button>
                   </div>
                 </div>
               );
@@ -357,7 +363,7 @@ export default function BillingPage() {
             <div className="fixed inset-x-0 bottom-0 z-30 border-t border-lp-border bg-lp-bg/90 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:hidden">
               <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-semibold">{fmt(chosen.price)} <span className="text-[13px] font-normal text-lp-muted">· {chosen.id === "launch" ? "first month" : chosen.short}</span></p>
+                  <p className="text-[15px] font-semibold">{fmt(chosen.price)} <span className="text-[13px] font-normal text-lp-muted">· {chosen.short}</span></p>
                   <p className="flex items-center gap-1 text-[11px] text-lp-muted"><ShieldCheck className="h-3 w-3 text-lp-green" /> Secure · no auto-renewal</p>
                 </div>
                 <button onClick={() => pay(chosen)} disabled={!!paying} className={btn("primary", "lg", "px-5")}>
@@ -470,7 +476,7 @@ function ProStatus({ expires, daysLeft, fmtDate }: { expires: string; daysLeft: 
               <BadgeCheck className="h-3.5 w-3.5" /> Pro is active
             </span>
             <h1 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">You have everything unlocked</h1>
-            <p className="mt-1.5 text-[15px] text-lp-muted">All designs, resume PDF, AI feedback and unlimited everything.</p>
+            <p className="mt-1.5 text-[15px] text-lp-muted">All designs, every resume template, AI feedback and unlimited everything.</p>
           </div>
           <div className="w-full max-w-xs rounded-2xl border border-lp-border bg-lp-surface p-4">
             <div className="flex items-baseline justify-between">

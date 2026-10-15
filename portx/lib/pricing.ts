@@ -17,6 +17,36 @@ export const PRICES: Record<Currency, Record<PassId, number>> = {
   GBP: { launch: 2.49, month: 3.99, halfyear: 15, year: 25 },
 };
 
+/* ── Launch sale ── half price on every plan until the end of 17 Nov 2026 (India time).
+   It replaced the ₹49 first-50 "launch" pass, which is no longer sold (old payments
+   still show under that name). After SALE.endsAt the regular PRICES apply on their own. */
+
+/** Passes that can be bought. */
+export const SELLABLE_PASSES = ["month", "halfyear", "year"] as const;
+export type SellablePass = (typeof SELLABLE_PASSES)[number];
+
+export const SALE = {
+  percent: 50,
+  endsAt: new Date("2026-11-17T23:59:59.999+05:30"),
+  /** Shown in the UI, e.g. "until 17 Nov". */
+  endsLabel: "17 Nov",
+};
+
+/** Half price, rounded to amounts that look natural in each currency. */
+export const SALE_PRICES: Record<Currency, Record<SellablePass, number>> = {
+  INR: { month: 75, halfyear: 325, year: 499 },
+  USD: { month: 2.49, halfyear: 9.49, year: 14.49 },
+  EUR: { month: 2.49, halfyear: 9.49, year: 14.49 },
+  GBP: { month: 1.99, halfyear: 7.49, year: 12.49 },
+};
+
+export const saleActive = (now: Date = new Date()) => now < SALE.endsAt;
+
+/** What a pass costs right now. The order API uses this, so the sale ends server-side too. */
+export function priceOf(pass: SellablePass, currency: Currency, now: Date = new Date()): number {
+  return saleActive(now) ? SALE_PRICES[currency][pass] : PRICES[currency][pass];
+}
+
 export const CURRENCY_COOKIE = "pxz_cur";
 
 // Eurozone plus the microstates that use the euro.

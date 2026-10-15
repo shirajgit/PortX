@@ -1,6 +1,7 @@
 /* ── Billing: manual UPI passes ─────────────────────────────────────── */
 
-/* Prices per currency live in lib/pricing.ts. */
+/* Prices per currency (and the launch sale) live in lib/pricing.ts.
+   "launch" is the retired ₹49 first-50 pass — kept so old payments still have a name. */
 export const PASSES = {
   launch:   { id: "launch",   label: "Launch Offer — 1 Month", days: 30 },
   month:    { id: "month",    label: "Pro — 1 Month",   days: 30 },
@@ -9,9 +10,6 @@ export const PASSES = {
 } as const;
 
 export type PassId = keyof typeof PASSES;
-
-/** Launch offer: first N buyers (pending + approved hold slots). */
-export const LAUNCH_OFFER_LIMIT = 50;
 
 /** Free-tier monthly AI allowances. AI Review (critic) is Pro-only. */
 export const FREE_AI_LIMITS = { enhance: 5 } as const;
