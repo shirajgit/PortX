@@ -12,8 +12,11 @@ export type PassId = keyof typeof PASSES;
 /** Launch offer: first N buyers (pending + approved hold slots). */
 export const LAUNCH_OFFER_LIMIT = 50;
 
-/** Free-tier monthly AI allowances. Pro = unlimited. AI Review (critic) is Pro-only. */
+/** Free-tier monthly AI allowances. AI Review (critic) is Pro-only. */
 export const FREE_AI_LIMITS = { enhance: 5 } as const;
+
+/** Pro fair-use AI allowances per 30 days — keeps one heavy account from running up the AI bill. */
+export const PRO_AI_LIMITS = { enhance: 200, critic: 30 } as const;
 
 /** Free-tier content caps. Pro = unlimited. skillItems = total items across all groups. */
 export const FREE_LIMITS = {

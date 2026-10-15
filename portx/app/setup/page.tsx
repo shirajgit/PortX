@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { PortxzLoader } from "@/components/PortxzLoader";
@@ -102,14 +102,26 @@ export default function SetupWizard() {
     return /^https?:\/\//i.test(s) ? s : `https://${s}`;
   };
 
-  async function checkAvail(u: string) {
+  // Wait until typing pauses before asking the server, and ignore replies for older input.
+  const checkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestCheck = useRef("");
+  function checkAvail(u: string) {
     setClaimUser(u);
     const clean = u.toLowerCase().trim();
+    latestCheck.current = clean;
+    if (checkTimer.current) clearTimeout(checkTimer.current);
     if (clean.length < 3) return setAvail("idle");
     setAvail("checking");
-    const res = await fetch(`/api/username/check?u=${encodeURIComponent(clean)}`);
-    const data = await res.json();
-    setAvail(data.available ? "free" : data.reason === "invalid" ? "invalid" : "taken");
+    checkTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/username/check?u=${encodeURIComponent(clean)}`);
+        const data = await res.json();
+        if (latestCheck.current !== clean) return;
+        setAvail(data.available ? "free" : data.reason === "invalid" ? "invalid" : "taken");
+      } catch {
+        if (latestCheck.current === clean) setAvail("idle");
+      }
+    }, 350);
   }
 
   async function claim() {

@@ -33,6 +33,8 @@ export function EnhanceButton({ mode, text, onAccept }: Props) {
     setNote(
       body.error === "free_limit_reached"
         ? { msg: `You've used your ${body.limit ?? 5} free AI improvements this month.`, upgrade: true }
+        : body.error === "pro_limit_reached"
+        ? { msg: `You've used ${body.limit ?? 200} AI improvements in the last 30 days, the monthly fair-use limit. More unlock as older ones roll off.` }
         : { msg: "AI couldn't help with this one right now. Please try again in a moment." }
     );
   }
@@ -49,7 +51,7 @@ export function EnhanceButton({ mode, text, onAccept }: Props) {
       {note && (
         <p className="mt-1.5 text-[13px] text-lp-muted">
           {note.msg}{" "}
-          {note.upgrade && <Link href="/dashboard/billing" className="font-medium text-lp-accent underline underline-offset-2">Go unlimited with Pro</Link>}
+          {note.upgrade && <Link href="/dashboard/billing" className="font-medium text-lp-accent underline underline-offset-2">Get 200 a month with Pro</Link>}
         </p>
       )}
 

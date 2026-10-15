@@ -149,10 +149,13 @@ model PageView {
   profileId String   @map("profile_id") @db.Uuid
   kind      String
   ref       String?
+  visitor   String?  // daily-rotating hash of IP + user agent; never the raw IP
   createdAt DateTime @default(now()) @map("created_at")
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@index([profileId, kind])
+  @@index([profileId, kind, createdAt])
+  @@index([visitor, createdAt])
   @@map("page_views")
 }
 

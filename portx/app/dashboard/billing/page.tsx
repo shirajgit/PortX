@@ -26,7 +26,7 @@ const BENEFITS = [
   { icon: Palette, title: "All 8 premium designs", text: "Executive, Editorial, Noir, Aurora and more. Switch anytime — your details stay the same." },
   { icon: FileText, title: "Resume PDF, ready to send", text: "A clean, one-page resume that job portals and hiring software read perfectly." },
   { icon: Sparkles, title: "AI feedback on your page", text: "A score out of 100 and simple, specific fixes — like a mentor reviewing your profile." },
-  { icon: WandSparkles, title: "Unlimited AI writing help", text: "Turn rough notes into strong, professional lines with one click, as often as you like." },
+  { icon: WandSparkles, title: "200 AI rewrites a month", text: "Turn rough notes into strong, professional lines with one click — 40× the free plan." },
   { icon: InfinityIcon, title: "No limits", text: "Add every project, job, skill and link you want — no caps like on the free plan." },
   { icon: Zap, title: "Stand out from the crowd", text: "A polished page and resume make the first impression for you before you even say hello." },
 ];
@@ -35,7 +35,7 @@ const COMPARE: [string, string | boolean, string | boolean][] = [
   ["Your own page link", true, true],
   ["Designs", "1", "All 8"],
   ["Projects, jobs & links", "Up to 5", "Unlimited"],
-  ["AI writing help", "5 a month", "Unlimited"],
+  ["AI writing help", "5 a month", "200 a month"],
   ["AI feedback & score", false, true],
   ["Resume PDF download", false, true],
 ];

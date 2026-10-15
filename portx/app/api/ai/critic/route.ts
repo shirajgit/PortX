@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
 import { getOwnPortfolioData } from "@/lib/data";
 import { buildCriticPrompt, parseCriticResponse } from "@/lib/critic";
-import { isPro } from "@/lib/billing";
+import { isPro, PRO_AI_LIMITS } from "@/lib/billing";
 
 export const maxDuration = 30;
 
@@ -17,6 +17,16 @@ export async function POST() {
         { error: "pro_required", upgrade: "/dashboard/billing" },
         { status: 403 }
       );
+
+    const used = await db.pageView.count({
+      where: {
+        profileId: profile.id,
+        kind: "ai_critic",
+        createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+      },
+    });
+    if (used >= PRO_AI_LIMITS.critic)
+      return Response.json({ error: "pro_limit_reached", limit: PRO_AI_LIMITS.critic }, { status: 429 });
 
     const result = await getOwnPortfolioData(profile.id);
     if (!result) return Response.json({ error: "no_profile" }, { status: 404 });

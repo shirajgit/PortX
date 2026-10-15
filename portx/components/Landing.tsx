@@ -730,7 +730,7 @@ function Steps() {
 
 function Pricing() {
   const free = ["Published portfolio + your link", "GitHub import & README", "Minimal template", "5 projects, experiences & links", "5 AI enhances / month"];
-  const pro = ["Everything in Free", "All 8 templates", "Unlimited projects, experience & links", "Unlimited AI enhance", "AI portfolio review", "ATS resume view + PDF"];
+  const pro = ["Everything in Free", "All 8 templates", "Unlimited projects, experience & links", "200 AI rewrites a month", "AI portfolio review", "ATS resume view + PDF"];
 
   return (
     <section id="pricing" className="relative scroll-mt-24 py-20 sm:py-28">

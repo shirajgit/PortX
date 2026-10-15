@@ -43,6 +43,8 @@ export default function ReviewPage() {
       setError(
         body.error === "pro_required"
           ? { message: "AI feedback is part of Pro.", upgrade: true }
+          : body.error === "pro_limit_reached"
+          ? { message: `You've run ${body.limit ?? 30} reviews in the last 30 days, the monthly fair-use limit. More reviews unlock as older ones roll off.`, upgrade: false }
           : { message: "We couldn't run the review right now. Please try again in a few minutes.", upgrade: false }
       );
       return;

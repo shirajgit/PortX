@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
-import { isPro, FREE_AI_LIMITS } from "@/lib/billing";
+import { isPro, FREE_AI_LIMITS, PRO_AI_LIMITS } from "@/lib/billing";
 
 const SYSTEM = `You improve resume/portfolio text for a software developer.
 Rules: rewrite ONLY the provided text. Never invent metrics, employers,
@@ -27,21 +27,21 @@ export async function POST(req: Request) {
     if (!process.env.OPENROUTER_API_KEY)
       return Response.json({ error: "ai_not_configured" }, { status: 501 });
 
-    // free-tier monthly limit; Pro is unlimited
-    if (!isPro(profile)) {
-      const used = await db.pageView.count({
-        where: {
-          profileId: profile.id,
-          kind: "ai_enhance",
-          createdAt: { gte: new Date(Date.now() - THIRTY_DAYS) },
-        },
-      });
-      if (used >= FREE_AI_LIMITS.enhance)
-        return Response.json(
-          { error: "free_limit_reached", limit: FREE_AI_LIMITS.enhance },
-          { status: 429 }
-        );
-    }
+    // monthly allowance: small on free, fair-use cap on Pro
+    const pro = isPro(profile);
+    const limit = pro ? PRO_AI_LIMITS.enhance : FREE_AI_LIMITS.enhance;
+    const used = await db.pageView.count({
+      where: {
+        profileId: profile.id,
+        kind: "ai_enhance",
+        createdAt: { gte: new Date(Date.now() - THIRTY_DAYS) },
+      },
+    });
+    if (used >= limit)
+      return Response.json(
+        { error: pro ? "pro_limit_reached" : "free_limit_reached", limit },
+        { status: 429 }
+      );
 
     const body = Input.safeParse(await req.json());
     if (!body.success)
