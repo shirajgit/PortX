@@ -1,93 +1,80 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Check, Copy, Download } from "lucide-react";
+import { ChevronDown, ClipboardPaste } from "lucide-react";
 import { PortxzLoader } from "@/components/PortxzLoader";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, Notice, btn } from "@/components/ui";
+import { Notice } from "@/components/ui";
+import { GithubPublish, type PublishTarget } from "@/components/GithubPublish";
+import { ReadmePreview } from "@/components/ReadmePreview";
 
 const STEPS = [
-  "Click “Copy text” below.",
-  "On GitHub, create a new repository with exactly the same name as your GitHub username.",
-  "Open its README.md file, paste, and save. It now shows on your GitHub profile.",
+  "Copy the text from the preview below (or download README.md).",
+  "On GitHub, create a public repository named exactly like your GitHub username.",
+  "Open its README.md, paste, and commit. It now shows on your GitHub profile.",
 ];
 
 export default function ReadmePage() {
   const [markdown, setMarkdown] = useState("");
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [target, setTarget] = useState<PublishTarget>(null);
 
   useEffect(() => {
-    fetch("/api/readme", { cache: "no-store" })
+    // Personal account → stats for that login; organization → no stats; not connected → GitHub link on the profile.
+    const qs = target ? `?github=${target.personal ? encodeURIComponent(target.owner) : ""}` : "";
+    fetch(`/api/readme${qs}`, { cache: "no-store" })
       .then(async (r) => {
         if (!r.ok) throw new Error("readme_failed");
         setMarkdown((await r.json()).markdown);
       })
       .catch(() => setFailed(true))
       .finally(() => setLoading(false));
-  }, []);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(markdown);
-    } catch {
-      // Clipboard API blocked (insecure origin / permissions) — fall back to selecting the text.
-      const ta = document.querySelector<HTMLTextAreaElement>('textarea[aria-label="README text"]');
-      ta?.select();
-      document.execCommand("copy");
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  function download() {
-    const blob = new Blob([markdown], { type: "text/markdown" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "README.md";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
+  }, [target?.owner, target?.personal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Share · Optional"
+        eyebrow="Share · GitHub"
         title="GitHub README"
-        description="Only useful if you have a GitHub account. We turn your details into a ready-made introduction for your GitHub profile."
-        actions={
-          !loading && !failed && (
-            <>
-              <button onClick={download} className={btn("secondary")}><Download className="h-4 w-4" /> Download</button>
-              <button onClick={copy} className={btn("primary")}>
-                {copied ? <><Check className="h-4 w-4" /> Copied</> : <><Copy className="h-4 w-4" /> Copy text</>}
-              </button>
-            </>
-          )
-        }
+        description="A polished introduction for your GitHub profile, built from your Portxz details and kept in sync with one click."
       />
 
-      <Card title="How to add it to GitHub">
-        <ol className="space-y-3">
-          {STEPS.map((s, i) => (
-            <li key={i} className="flex items-start gap-3 text-[15px] text-lp-muted">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lp-accent-soft text-xs font-semibold text-lp-accent">{i + 1}</span>
-              <span className="pt-0.5">{s}</span>
-            </li>
-          ))}
-        </ol>
-      </Card>
+      <GithubPublish onTargetChange={setTarget} />
 
       {loading ? (
         <PortxzLoader label="Writing your README" />
       ) : failed ? (
         <Notice tone="error">We couldn&apos;t create your README right now. Please refresh the page to try again.</Notice>
       ) : (
-        <Card title="Preview of the text" description="This is what you'll paste. It updates whenever you change your details.">
-          <textarea readOnly value={markdown} rows={18} aria-label="README text"
-            className="lp-scroll w-full resize-y rounded-xl border border-lp-border bg-lp-surface-2/50 p-4 font-mono text-[13px] leading-relaxed text-lp-muted outline-none" />
-        </Card>
+        <>
+          <div className="flex items-end justify-between gap-3 pt-2">
+            <div>
+              <h2 className="text-base font-semibold tracking-[-0.01em] text-lp-text">Preview</h2>
+              <p className="text-[13px] text-lp-muted">This is how it looks on GitHub. It updates whenever you change your details.</p>
+            </div>
+          </div>
+          <ReadmePreview markdown={markdown} owner={target?.owner ?? null} />
+        </>
       )}
+
+      <details className="lp-card group rounded-2xl">
+        <summary className="flex cursor-pointer list-none items-center gap-3 p-5 sm:px-6 [&::-webkit-details-marker]:hidden">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-lp-surface-2 text-lp-muted"><ClipboardPaste className="h-4 w-4" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-medium text-lp-text">Prefer to add it by hand?</span>
+            <span className="block text-[13px] text-lp-muted">Copy and paste it yourself, without connecting GitHub.</span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-lp-subtle transition group-open:rotate-180" />
+        </summary>
+        <ol className="space-y-3 border-t border-lp-border px-5 py-5 sm:px-6">
+          {STEPS.map((s, i) => (
+            <li key={i} className="flex items-start gap-3 text-[14px] text-lp-muted">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lp-accent-soft text-xs font-semibold text-lp-accent">{i + 1}</span>
+              <span className="pt-0.5">{s}</span>
+            </li>
+          ))}
+        </ol>
+      </details>
     </div>
   );
 }

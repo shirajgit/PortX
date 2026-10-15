@@ -259,3 +259,43 @@ html.light {
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 18px), transparent);
           mask-image: linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 18px), transparent);
 }
+
+/* ── GitHub-style rendered Markdown (README preview) ── */
+.gh-md { color: var(--lp-text); font-size: 15px; line-height: 1.65; word-wrap: break-word; }
+.gh-md > :first-child { margin-top: 0; }
+.gh-md h1, .gh-md h2, .gh-md h3 { font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; margin: 1.6em 0 0.7em; }
+.gh-md h1 { font-size: 2em; }
+.gh-md h2 { font-size: 1.4em; padding-bottom: 0.35em; border-bottom: 1px solid var(--lp-border); }
+.gh-md h3 { font-size: 1.12em; }
+.gh-md p, .gh-md ul, .gh-md ol, .gh-md table, .gh-md blockquote { margin: 0 0 1em; }
+.gh-md ul, .gh-md ol { padding-left: 1.6em; }
+.gh-md ul { list-style: disc; }
+.gh-md ol { list-style: decimal; }
+.gh-md li + li { margin-top: 0.25em; }
+.gh-md a { color: var(--lp-accent); text-decoration: none; }
+.gh-md a:hover { text-decoration: underline; }
+.gh-md strong { font-weight: 600; }
+.gh-md hr { height: 1px; border: 0; background: var(--lp-border); margin: 1.75em 0; }
+.gh-md blockquote { padding: 0 1em; color: var(--lp-muted); border-left: 3px solid var(--lp-border-strong); }
+.gh-md code { font-family: var(--font-lp-mono), ui-monospace, monospace; font-size: 0.86em; padding: 0.15em 0.4em; border-radius: 6px; background: var(--lp-surface-2); }
+.gh-md table { display: block; width: max-content; max-width: 100%; overflow: auto; border-collapse: collapse; }
+.gh-md th, .gh-md td { padding: 6px 13px; border: 1px solid var(--lp-border-strong); }
+.gh-md th { font-weight: 600; background: var(--lp-surface-2); }
+.gh-md tr:nth-child(2n) td { background: color-mix(in srgb, var(--lp-surface-2) 45%, transparent); }
+.gh-md img { display: inline-block; max-width: 100%; vertical-align: middle; }
+.gh-md [align="center"] { text-align: center; }
+.gh-md [align="center"] a + a, .gh-md [align="center"] a + br + a { margin-left: 4px; }
+.gh-md sub { font-size: 0.8em; color: var(--lp-muted); }
+.gh-md pre { margin: 0 0 1em; padding: 16px; overflow: auto; border-radius: 10px; background: var(--lp-surface-2); font-size: 13px; line-height: 1.55; }
+.gh-md pre code { padding: 0; background: transparent; font-size: inherit; }
+.gh-md td h3 { margin-top: 0.2em; }
+.gh-md td p { margin-bottom: 0.6em; }
+.gh-md [align="center"] img { margin: 2px; }
+/* code tokens (GitHub-ish palette, readable in both themes) */
+.gh-md .tok-c { color: var(--lp-subtle); font-style: italic; }
+.gh-md .tok-s { color: #3FB27F; }
+.gh-md .tok-k { color: #C678DD; }
+.gh-md .tok-p { color: var(--lp-accent); }
+.gh-md .tok-f { color: #E0A84E; }
+.gh-md .tok-n { color: #E5826B; }
+.gh-md pre { border: 1px solid var(--lp-border); }
