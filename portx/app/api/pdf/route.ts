@@ -47,18 +47,18 @@ export async function GET(req: Request) {
   }
 
   // Local dev: set CHROME_PATH to your Chrome binary. Prod (Vercel): @sparticuz/chromium.
-  const executablePath =
-    process.env.CHROME_PATH || (await chromium.executablePath());
-
-  const browser = await puppeteer.launch({
-    args: process.env.CHROME_PATH ? [] : chromium.args,
-    executablePath,
-    headless: true,
-  });
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
   try {
+    const executablePath =
+      process.env.CHROME_PATH || (await chromium.executablePath());
+    browser = await puppeteer.launch({
+      args: process.env.CHROME_PATH ? [] : chromium.args,
+      executablePath,
+      headless: true,
+    });
     const page = await browser.newPage();
     await page.goto(
-      `${process.env.NEXT_PUBLIC_APP_URL}/${username}/resume?print=1`,
+      `${process.env.NEXT_PUBLIC_APP_URL || url.origin}/${username}/resume?print=1`,
       { waitUntil: "networkidle0", timeout: 15000 }
     );
     const pdf = await page.pdf({
@@ -81,7 +81,11 @@ export async function GET(req: Request) {
         "Cache-Control": "public, max-age=300, s-maxage=86400",
       },
     });
+  } catch (err) {
+    // Shows up in the Vercel function logs with the real cause (missing Chrome, bad URL…).
+    console.error("[pdf] render failed", { username, err });
+    return Response.json({ error: "pdf_failed" }, { status: 500 });
   } finally {
-    await browser.close();
+    await browser?.close();
   }
 }
