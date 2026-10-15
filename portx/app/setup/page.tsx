@@ -5,28 +5,40 @@ import Image from "next/image";
 import { PortxzLoader } from "@/components/PortxzLoader";
 import { PhotoPicker } from "@/components/editor/PhotoPicker";
 import { Logo } from "@/components/Logo";
-import { ArrowRight, Check, Loader2, Lock, Rocket, X } from "lucide-react";
-import { Notice, TagInput, inputCls } from "@/components/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight, AtSign, Briefcase, Check, FolderGit2, GraduationCap, Link2, Loader2, Lock, Palette, Rocket, Sparkles,
+  UserRound, X,
+} from "lucide-react";
+import { GithubIcon, LinkedinIcon } from "@/components/BrandIcons";
+import { Field, Notice, TagInput, btn, inputCls } from "@/components/ui";
 
 /* ── portxz onboarding wizard ───────────────────────────────────────────
    New signups walk: Profile → Project → Experience → Skills → Education
    → Links → Template & Publish. Every step skippable. Progress saved
-   server-side (profile.onboardingStep) so refresh/return resumes.     */
-
-const input = `${inputCls} mt-1.5`;
-const label = "mt-5 block text-sm font-medium text-lp-text";
-const hint = "mt-1.5 block text-[13px] text-lp-muted";
-const opt = <span className="font-normal text-lp-subtle">(optional)</span>;
+   server-side (profile.onboardingStep) so refresh/return resumes.
+   Built from the dashboard UI kit (Field, inputCls, btn, Notice).     */
 
 const STEPS = [
-  { n: 0, title: "Choose your link", sub: "This will be the address of your page. You can share it anywhere." },
-  { n: 1, title: "Tell us about you", sub: "A photo, a headline and a few words about yourself." },
-  { n: 2, title: "Add something you've worked on", sub: "Just one for now — a project, design, campaign or case study. You can add more later." },
-  { n: 3, title: "Your work experience", sub: "A job, internship or freelance work. Just starting out? Skip this step." },
-  { n: 4, title: "Your skills", sub: "A few things you're good at, grouped under a name like Design or Tools." },
-  { n: 5, title: "Your education", sub: "Where you studied — school, college or a course." },
-  { n: 6, title: "Your social links", sub: "Where people can find you online. Both are optional." },
-  { n: 7, title: "Pick a design and go live", sub: "Choose how your page looks. You can change it anytime." },
+  { n: 0, icon: AtSign, short: "Your link", title: "Choose your link", sub: "This will be the address of your page. You can share it anywhere." },
+  { n: 1, icon: UserRound, short: "About you", title: "Tell us about you", sub: "A photo, a headline and a few words about yourself." },
+  { n: 2, icon: FolderGit2, short: "A project", title: "Add something you've worked on", sub: "Just one for now: a project, design, campaign or case study. You can add more later." },
+  { n: 3, icon: Briefcase, short: "Experience", title: "Your work experience", sub: "A job, internship or freelance work. Just starting out? Skip this step." },
+  { n: 4, icon: Sparkles, short: "Skills", title: "Your skills", sub: "A few things you're good at, grouped under a name like Design or Tools." },
+  { n: 5, icon: GraduationCap, short: "Education", title: "Your education", sub: "Where you studied: school, college or a course." },
+  { n: 6, icon: Link2, short: "Social links", title: "Your social links", sub: "Where people can find you online. Both are optional." },
+  { n: 7, icon: Palette, short: "Design", title: "Pick a design and go live", sub: "Choose how your page looks. You can change it anytime." },
+];
+
+const TEMPLATES = [
+  { id: "minimal", name: "Minimal", pro: false },
+  { id: "executive", name: "Executive", pro: true },
+  { id: "editorial", name: "Editorial", pro: true },
+  { id: "noir", name: "Noir", pro: true },
+  { id: "aurora", name: "Aurora", pro: true },
+  { id: "glass", name: "Glass", pro: true },
+  { id: "bento", name: "Bento", pro: true },
+  { id: "cli", name: "Terminal", pro: true },
 ];
 
 export default function SetupWizard() {
@@ -245,220 +257,261 @@ export default function SetupWizard() {
   if (step === null) return <PortxzLoader fullscreen label="Setting things up" />;
 
   const meta = STEPS[step]; // index aligns: 0 = claim, 1-7 = content steps
-  const displayStep = step + 1; // 1..8 for humans
-  const pct = Math.round((step / STEPS.length) * 100);
+  const last = step === STEPS.length - 1;
 
   return (
-    <main className="lp flex min-h-screen flex-col items-center px-4 py-10">
-      <div className="w-full max-w-lg">
+    <div className="lp relative isolate min-h-screen">
+      {/* ambient backdrop — same grid + glow as the dashboard */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="lp-grid-bg absolute inset-x-0 top-0 h-[520px]" />
+        <div className="absolute left-1/2 top-[-260px] h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
+      </div>
+
+      <main className="mx-auto flex w-full max-w-xl flex-col px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
         {/* header */}
-        <div className="flex items-center justify-between">
+        <header className="flex items-center justify-between gap-4">
           <Logo size="md" />
-          <span className="text-sm text-lp-muted">Step {displayStep} of 8{username && <span className="hidden sm:inline"> · portxz.xyz/{username}</span>}</span>
-        </div>
-        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-lp-surface-2">
-          <div className="h-full rounded-full bg-gradient-to-r from-lp-accent to-lp-green transition-all"
-            style={{ width: `${pct}%` }} />
-        </div>
-
-        {/* card */}
-        <div className="lp-card mt-8 rounded-3xl p-6 sm:p-9">
-          <h1 className="text-[1.6rem] font-semibold leading-tight tracking-[-0.02em]">{meta.title}</h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-lp-muted">{meta.sub}</p>
-
-          {error && (
-            <Notice tone="error" className="mt-5">{error}</Notice>
+          {username && (
+            <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-lp-border bg-lp-surface/80 px-3 py-1 text-[13px] text-lp-muted backdrop-blur">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-lp-green" />
+              <span className="truncate">portxz.xyz/<span className="font-medium text-lp-text">{username}</span></span>
+            </span>
           )}
+        </header>
 
-          {step === 0 && (
-            <>
-              <label className={label}>Your full name</label>
-              <input className={input} value={claimName} placeholder="e.g. Aarav Mehta"
-                onChange={(e) => setClaimName(e.target.value)} />
-              <label className={label}>Your page link</label>
-              <div className="mt-1.5 flex items-center rounded-xl border border-lp-border bg-lp-surface transition focus-within:border-lp-accent focus-within:ring-4 focus-within:ring-lp-accent-soft">
-                <span className="pl-3.5 text-[15px] text-lp-muted">portxz.xyz/</span>
-                <input value={claimUser} onChange={(e) => checkAvail(e.target.value)} aria-label="Your page link"
-                  className="w-full bg-transparent px-0.5 py-2.5 text-[15px] outline-none placeholder:text-lp-subtle" placeholder="aarav" />
-              </div>
-              <span className={hint}>Lowercase letters, numbers or hyphens — your name works great.</span>
-              <p className={`mt-1 h-5 text-[13px] font-medium ${
-                avail === "free" ? "text-lp-green" : avail === "checking" ? "text-lp-muted" : "text-lp-danger"}`}>
-                {{
-                  idle: null,
-                  checking: <span className="inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> checking…</span>,
-                  free: <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Available — it&apos;s yours!</span>,
-                  taken: <span className="inline-flex items-center gap-1"><X className="h-3 w-3" /> Already taken — try another</span>,
-                  invalid: <span className="inline-flex items-center gap-1"><X className="h-3 w-3" /> Use 3–30 lowercase letters, numbers or hyphens</span>,
-                }[avail]}
-              </p>
-            </>
-          )}
-
-          {step === 1 && (
-            <>
-              <label className={label}>Your photo</label>
-              <div className="mb-2 mt-2">
-                <PhotoPicker value={avatarUrl} name={fullName} onChange={setAvatarUrl} />
-              </div>
-              <label className={label}>Headline</label>
-              <input className={input} value={headline} placeholder="e.g. Graphic Designer · Marketing Specialist"
-                onChange={(e) => setHeadline(e.target.value)} />
-              <label className={label}>A few words about you</label>
-              <textarea className={`${input} resize-none`} rows={3} value={summary}
-                placeholder="What you do, what you're good at, and what you're looking for — 2 or 3 sentences."
-                onChange={(e) => setSummary(e.target.value)} />
-              <label className={label}>City {opt}</label>
-              <input className={input} value={location} placeholder="Bengaluru, India"
-                onChange={(e) => setLocation(e.target.value)} />
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <label className={label}>Name</label>
-              <input className={input} value={pName} placeholder="e.g. Rebrand for a local café"
-                onChange={(e) => setPName(e.target.value)} />
-              <label className={label}>Describe it in one sentence</label>
-              <input className={input} value={pTagline} placeholder="e.g. A new logo and menu that lifted sales by 15%"
-                onChange={(e) => setPTagline(e.target.value)} />
-              <span className={label}>Tools or skills used {opt}</span>
-              <div className="mt-1.5"><TagInput value={pTech} onChange={setPTech} placeholder="Type one and press Enter" /></div>
-              <label className={label}>Link {opt}</label>
-              <input className={input} value={pLive} placeholder="Where people can see it"
-                onChange={(e) => setPLive(e.target.value)} />
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <label className={label}>Job title</label>
-              <input className={input} value={xTitle} placeholder="e.g. Marketing Intern"
-                onChange={(e) => setXTitle(e.target.value)} />
-              <label className={label}>Company or organisation</label>
-              <input className={input} value={xOrg} placeholder="e.g. Acme Pvt Ltd"
-                onChange={(e) => setXOrg(e.target.value)} />
-              <label className={label}>One thing you did there {opt}</label>
-              <input className={input} value={xBullet} placeholder="e.g. Ran social media and doubled followers in 6 months"
-                onChange={(e) => setXBullet(e.target.value)} />
-            </>
-          )}
-
-          {step === 4 && (
-            <>
-              <label className={label}>Group name</label>
-              <input className={input} value={sCategory} placeholder="e.g. Design, Marketing, Tools"
-                onChange={(e) => setSCategory(e.target.value)} />
-              <span className={label}>Skills</span>
-              <div className="mt-1.5"><TagInput value={sItems} onChange={setSItems} placeholder="Type a skill and press Enter" /></div>
-            </>
-          )}
-
-          {step === 5 && (
-            <>
-              <label className={label}>School, college or university</label>
-              <input className={input} value={eInst} placeholder="e.g. Pune University"
-                onChange={(e) => setEInst(e.target.value)} />
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={label}>Degree or course</label>
-                  <input className={input} value={eDegree} placeholder="e.g. B.Com"
-                    onChange={(e) => setEDegree(e.target.value)} />
-                </div>
-                <div>
-                  <label className={label}>End year</label>
-                  <input className={input} type="number" value={eYear} placeholder="2026"
-                    onChange={(e) => setEYear(e.target.value)} />
-                </div>
-              </div>
-            </>
-          )}
-
-          {step === 6 && (
-            <>
-              <label className={label}>LinkedIn {opt}</label>
-              <input className={input} value={lLinkedin} placeholder="linkedin.com/in/your-name"
-                onChange={(e) => setLLinkedin(e.target.value)} />
-              <label className={label}>GitHub <span className="font-normal text-lp-subtle">(optional, for developers)</span></label>
-              <input className={input} value={lGithub} placeholder="github.com/your-name"
-                onChange={(e) => setLGithub(e.target.value)} />
-            </>
-          )}
-
-          {step === 7 && (
-            <div className="mt-6">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { id: "minimal", name: "Minimal", pro: false },
-                  { id: "executive", name: "Executive", pro: true },
-                  { id: "editorial", name: "Editorial", pro: true },
-                  { id: "noir", name: "Noir", pro: true },
-                  { id: "aurora", name: "Aurora", pro: true },
-                  { id: "glass", name: "Glass", pro: true },
-                  { id: "bento", name: "Bento", pro: true },
-                  { id: "cli", name: "Terminal", pro: true },
-                ].map((o) => {
-                  const on = template === o.id;
-                  return (
-                    <button key={o.id} type="button" onClick={() => setTemplate(o.id)} aria-pressed={on}
-                      className={`overflow-hidden rounded-2xl border text-left transition ${
-                        on ? "border-lp-accent ring-4 ring-lp-accent-soft" : "border-lp-border hover:border-lp-border-strong"}`}>
-                      <span className="relative block aspect-[4/3] overflow-hidden bg-lp-surface-2">
-                        <Image src={`/brand/templates/${o.id}.png`} alt="" fill sizes="240px" className="object-cover object-top" />
-                        {o.pro && (
-                          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur">
-                            <Lock className="h-2.5 w-2.5" /> Pro
-                          </span>
-                        )}
-                        {on && (
-                          <span className="absolute left-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-lp-accent text-white shadow">
-                            <Check className="h-3.5 w-3.5" />
-                          </span>
-                        )}
-                      </span>
-                      <span className="flex items-center justify-between px-3 py-2.5">
-                        <span className="text-sm font-medium">{o.name}</span>
-                        {!o.pro && <span className="text-[11px] font-medium text-lp-green">Free</span>}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-4 text-[13px] leading-relaxed text-lp-muted">
-                Designs marked Pro need an upgrade. If you pick one now, we&apos;ll publish with Minimal for free
-                and you can switch anytime.
-              </p>
-            </div>
-          )}
-
-          {/* actions */}
-          <div className="mt-8 flex items-center justify-between">
-            {step === 0 ? <span /> : (
-              <button onClick={skip} disabled={busy}
-                className="text-sm text-lp-muted hover:text-lp-text disabled:opacity-40">
-                Skip for now
-              </button>
-            )}
-            {step === 0 ? (
-              <button onClick={claim} disabled={avail !== "free" || !claimName.trim() || busy}
-                className="rounded-lg lp-btn-primary px-6 py-2.5 text-sm font-semibold  disabled:opacity-40">
-                {busy ? "Creating…" : <span className="inline-flex items-center gap-1.5">Claim &amp; continue <ArrowRight className="h-4 w-4" /></span>}
-              </button>
-            ) : (
-              <button onClick={submitStep} disabled={busy}
-                className="rounded-lg lp-btn-primary px-6 py-2.5 text-sm font-semibold  disabled:opacity-40">
-                {busy ? "Saving…" : step === 7
-                  ? <span className="inline-flex items-center gap-1.5">Publish &amp; finish <Rocket className="h-4 w-4" /></span>
-                  : <span className="inline-flex items-center gap-1.5">Continue <ArrowRight className="h-4 w-4" /></span>}
-              </button>
-            )}
+        {/* progress */}
+        <div className="mt-10">
+          <div className="flex items-baseline justify-between">
+            <p className="text-[13px] font-medium text-lp-accent">Step {step + 1} of {STEPS.length}</p>
+            <p className="text-[13px] text-lp-subtle">{last ? "Last step" : `Next: ${STEPS[step + 1].short}`}</p>
+          </div>
+          <div className="mt-3 flex gap-1.5" aria-hidden>
+            {STEPS.map((s) => (
+              <span key={s.n} className="h-1.5 flex-1 overflow-hidden rounded-full bg-lp-surface-2">
+                <span className={`block h-full rounded-full bg-gradient-to-r from-lp-accent to-lp-violet transition-all duration-500 ${
+                  s.n < step ? "w-full" : s.n === step ? "w-1/2" : "w-0"}`} />
+              </span>
+            ))}
           </div>
         </div>
 
-        <p className="mt-5 text-center text-[13px] text-lp-subtle">
-          You can change anything later from your dashboard.
+        {/* card */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.section key={step} className="lp-card mt-6 rounded-2xl p-5 sm:p-8"
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}>
+            <div className="flex items-start gap-4">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-lp-accent-soft text-lp-accent">
+                <meta.icon className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <h1 className="text-[1.45rem] font-semibold leading-tight tracking-[-0.03em] sm:text-[1.6rem]">{meta.title}</h1>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-lp-muted">{meta.sub}</p>
+              </div>
+            </div>
+
+            {error && <Notice tone="error" className="mt-6">{error}</Notice>}
+
+            <div className="mt-7 space-y-5">
+              {step === 0 && (
+                <>
+                  <Field label="Your full name">
+                    <input className={inputCls} value={claimName} placeholder="e.g. Aarav Mehta" autoFocus
+                      onChange={(e) => setClaimName(e.target.value)} />
+                  </Field>
+                  <Field label="Your page link" hint="Lowercase letters, numbers or hyphens. Your name works great.">
+                    <span className="flex items-center rounded-xl border border-lp-border bg-lp-surface transition hover:border-lp-border-strong focus-within:border-lp-accent focus-within:ring-4 focus-within:ring-lp-accent-soft">
+                      <span className="select-none pl-3.5 text-[15px] text-lp-subtle">portxz.xyz/</span>
+                      <input value={claimUser} onChange={(e) => checkAvail(e.target.value)}
+                        className="w-full bg-transparent py-2.5 pl-0.5 pr-3.5 text-[15px] text-lp-text outline-none placeholder:text-lp-subtle" placeholder="aarav" />
+                      {avail === "checking" && <Loader2 className="mr-3.5 h-4 w-4 shrink-0 animate-spin text-lp-muted" />}
+                      {avail === "free" && <Check className="mr-3.5 h-4 w-4 shrink-0 text-lp-green" />}
+                      {(avail === "taken" || avail === "invalid") && <X className="mr-3.5 h-4 w-4 shrink-0 text-lp-danger" />}
+                    </span>
+                  </Field>
+                  {(avail === "free" || avail === "taken" || avail === "invalid") && (
+                    <Notice tone={avail === "free" ? "success" : "error"}>
+                      {avail === "free" ? <>Nice, <strong>portxz.xyz/{claimUser.toLowerCase().trim()}</strong> is available. It&apos;s yours!</>
+                        : avail === "taken" ? "That link is already taken. Try another."
+                        : "Use 3 to 30 lowercase letters, numbers or hyphens."}
+                    </Notice>
+                  )}
+                </>
+              )}
+
+              {step === 1 && (
+                <>
+                  <Field group label="Your photo" optional>
+                    <PhotoPicker value={avatarUrl} name={fullName} onChange={setAvatarUrl} />
+                  </Field>
+                  <Field label="Headline" hint="Who you are in a few words. Shown right under your name.">
+                    <input className={inputCls} value={headline} placeholder="e.g. Graphic Designer · Marketing Specialist"
+                      onChange={(e) => setHeadline(e.target.value)} />
+                  </Field>
+                  <Field label="A few words about you" hint="What you do, what you're good at, and what you're looking for.">
+                    <textarea className={`${inputCls} resize-none leading-relaxed`} rows={4} value={summary}
+                      placeholder="2 or 3 sentences is perfect."
+                      onChange={(e) => setSummary(e.target.value)} />
+                  </Field>
+                  <Field label="City" optional>
+                    <input className={inputCls} value={location} placeholder="e.g. Bengaluru, India"
+                      onChange={(e) => setLocation(e.target.value)} />
+                  </Field>
+                </>
+              )}
+
+              {step === 2 && (
+                <>
+                  <Field label="Name">
+                    <input className={inputCls} value={pName} placeholder="e.g. Rebrand for a local café"
+                      onChange={(e) => setPName(e.target.value)} />
+                  </Field>
+                  <Field label="Describe it in one sentence">
+                    <input className={inputCls} value={pTagline} placeholder="e.g. A new logo and menu that lifted sales by 15%"
+                      onChange={(e) => setPTagline(e.target.value)} />
+                  </Field>
+                  <Field group label="Tools or skills used" optional hint="Type one and press Enter.">
+                    <TagInput value={pTech} onChange={setPTech} placeholder="e.g. Figma" />
+                  </Field>
+                  <Field label="Link" optional hint="Where people can see it.">
+                    <input className={inputCls} value={pLive} placeholder="e.g. behance.net/your-project"
+                      onChange={(e) => setPLive(e.target.value)} />
+                  </Field>
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <Field label="Job title">
+                      <input className={inputCls} value={xTitle} placeholder="e.g. Marketing Intern"
+                        onChange={(e) => setXTitle(e.target.value)} />
+                    </Field>
+                    <Field label="Company or organisation">
+                      <input className={inputCls} value={xOrg} placeholder="e.g. Acme Pvt Ltd"
+                        onChange={(e) => setXOrg(e.target.value)} />
+                    </Field>
+                  </div>
+                  <Field label="One thing you did there" optional>
+                    <input className={inputCls} value={xBullet} placeholder="e.g. Ran social media and doubled followers in 6 months"
+                      onChange={(e) => setXBullet(e.target.value)} />
+                  </Field>
+                </>
+              )}
+
+              {step === 4 && (
+                <>
+                  <Field label="Group name" hint="Leave it empty and we'll call it “Skills”.">
+                    <input className={inputCls} value={sCategory} placeholder="e.g. Design, Marketing, Tools"
+                      onChange={(e) => setSCategory(e.target.value)} />
+                  </Field>
+                  <Field group label="Skills" hint="Type a skill and press Enter. Add up to 10.">
+                    <TagInput value={sItems} onChange={setSItems} max={10} placeholder="e.g. Photoshop" />
+                  </Field>
+                </>
+              )}
+
+              {step === 5 && (
+                <>
+                  <Field label="School, college or university">
+                    <input className={inputCls} value={eInst} placeholder="e.g. Pune University"
+                      onChange={(e) => setEInst(e.target.value)} />
+                  </Field>
+                  <div className="grid gap-5 sm:grid-cols-[1fr_9rem]">
+                    <Field label="Degree or course" optional>
+                      <input className={inputCls} value={eDegree} placeholder="e.g. B.Com"
+                        onChange={(e) => setEDegree(e.target.value)} />
+                    </Field>
+                    <Field label="End year" optional>
+                      <input className={inputCls} type="number" inputMode="numeric" value={eYear} placeholder="2026"
+                        onChange={(e) => setEYear(e.target.value)} />
+                    </Field>
+                  </div>
+                </>
+              )}
+
+              {step === 6 && (
+                <>
+                  <Field label="LinkedIn" optional>
+                    <span className="relative block">
+                      <LinkedinIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-lp-subtle" />
+                      <input className={`${inputCls} pl-10`} value={lLinkedin} placeholder="linkedin.com/in/your-name"
+                        onChange={(e) => setLLinkedin(e.target.value)} />
+                    </span>
+                  </Field>
+                  <Field label="GitHub" optional hint="For developers. It also powers the stats on your GitHub README.">
+                    <span className="relative block">
+                      <GithubIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-lp-subtle" />
+                      <input className={`${inputCls} pl-10`} value={lGithub} placeholder="github.com/your-name"
+                        onChange={(e) => setLGithub(e.target.value)} />
+                    </span>
+                  </Field>
+                </>
+              )}
+
+              {step === 7 && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    {TEMPLATES.map((o) => {
+                      const on = template === o.id;
+                      return (
+                        <button key={o.id} type="button" onClick={() => setTemplate(o.id)} aria-pressed={on}
+                          className={`overflow-hidden rounded-xl border bg-lp-surface text-left transition ${
+                            on ? "border-lp-accent ring-4 ring-lp-accent-soft" : "border-lp-border hover:border-lp-border-strong"}`}>
+                          <span className="relative block aspect-[4/3] overflow-hidden bg-lp-surface-2">
+                            <Image src={`/brand/templates/${o.id}.png`} alt="" fill sizes="240px" className="object-cover object-top" />
+                            {o.pro && (
+                              <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur">
+                                <Lock className="h-2.5 w-2.5" /> Pro
+                              </span>
+                            )}
+                            {on && (
+                              <span className="absolute left-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-lp-accent text-lp-on-accent shadow">
+                                <Check className="h-3.5 w-3.5" />
+                              </span>
+                            )}
+                          </span>
+                          <span className="flex items-center justify-between px-3 py-2.5">
+                            <span className="text-sm font-medium text-lp-text">{o.name}</span>
+                            {!o.pro && <span className="text-[11px] font-medium text-lp-green">Free</span>}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <Notice tone="info">
+                    Designs marked Pro need an upgrade. If you pick one now, we&apos;ll publish with Minimal for free and you can switch anytime.
+                  </Notice>
+                </>
+              )}
+            </div>
+
+            {/* actions */}
+            <div className="mt-8 flex flex-col-reverse gap-3 border-t border-lp-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+              {step === 0 ? <span className="hidden sm:block" /> : (
+                <button onClick={skip} disabled={busy} className={btn("ghost", "md")}>
+                  Skip for now
+                </button>
+              )}
+              {step === 0 ? (
+                <button onClick={claim} disabled={avail !== "free" || !claimName.trim() || busy} className={btn("primary", "lg")}>
+                  {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating…</> : <>Claim &amp; continue <ArrowRight className="h-4 w-4" /></>}
+                </button>
+              ) : (
+                <button onClick={submitStep} disabled={busy} className={btn(last ? "success" : "primary", "lg")}>
+                  {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                    : last ? <>Publish &amp; finish <Rocket className="h-4 w-4" /></>
+                    : <>Continue <ArrowRight className="h-4 w-4" /></>}
+                </button>
+              )}
+            </div>
+          </motion.section>
+        </AnimatePresence>
+
+        <p className="mt-6 text-center text-[13px] text-lp-subtle">
+          Every step is optional. You can change anything later from your dashboard.
         </p>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
