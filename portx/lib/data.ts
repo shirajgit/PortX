@@ -20,27 +20,33 @@ const INCLUDE = {
 
 type ProfileWithRelations = Prisma.ProfileGetPayload<{ include: typeof INCLUDE }>;
 
+/** Public data. `forResume` adds the phone number, which only the resume prints —
+    never pass it to portfolio templates (they're client components, so it would land in the page source). */
 export async function getPortfolioData(
-  username: string
+  username: string,
+  opts: { forResume?: boolean } = {}
 ): Promise<{ template: string; data: PortfolioData; profileId: string } | null> {
   const p = await db.profile.findUnique({ where: { username }, include: INCLUDE });
   if (!p || !p.isPublished) return null;
   const result = assemble(p);
+  if (opts.forResume && p.phone) result.data.profile.phone = p.phone;
   // Pro designs need an active pass. The choice stays saved, so it comes back on renewal.
   if (PRO_TEMPLATES.has(result.template) && !isPro(p)) result.template = "minimal";
   return result;
 }
 
-/** Own data for dashboard tools — no publish check. */
+/** Own data for dashboard tools — no publish check. Includes the phone (it's the owner's own data). */
 export async function getOwnPortfolioData(
   profileId: string
 ): Promise<{ template: string; data: PortfolioData; profileId: string; username: string } | null> {
   const p = await db.profile.findUnique({ where: { id: profileId }, include: INCLUDE });
   if (!p) return null;
-  return { ...assemble(p), username: p.username };
+  const result = assemble(p);
+  if (p.phone) result.data.profile.phone = p.phone;
+  return { ...result, username: p.username };
 }
 
-function assemble(p: ProfileWithRelations) {
+function assemble(p: ProfileWithRelations): { template: string; profileId: string; data: PortfolioData } {
   return {
     template: p.template,
     profileId: p.id,

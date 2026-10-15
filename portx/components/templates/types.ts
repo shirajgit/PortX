@@ -5,6 +5,8 @@ export type PortfolioData = {
     summary: string;
     location: string;
     email: string;
+    /** Only set for the resume (and the owner's own dashboard data) — never on public pages. */
+    phone?: string;
     avatarUrl: string | null;
     openToWork: boolean;
     themeConfig: Record<string, unknown>;

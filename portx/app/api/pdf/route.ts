@@ -8,6 +8,9 @@ import { recordEvent } from "@/lib/track";
 
 export const maxDuration = 30;
 
+// Bump when the PDF layout changes (not the data), so cached copies are re-rendered.
+const PDF_LAYOUT = 2;
+
 /* Caching: /api/pdf?username=x answers with a redirect to ?username=x&v=<content hash>.
    The versioned URL is CDN-cacheable, so Chrome only runs once per profile version
    instead of on every download. Any edit changes the hash and busts the cache. */
@@ -23,10 +26,11 @@ export async function GET(req: Request) {
   if (!isPro(profile))
     return Response.json({ error: "pro_required" }, { status: 403 });
 
-  const portfolio = await getPortfolioData(username);
+  // forResume: the phone is printed, so it must change the version hash too.
+  const portfolio = await getPortfolioData(username, { forResume: true });
   if (!portfolio) return Response.json({ error: "not_found" }, { status: 404 });
   const version = createHash("sha256")
-    .update(JSON.stringify([portfolio.template, portfolio.data]))
+    .update(JSON.stringify([PDF_LAYOUT, portfolio.template, portfolio.data]))
     .digest("hex")
     .slice(0, 16);
 
@@ -60,6 +64,11 @@ export async function GET(req: Request) {
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
+      tagged: true, // accessible + structured text: helps ATS parsers keep reading order
+      // Branding sits in the bottom page margin (every page), apart from the resume content.
+      displayHeaderFooter: true,
+      headerTemplate: "<span></span>",
+      footerTemplate: `<div style="width:100%;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:8px;color:#888;">Built with <a href="https://portxz.xyz" style="color:#888;text-decoration:none;">Portxz</a></div>`,
       margin: { top: "14mm", bottom: "14mm", left: "15mm", right: "15mm" },
     });
 
