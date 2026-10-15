@@ -2,6 +2,7 @@ import { db } from "./db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import type { PortfolioData } from "@/components/templates/types";
 import { parseItems } from "./sections";
+import { PRO_TEMPLATES, isPro } from "./billing";
 
 const fmtMonth = (d: Date | null) =>
   d ? d.toLocaleDateString("en-US", { month: "short", year: "numeric" }) : null;
@@ -24,7 +25,10 @@ export async function getPortfolioData(
 ): Promise<{ template: string; data: PortfolioData; profileId: string } | null> {
   const p = await db.profile.findUnique({ where: { username }, include: INCLUDE });
   if (!p || !p.isPublished) return null;
-  return assemble(p);
+  const result = assemble(p);
+  // Pro designs need an active pass. The choice stays saved, so it comes back on renewal.
+  if (PRO_TEMPLATES.has(result.template) && !isPro(p)) result.template = "minimal";
+  return result;
 }
 
 /** Own data for dashboard tools — no publish check. */

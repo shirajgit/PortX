@@ -141,13 +141,14 @@ export default function BillingPage() {
       theme: { color: "#4F8BFF" },
       modal: { ondismiss: () => setPaying(null) },
       handler: async (result: RazorpayResult) => {
+        // A network drop here is fine: the Razorpay webhook still turns Pro on.
         const v = await fetch("/api/billing/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(result),
-        });
+        }).catch(() => null);
         setPaying(null);
-        if (!v.ok)
+        if (!v?.ok)
           setError(`Your payment went through, but we're still confirming it — Pro will turn on shortly. Reference: ${result.razorpay_payment_id}`);
         else setSuccess(true);
         await load();
