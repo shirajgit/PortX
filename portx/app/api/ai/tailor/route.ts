@@ -37,10 +37,14 @@ export async function POST(req: Request) {
       return Response.json({ error: "profile_too_empty" }, { status: 422 });
 
     const { system, user } = buildTailorPrompt(data, body.data.job);
+    // Light reasoning sharpens the job-to-profile matching without a big token bill.
+    // Same job + same profile → cached result, free.
     const ai = await chat({
+      thinking: "low",
       json: true,
+      cache: true,
+      validate: (s) => parseTailorResponse(s, data) !== null,
       maxTokens: 2200,
-      temperature: 0.3,
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -51,12 +55,15 @@ export async function POST(req: Request) {
     const result = parseTailorResponse(ai.content, data);
     if (!result) return Response.json({ error: "ai_bad_response" }, { status: 502 });
 
-    await db.pageView.create({ data: { profileId: profile.id, kind: "ai_tailor", ref: String(result.score) } });
+    // Cached answers don't use up the monthly allowance.
+    if (!ai.cached)
+      await db.pageView.create({ data: { profileId: profile.id, kind: "ai_tailor", ref: String(result.score) } });
     return Response.json({
       result,
       data,
       lines: rewritableLines(data).size,
-      remaining: PRO_AI_LIMITS.tailor - used - 1,
+      remaining: PRO_AI_LIMITS.tailor - used - (ai.cached ? 0 : 1),
+      cached: ai.cached,
     });
   } catch (e) {
     return handleAuthError(e);

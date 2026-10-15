@@ -4,15 +4,40 @@ import { requireProfile, handleAuthError } from "@/lib/auth";
 import { isPro, FREE_AI_LIMITS, PRO_AI_LIMITS } from "@/lib/billing";
 import { aiConfigured, chat } from "@/lib/ai";
 
-const SYSTEM = `You improve resume/portfolio text for a software developer.
-Rules: rewrite ONLY the provided text. Never invent metrics, employers,
-technologies, or outcomes not present in the input. Keep it concise and
-action-verb-led. Return plain text only, no preamble, no quotes.`;
+/* Static per mode (no user data), so DeepSeek's prompt cache bills it at the cheap rate. */
+const SYSTEM = `You are a senior resume editor. You rewrite one piece of portfolio/resume text
+for a professional in any field (engineering, design, marketing, sales, finance, operations…).
+
+RULES
+- Keep every fact exactly as given: never add metrics, employers, tools, numbers or outcomes
+  that aren't in the input. If the input has a number, keep it.
+- Lead with a strong, specific action verb (Built, Led, Designed, Grew, Cut, Launched…).
+  Avoid filler: "responsible for", "worked on", "helped with", "various", "etc.", "passionate".
+- Prefer concrete nouns over buzzwords. Say what was done, for whom, and the result if given.
+- Fix grammar, capitalisation and tense (past tense for past work).
+- Match the person's field using the ROLE line, but don't mention the role itself.
+- Output ONLY the rewritten text: no quotes, no preamble, no alternatives, no markdown.`;
 
 const MODES = {
-  bullet: "Rewrite as one strong resume bullet (max 25 words).",
-  summary: "Rewrite as a 2-3 sentence professional summary.",
-  tagline: "Rewrite as a one-line project tagline (max 15 words).",
+  bullet: `TASK: Rewrite as ONE resume bullet, max 25 words, no trailing full stop.
+EXAMPLES
+In: worked on the website and made it faster
+Out: Rebuilt the company website's front end, cutting page load time noticeably
+In: handled instagram for the brand, followers went from 2k to 10k
+Out: Grew the brand's Instagram from 2K to 10K followers through a consistent content calendar
+In: did sales calls with clients
+Out: Ran discovery and follow-up calls with prospective clients to move deals through the pipeline`,
+  summary: `TASK: Rewrite as a 2-3 sentence professional summary in first person without "I" at the start of every sentence.
+Open with who they are and their strongest area, then what they've done, then what they're looking for (only if stated).
+EXAMPLE
+In: im a designer i like making apps look good, 3 years exp, want remote job
+Out: Product designer with 3 years of experience turning complex app flows into clean, intuitive interfaces. Comfortable owning work from research to polished UI. Looking for a remote product design role.`,
+  tagline: `TASK: Rewrite as a one-line project tagline, max 15 words, no full stop. Say what it is and who it's for.
+EXAMPLES
+In: an app i made for tracking expenses
+Out: Expense tracker that sorts your spending into categories automatically
+In: website redesign for a cafe
+Out: A fresh brand and website for a neighbourhood café`,
 } as const;
 
 const Input = z.object({
@@ -48,16 +73,19 @@ export async function POST(req: Request) {
     if (!body.success)
       return Response.json({ error: body.error.flatten() }, { status: 400 });
 
+    // A quick rewrite doesn't need reasoning — thinking off keeps it fast and cheap.
     const ai = await chat({
-      maxTokens: 300,
+      maxTokens: 220,
+      temperature: 0.5,
+      thinking: false,
       messages: [
-        { role: "system", content: `${SYSTEM}\n${MODES[body.data.mode]}` },
-        { role: "user", content: body.data.text },
+        { role: "system", content: `${SYSTEM}\n\n${MODES[body.data.mode]}` },
+        { role: "user", content: `ROLE: ${profile.headline || "Professional"}\nIn: ${body.data.text.replace(/\s+/g, " ").trim()}\nOut:` },
       ],
     });
     if (!ai.ok) return Response.json({ error: ai.error }, { status: ai.status });
     // Models sometimes wrap the answer in quotes despite the instruction.
-    const suggestion = ai.content.replace(/^["“']+|["”']+$/g, "").trim();
+    const suggestion = ai.content.replace(/^(out:\s*)/i, "").replace(/^["“']+|["”']+$/g, "").trim();
 
     await db.pageView.create({
       data: { profileId: profile.id, kind: "ai_enhance", ref: body.data.mode },

@@ -159,6 +159,16 @@ model PageView {
   @@map("page_views")
 }
 
+/// Stored AI answers keyed by a hash of the exact request, so repeats are free.
+model AiCache {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("ai_cache")
+}
+
 model Waitlist {
   id        String   @id @default(cuid())
   email     String   @unique

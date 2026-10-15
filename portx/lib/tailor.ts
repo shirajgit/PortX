@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { PortfolioData } from "@/components/templates/types";
+import { extractJson } from "@/lib/json";
 
 /* ── Resume Tailor ──────────────────────────────────────────────────────
    Compares the user's PortfolioData with a pasted job description and
@@ -77,6 +78,10 @@ FIELDS:
 OUTPUT SHAPE (exactly):
 {"score":72,"verdict":"...","role":"...","matched":["React"],"missing":["AWS"],"summary":"...","highlightSkills":["React"],"rewrites":[{"id":"exp:0:1","suggestion":"...","reason":"..."}],"tips":["..."]}`;
 
+/** JSON.stringify replacer: leave out empty strings, nulls and empty arrays — fewer tokens, same meaning. */
+const dropEmpty = (_: string, v: unknown) =>
+  v === "" || v === null || (Array.isArray(v) && v.length === 0) ? undefined : v;
+
 export function buildTailorPrompt(data: PortfolioData, job: string): { system: string; user: string } {
   const candidate = {
     headline: data.profile.headline,
@@ -99,22 +104,19 @@ export function buildTailorPrompt(data: PortfolioData, job: string): { system: s
     educations: data.educations.map((ed) => ({ institution: ed.institution, degree: ed.degree, endYear: ed.endYear })),
     extra: data.sections.map((s) => ({ title: s.title, items: s.items.map((it) => it.title) })),
   };
+  // Candidate first, job second: the profile is the same across every job a user tailors for,
+  // so DeepSeek's prefix cache bills it at the cheap rate from the second job on.
+  const cleanJob = job.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
   return {
     system: SYSTEM,
-    user: `JOB DESCRIPTION:\n"""\n${job}\n"""\n\nCANDIDATE (JSON):\n${JSON.stringify(candidate)}`,
+    user: `CANDIDATE (JSON):\n${JSON.stringify(candidate, dropEmpty)}\n\nJOB DESCRIPTION:\n"""\n${cleanJob}\n"""`,
   };
 }
 
 export function parseTailorResponse(raw: string, data: PortfolioData): TailorResponse | null {
-  const clean = raw.replace(/```json|```/g, "").trim();
-  let parsed: TailorResultT;
-  try {
-    const r = TailorResult.safeParse(JSON.parse(clean));
-    if (!r.success) return null;
-    parsed = r.data;
-  } catch {
-    return null;
-  }
+  const r = TailorResult.safeParse(extractJson(raw));
+  if (!r.success) return null;
+  const parsed: TailorResultT = r.data;
 
   const lines = rewritableLines(data);
   const seen = new Set<string>();

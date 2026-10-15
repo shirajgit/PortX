@@ -34,11 +34,14 @@ export async function POST() {
 
     const { system, user } = buildCriticPrompt(result.data);
 
+    // A review is worth careful reasoning. Same profile → same review from cache, at no cost.
     const ai = await chat({
       tier: "smart",
+      thinking: "high",
       json: true,
+      cache: true,
+      validate: (s) => parseCriticResponse(s) !== null,
       maxTokens: 1500,
-      temperature: 0.3,
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -49,10 +52,12 @@ export async function POST() {
     const parsed = parseCriticResponse(ai.content);
     if (!parsed) return Response.json({ error: "ai_bad_response" }, { status: 502 });
 
-    await db.pageView.create({
-      data: { profileId: profile.id, kind: "ai_critic", ref: String(parsed.score) },
-    });
-    return Response.json(parsed);
+    // Cached answers don't use up the monthly allowance.
+    if (!ai.cached)
+      await db.pageView.create({
+        data: { profileId: profile.id, kind: "ai_critic", ref: String(parsed.score) },
+      });
+    return Response.json({ ...parsed, cached: ai.cached });
   } catch (e) {
     return handleAuthError(e);
   }

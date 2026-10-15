@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { PortfolioData } from "@/components/templates/types";
+import { extractJson } from "@/lib/json";
 
 /* ── AI Portfolio Critic ────────────────────────────────────────────────
    Sends the user's PortfolioData through a structured rubric and returns
@@ -20,7 +21,9 @@ export const CriticResult = z.object({
 });
 export type CriticResultT = z.infer<typeof CriticResult>;
 
-const SYSTEM = `You are a strict but constructive reviewer of developer portfolios,
+const SYSTEM = `You are a strict but constructive reviewer of professional portfolios (any field:
+engineering, design, marketing, sales, finance and more). Judge against what recruiters
+and clients in THIS person's field expect, inferred from their headline and experience,
 grading how ready this profile is for recruiters and freelance clients.
 
 HARD RULES:
@@ -35,7 +38,7 @@ RUBRIC — score each category 0-100 and give an overall weighted score:
 2. "Projects"           — count (3-6 ideal), taglines, live/repo links present, tech listed, at least one featured
 3. "Impact & Metrics"   — do bullets show outcomes/numbers, or only "built X"? This is where most portfolios fail.
 4. "Experience"         — clear titles/orgs, dated, bullets action-led
-5. "Completeness"       — skills grouped sensibly, education present, links (GitHub+LinkedIn minimum)
+5. "Completeness"       — skills grouped sensibly, education present, links (LinkedIn minimum; GitHub for developers, Behance/Dribbble for designers)
 
 verdict per category: "good" (>=75), "needs_work" (40-74), "missing" (<40).
 summary: 2-3 sentences, honest, lead with the strongest thing then the #1 priority fix.
@@ -64,11 +67,6 @@ export function buildCriticPrompt(data: PortfolioData): { system: string; user: 
 }
 
 export function parseCriticResponse(raw: string): CriticResultT | null {
-  const clean = raw.replace(/```json|```/g, "").trim();
-  try {
-    const parsed = CriticResult.safeParse(JSON.parse(clean));
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
+  const parsed = CriticResult.safeParse(extractJson(raw));
+  return parsed.success ? parsed.data : null;
 }
