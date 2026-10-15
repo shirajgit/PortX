@@ -2,6 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
 import { isPro, FREE_AI_LIMITS, PRO_AI_LIMITS } from "@/lib/billing";
+import { aiConfigured, chat } from "@/lib/ai";
 
 const SYSTEM = `You improve resume/portfolio text for a software developer.
 Rules: rewrite ONLY the provided text. Never invent metrics, employers,
@@ -24,7 +25,7 @@ const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 export async function POST(req: Request) {
   try {
     const profile = await requireProfile();
-    if (!process.env.OPENROUTER_API_KEY)
+    if (!aiConfigured())
       return Response.json({ error: "ai_not_configured" }, { status: 501 });
 
     // monthly allowance: small on free, fair-use cap on Pro
@@ -47,35 +48,16 @@ export async function POST(req: Request) {
     if (!body.success)
       return Response.json({ error: body.error.flatten() }, { status: 400 });
 
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://portxz.xyz",
-        "X-Title": "Portxz",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
-        max_tokens: 300,
-        messages: [
-          { role: "system", content: `${SYSTEM}\n${MODES[body.data.mode]}` },
-          { role: "user", content: body.data.text },
-        ],
-      }),
+    const ai = await chat({
+      maxTokens: 300,
+      messages: [
+        { role: "system", content: `${SYSTEM}\n${MODES[body.data.mode]}` },
+        { role: "user", content: body.data.text },
+      ],
     });
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      console.error("OpenRouter error:", res.status, errBody);
-      return Response.json(
-        { error: `openrouter_${res.status}`, detail: errBody.slice(0, 300) },
-        { status: 502 }
-      );
-    }
-    const data = await res.json();
-    const suggestion: string = data.choices?.[0]?.message?.content?.trim() ?? "";
-    if (!suggestion)
-      return Response.json({ error: "ai_empty_response" }, { status: 502 });
+    if (!ai.ok) return Response.json({ error: ai.error }, { status: ai.status });
+    // Models sometimes wrap the answer in quotes despite the instruction.
+    const suggestion = ai.content.replace(/^["“']+|["”']+$/g, "").trim();
 
     await db.pageView.create({
       data: { profileId: profile.id, kind: "ai_enhance", ref: body.data.mode },

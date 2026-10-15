@@ -3,13 +3,14 @@ import { requireProfile, handleAuthError } from "@/lib/auth";
 import { getOwnPortfolioData } from "@/lib/data";
 import { buildCriticPrompt, parseCriticResponse } from "@/lib/critic";
 import { isPro, PRO_AI_LIMITS } from "@/lib/billing";
+import { aiConfigured, chat } from "@/lib/ai";
 
 export const maxDuration = 30;
 
 export async function POST() {
   try {
     const profile = await requireProfile();
-    if (!process.env.OPENROUTER_API_KEY)
+    if (!aiConfigured())
       return Response.json({ error: "ai_not_configured" }, { status: 501 });
 
     if (!isPro(profile))
@@ -33,35 +34,19 @@ export async function POST() {
 
     const { system, user } = buildCriticPrompt(result.data);
 
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://portxz.xyz",
-        "X-Title": "Portxz",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-4o",
-        max_tokens: 1200,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
+    const ai = await chat({
+      tier: "smart",
+      json: true,
+      maxTokens: 1500,
+      temperature: 0.3,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
     });
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      console.error("OpenRouter error:", res.status, errBody);
-      return Response.json(
-        { error: `openrouter_${res.status}`, detail: errBody.slice(0, 300) },
-        { status: 502 }
-      );
-    }
+    if (!ai.ok) return Response.json({ error: ai.error }, { status: ai.status });
 
-    const data = await res.json();
-    const raw: string = data.choices?.[0]?.message?.content ?? "";
-    const parsed = parseCriticResponse(raw);
+    const parsed = parseCriticResponse(ai.content);
     if (!parsed) return Response.json({ error: "ai_bad_response" }, { status: 502 });
 
     await db.pageView.create({
