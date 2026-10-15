@@ -299,3 +299,17 @@ html.light {
 .gh-md .tok-f { color: #E0A84E; }
 .gh-md .tok-n { color: #E5826B; }
 .gh-md pre { border: 1px solid var(--lp-border); }
+
+/* ── Resume Tailor: print only the tailored resume ── */
+@media print {
+  body.printing-tailor { background: #fff !important; }
+  body.printing-tailor * { visibility: hidden !important; }
+  body.printing-tailor #tailor-print,
+  body.printing-tailor #tailor-print * { visibility: visible !important; }
+  body.printing-tailor #tailor-print {
+    position: absolute; left: 0; top: 0; width: 100%; max-width: none;
+    box-shadow: none !important; border-radius: 0; overflow: visible;
+  }
+  body.printing-tailor #tailor-print main { max-width: none; padding: 0; }
+}
+@page { size: A4; margin: 14mm 15mm; }

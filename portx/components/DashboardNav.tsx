@@ -6,7 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUpRight, Briefcase, FileText, FolderKanban, GraduationCap, House,
-  Link2, Menu, Palette, ShieldCheck, Sparkles, SquarePlus, UserRound, X, Zap, type LucideIcon,
+  Link2, Menu, Palette, ShieldCheck, Sparkles, SquarePlus, Target, UserRound, X, Zap, type LucideIcon,
 } from "lucide-react";
 import { GithubIcon } from "@/components/BrandIcons";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -37,6 +37,7 @@ const NAV_GROUPS: { label: string | null; items: NavItem[] }[] = [
     items: [
       { href: "/dashboard/template", label: "Design & publish", icon: Palette },
       { href: "/dashboard/resume", label: "Resume", icon: FileText },
+      { href: "/dashboard/tailor", label: "Tailor to a job", icon: Target },
       { href: "/dashboard/review", label: "AI feedback", icon: Sparkles },
       { href: "/dashboard/readme", label: "GitHub README", icon: GithubIcon },
     ],
