@@ -31,13 +31,16 @@ export async function GET(req: Request) {
     .digest("hex")
     .slice(0, 16);
 
-  if (url.searchParams.get("v") !== version) {
+  // Chrome only runs for this exact query string. Anything else (an extra param added to
+  // dodge the CDN cache, different casing) is redirected to it, so it's served from cache.
+  const canonical = `?username=${encodeURIComponent(username)}&v=${version}`;
+  if (url.search !== canonical) {
     // Every download passes through here, so this is where it's counted.
-    await recordEvent(req, profile.id, "pdf_download");
+    if (url.searchParams.get("v") !== version) await recordEvent(req, profile.id, "pdf_download");
     return new Response(null, {
       status: 302,
       headers: {
-        Location: `/api/pdf?username=${encodeURIComponent(username)}&v=${version}`,
+        Location: `/api/pdf${canonical}`,
         "Cache-Control": "no-store",
       },
     });

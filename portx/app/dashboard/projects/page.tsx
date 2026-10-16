@@ -20,6 +20,7 @@ type Project = {
   tech: string[];
   liveUrl: string | null;
   repoUrl: string | null;
+  imageUrl: string | null;
   featured: boolean;
 };
 
@@ -27,13 +28,18 @@ type Draft = { name: string; tagline: string; tech: string[]; repoUrl: string; l
 type ApiProject = Partial<Project> & { bullets?: unknown; tech?: unknown };
 type Problem = { message: string; upgrade: boolean } | null;
 
-const EMPTY: Project = { name: "", tagline: "", bullets: [], tech: [], liveUrl: null, repoUrl: null, featured: false };
+const EMPTY: Project = { name: "", tagline: "", bullets: [], tech: [], liveUrl: null, repoUrl: null, imageUrl: null, featured: false };
 
 function normalizeUrl(v: string | null): string | null {
   if (!v) return null;
   const s = v.trim();
   if (!s) return null;
   return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+}
+
+/** Cover images must be https (the API rejects anything else), so upgrade http:// links. */
+function normalizeImageUrl(v: string | null): string | null {
+  return normalizeUrl(v)?.replace(/^http:\/\//i, "https://") ?? null;
 }
 
 export default function ProjectsPage() {
@@ -59,6 +65,8 @@ export default function ProjectsPage() {
     );
     setLoaded(true);
   };
+  // Fetch on mount: load() only sets state after its request resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   const atLimit = !pro && projects.length >= FREE_UI_LIMITS.projects;
@@ -74,7 +82,8 @@ export default function ProjectsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: p.name, tagline: p.tagline, bullets: p.bullets.filter(Boolean),
-        tech: p.tech, liveUrl: normalizeUrl(p.liveUrl), repoUrl: normalizeUrl(p.repoUrl), featured: p.featured,
+        tech: p.tech, liveUrl: normalizeUrl(p.liveUrl), repoUrl: normalizeUrl(p.repoUrl),
+        imageUrl: normalizeImageUrl(p.imageUrl), featured: p.featured,
       }),
     });
     setSaving(false);
@@ -191,6 +200,17 @@ export default function ProjectsPage() {
                   onChange={(e) => setEditing({ ...editing, repoUrl: e.target.value })} />
               </Field>
             </div>
+            <Field label="Cover image link" optional hint="A screenshot or banner of the project (https link). Without one, your page draws a cover for you.">
+              <div className="flex items-center gap-3">
+                <input className={inputCls} value={editing.imageUrl ?? ""} placeholder="https://…/screenshot.png"
+                  onChange={(e) => setEditing({ ...editing, imageUrl: e.target.value })} />
+                {/^https?:\/\/\S+$/i.test(editing.imageUrl?.trim() ?? "") && (
+                  // Any external host, so next/image (which needs allow-listed hosts) doesn't fit.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={editing.imageUrl!.trim()} alt="" className="h-10 w-16 shrink-0 rounded-md border border-lp-border object-cover" />
+                )}
+              </div>
+            </Field>
             <Toggle checked={editing.featured} onChange={(featured) => setEditing({ ...editing, featured })}
               label="Highlight this project" description="Highlighted projects are shown first on your page." />
           </>

@@ -13,6 +13,16 @@ import {
   CountUp,
   Avatar3D,
 } from "../tem_comps/Motion";
+import {
+  FloatingChips,
+  FloatingNav,
+  HeroBackdrop,
+  ProjectCover,
+  StatusPill,
+  jumpTo,
+  resumeHref,
+  type NavItem,
+} from "../tem_comps/Premium";
 import { getInsights } from "../insights";
 
 /* ── Bento template ─────────────────────────────────────────────────────
@@ -24,9 +34,10 @@ import { getInsights } from "../insights";
 const ACCENT = ["#7DD3FC", "#A78BFA", "#F0ABFC", "#7DD3FC"];
 
 const tileBase =
-  "group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-white/[0.08] p-6 shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset] transition duration-300 will-change-transform hover:-translate-y-1 hover:border-white/[0.16] hover:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)] sm:p-7";
+  "group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-white/[0.08] p-6 shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset] transition duration-300 will-change-transform hover:-translate-y-1 hover:border-white/[0.16] hover:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)] sm:p-7 [&>div:last-child]:flex [&>div:last-child]:flex-1 [&>div:last-child]:flex-col";
 
-/* A single bento surface: dark tinted card + cursor spotlight. */
+/* A single bento surface: dark tinted card + cursor spotlight. The spotlight wraps the
+   content in its own div (the last child), made a full-height column so mt-auto works. */
 function Tile({
   children,
   className,
@@ -52,7 +63,14 @@ const Label = ({ children }: { children: React.ReactNode }) => (
 const chip =
   "rounded-full border border-white/[0.08] bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/70";
 
-export function Bento({ data }: TemplateProps) {
+/* Project covers glow in the tile's own two tints. */
+const COVER_PALETTES = [
+  ["rgba(125,211,252,0.55)", "rgba(91,108,255,0.45)", "rgba(167,139,250,0.3)"],
+  ["rgba(240,171,252,0.5)", "rgba(177,75,240,0.45)", "rgba(125,211,252,0.25)"],
+];
+const coverOverlay = "linear-gradient(to top, rgba(8,9,13,0.85), rgba(8,9,13,0.1) 60%, transparent)";
+
+export function Bento({ data, username }: TemplateProps) {
   const { profile, links, experiences, projects, skills, educations, sections } = data;
 
   const featured = projects.filter((p) => p.featured);
@@ -61,17 +79,47 @@ export function Bento({ data }: TemplateProps) {
 
   const allSkillItems = skills.flatMap((s) => s.items);
   /* Stat tiles, current role and monogram all derive from the profile data. */
-  const { initials, current, stats } = getInsights(data);
+  const { initials, current, stats, topTech, years } = getInsights(data);
+  const resume = resumeHref(username);
+
+  const nav: NavItem[] = [
+    projects.length > 0 && { id: "work", label: "Work" },
+    skills.length > 0 && { id: "skills", label: "Skills" },
+    experiences.length > 0 && { id: "experience", label: "Experience" },
+    (profile.email || links.length > 0) && { id: "contact", label: "Contact" },
+  ].filter((x): x is NavItem => !!x);
   const statCols =
     ["", "grid-cols-1", "grid-cols-2", "grid-cols-3", "grid-cols-2 lg:grid-cols-4"][stats.length] ??
     "grid-cols-2 lg:grid-cols-4";
 
   return (
     <main
-      className="relative min-h-screen overflow-hidden bg-[#08090D] px-4 py-12 font-sans text-[#EAECF2] antialiased sm:px-6 sm:py-16"
+      id="top"
+      className="relative min-h-screen overflow-hidden bg-[#08090D] px-4 pb-12 pt-24 font-sans text-[#EAECF2] antialiased sm:px-6 sm:pb-16 sm:pt-28"
       data-fixed-theme
     >
       <ScrollProgress color="linear-gradient(90deg,#7DD3FC,#A78BFA,#F0ABFC)" />
+      <FloatingNav
+        brand={
+          <span className="inline-flex items-center gap-2 text-base font-bold tracking-tight">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[#7DD3FC] via-[#A78BFA] to-[#F0ABFC] text-[11px] font-black text-[#0B0D16]">
+              {initials}
+            </span>
+            <span className="hidden sm:inline">{profile.fullName}</span>
+          </span>
+        }
+        items={nav}
+        cta={resume ? { label: "Resume ↓", href: resume } : null}
+        tone={{
+          bar: "rounded-[20px] border border-white/[0.08] bg-[#0E1119]/70 backdrop-blur-xl",
+          scrolled: "bg-[#0E1119]/90 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)]",
+          link: "rounded-xl font-medium text-white/55 hover:text-white",
+          linkActive: "rounded-xl font-medium text-white",
+          pill: "rounded-xl border border-white/[0.1] bg-white/[0.07]",
+          cta: "rounded-xl bg-white text-[#0B0D16] hover:bg-[#7DD3FC]",
+          menu: "border-white/[0.08]",
+        }}
+      />
       {/* ambient background */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -top-40 left-1/4 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-[#5B6CFF]/15 blur-[130px]" />
@@ -93,33 +141,36 @@ export function Bento({ data }: TemplateProps) {
         {/* ── Hero identity ─────────────────────────────────────────── */}
         <Item className="h-full sm:col-span-2 lg:col-span-4">
           <TiltCard className="h-full" max={4}>
-            <Tile className="justify-between bg-gradient-to-br from-[#161A2B] via-[#101320] to-[#0B0D16]">
-              <div className="flex items-start justify-between gap-4">
+            <Tile className="min-h-[30rem] justify-between bg-gradient-to-br from-[#161A2B] via-[#101320] to-[#0B0D16] lg:min-h-[34rem]">
+              <HeroBackdrop className="-m-6 sm:-m-7" glow="rgba(125,211,252,0.10)" blobs={["rgba(91,108,255,0.18)", "rgba(177,75,240,0.14)"]} grid="#ffffff" gridSize={44} gridOpacity={0.05} />
+              <div className="relative flex items-start justify-between gap-4">
                 {profile.openToWork ? (
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[#39D98A]/30 bg-[#39D98A]/10 px-3 py-1 text-xs font-medium text-[#5FE7AA]">
-                    <span className="relative flex h-2 w-2">
-                      <span className="pxz-pulse absolute inline-flex h-full w-full rounded-full bg-[#5FE7AA]/70" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#5FE7AA]" />
-                    </span>
+                  <StatusPill dot="bg-[#5FE7AA]" className="border border-[#39D98A]/30 bg-[#39D98A]/10 font-medium text-[#5FE7AA]">
                     Open to work
-                  </span>
+                  </StatusPill>
                 ) : (
                   <span />
                 )}
-                <Avatar3D
-                  src={profile.avatarUrl}
-                  name={profile.fullName}
-                  initials={initials}
-                  size={72}
-                  shape="squircle"
-                  colors={["#7DD3FC", "#A78BFA", "#F0ABFC"]}
-                  surface="linear-gradient(135deg,#1B2140,#141627)"
-                  className="mr-3 mt-3"
-                />
+                <div className="relative mr-4 mt-4 sm:mr-8 sm:mt-6">
+                  <Avatar3D
+                    src={profile.avatarUrl}
+                    name={profile.fullName}
+                    initials={initials}
+                    size={112}
+                    shape="squircle"
+                    colors={["#7DD3FC", "#A78BFA", "#F0ABFC"]}
+                    surface="linear-gradient(135deg,#1B2140,#141627)"
+                  />
+                  <div className="hidden lg:block">
+                    <FloatingChips
+                      chips={[topTech[0] ?? "", years > 0 ? `${years}+ yrs` : ""]}
+                      chipClass="border border-white/10 bg-[#0E1119]/80 text-white/80 backdrop-blur-md" />
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-8">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+              <div className="relative mt-auto pt-8">
+                <h1 className="text-5xl font-extrabold tracking-tight sm:text-7xl">
                   <GradientText colors={ACCENT}>{profile.fullName}</GradientText>
                 </h1>
                 {profile.headline && (
@@ -136,10 +187,28 @@ export function Bento({ data }: TemplateProps) {
                   </p>
                 )}
                 {profile.summary && (
-                  <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/55">
+                  <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/55 sm:text-[15px]">
                     {profile.summary}
                   </p>
                 )}
+                <div className="mt-7 flex flex-wrap gap-3">
+                  {projects.length > 0 && (
+                    <Magnetic as="span" strength={0.3}>
+                      <a href="#work" onClick={(e) => jumpTo(e, "work")}
+                        className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0B0D16] shadow-[0_10px_30px_-10px_rgba(125,211,252,0.6)] transition hover:bg-[#7DD3FC]">
+                        View my work →
+                      </a>
+                    </Magnetic>
+                  )}
+                  {resume && (
+                    <Magnetic as="span" strength={0.3}>
+                      <a href={resume}
+                        className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-6 py-3 text-sm font-semibold text-white transition hover:border-[#7DD3FC]/50 hover:bg-white/[0.1]">
+                        Download resume ↓
+                      </a>
+                    </Magnetic>
+                  )}
+                </div>
               </div>
             </Tile>
           </TiltCard>
@@ -227,6 +296,7 @@ export function Bento({ data }: TemplateProps) {
         {shown.map((p, i) => (
           <Item
             key={p.name}
+            id={i === 0 ? "work" : undefined}
             className="h-full sm:col-span-2 lg:col-span-3"
           >
             <TiltCard className="h-full" max={6}>
@@ -238,15 +308,24 @@ export function Bento({ data }: TemplateProps) {
                     : "bg-gradient-to-br from-[#1c1230] to-[#100B1A]"
                 }
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <Label>Featured</Label>
-                    <h3 className="mt-2 text-xl font-semibold">{p.name}</h3>
+                <ProjectCover
+                  name={p.name}
+                  imageUrl={p.imageUrl}
+                  palette={COVER_PALETTES[i % 2]}
+                  base={i % 2 === 0 ? "#0D1424" : "#160F24"}
+                  ink="rgba(255,255,255,0.08)"
+                  grid="rgba(255,255,255,0.05)"
+                  overlay={coverOverlay}
+                  className="-mx-6 -mt-6 mb-5 h-52 sm:-mx-7 sm:-mt-7 sm:h-60"
+                >
+                  <div className="flex h-full items-start justify-between p-5">
+                    <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80 backdrop-blur">
+                      Featured
+                    </span>
+                    <span aria-hidden className="text-sm text-[#FFC24B]">★</span>
                   </div>
-                  <span aria-hidden className="text-sm text-[#FFC24B]">
-                    ★
-                  </span>
-                </div>
+                </ProjectCover>
+                <h3 className="text-2xl font-semibold tracking-tight transition group-hover:text-[#7DD3FC]">{p.name}</h3>
                 {p.tagline && (
                   <p className="mt-1.5 text-sm text-white/60">{p.tagline}</p>
                 )}
@@ -264,10 +343,10 @@ export function Bento({ data }: TemplateProps) {
                     ))}
                   </div>
                 )}
-                <div className="mt-auto flex gap-4 pt-5 text-xs font-medium">
+                <div className="mt-auto flex gap-3 pt-5 text-xs font-semibold">
                   {p.liveUrl && (
                     <a
-                      className="text-[#7DD3FC] transition hover:text-white"
+                      className="rounded-full bg-white px-4 py-2 text-[#0B0D16] transition hover:bg-[#7DD3FC]"
                       href={p.liveUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -277,7 +356,7 @@ export function Bento({ data }: TemplateProps) {
                   )}
                   {p.repoUrl && (
                     <a
-                      className="text-[#7DD3FC] transition hover:text-white"
+                      className="rounded-full border border-white/15 px-4 py-2 text-white/80 transition hover:border-[#7DD3FC]/50 hover:text-white"
                       href={p.repoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -293,7 +372,7 @@ export function Bento({ data }: TemplateProps) {
 
         {/* ── Skills ────────────────────────────────────────────────── */}
         {skills.length > 0 && (
-          <Item className="h-full sm:col-span-2 lg:col-span-4">
+          <Item id="skills" className="h-full sm:col-span-2 lg:col-span-4">
             <Tile glow="rgba(167,139,250,0.16)" className="bg-[#0E1119]">
               <Label>Skills &amp; Tooling</Label>
 
@@ -331,7 +410,7 @@ export function Bento({ data }: TemplateProps) {
 
         {/* ── Experience timeline ───────────────────────────────────── */}
         {experiences.length > 0 && (
-          <Item className="h-full sm:col-span-2 lg:col-span-3">
+          <Item id="experience" className="h-full sm:col-span-2 lg:col-span-3">
             <Tile className="bg-[#0E1119]">
               <Label>Experience</Label>
               <ol className="mt-5 space-y-5">
@@ -428,10 +507,20 @@ export function Bento({ data }: TemplateProps) {
         ))}
 
         {/* ── Remaining projects ────────────────────────────────────── */}
-        {rest.map((p) => (
+        {rest.map((p, i) => (
           <Item key={p.name} className="h-full sm:col-span-1 lg:col-span-2">
             <Tile className="bg-[#0E1119]">
-              <h3 className="text-sm font-semibold">{p.name}</h3>
+              <ProjectCover
+                name={p.name}
+                imageUrl={p.imageUrl}
+                palette={COVER_PALETTES[i % 2]}
+                base="#0E1119"
+                ink="rgba(255,255,255,0.07)"
+                grid="rgba(255,255,255,0.04)"
+                overlay={coverOverlay}
+                className="-mx-6 -mt-6 mb-4 h-32 sm:-mx-7 sm:-mt-7"
+              />
+              <h3 className="text-base font-semibold transition group-hover:text-[#7DD3FC]">{p.name}</h3>
               {p.tagline && (
                 <p className="mt-1 line-clamp-2 text-xs text-white/55">
                   {p.tagline}
@@ -473,8 +562,8 @@ export function Bento({ data }: TemplateProps) {
         ))}
 
         {/* ── Closing contact tile ──────────────────────────────────── */}
-        {profile.email && (
-          <Item className="col-span-full">
+        {(profile.email || links.length > 0) && (
+          <Item id="contact" className="col-span-full">
             <TiltCard max={3}>
               <Tile
                 glow="rgba(240,171,252,0.2)"
@@ -484,15 +573,31 @@ export function Bento({ data }: TemplateProps) {
                 <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-5xl">
                   <GradientText colors={ACCENT}>Let&apos;s work together.</GradientText>
                 </h2>
-                <div className="mt-7 flex justify-center">
-                  <Magnetic as="span" strength={0.3}>
-                    <a
-                      href={`mailto:${profile.email}`}
-                      className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0B0D16] transition hover:bg-[#7DD3FC]"
-                    >
-                      {profile.email} <span aria-hidden>↗</span>
+                <div className="mt-7 flex flex-wrap justify-center gap-3">
+                  {profile.email && (
+                    <Magnetic as="span" strength={0.3}>
+                      <a
+                        href={`mailto:${profile.email}`}
+                        className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0B0D16] transition hover:bg-[#7DD3FC]"
+                      >
+                        {profile.email} <span aria-hidden>↗</span>
+                      </a>
+                    </Magnetic>
+                  )}
+                  {resume && (
+                    <Magnetic as="span" strength={0.3}>
+                      <a href={resume}
+                        className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-6 py-3 text-sm font-semibold text-white transition hover:border-[#7DD3FC]/50">
+                        Resume ↓
+                      </a>
+                    </Magnetic>
+                  )}
+                  {!profile.email && links.slice(0, 3).map((l) => (
+                    <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-6 py-3 text-sm font-semibold text-white transition hover:border-[#7DD3FC]/50">
+                      {l.label} ↗
                     </a>
-                  </Magnetic>
+                  ))}
                 </div>
               </Tile>
             </TiltCard>
@@ -500,16 +605,10 @@ export function Bento({ data }: TemplateProps) {
         )}
 
         <footer className="col-span-full pt-4 text-center text-xs text-white/35">
-          built with Portxz
+          © {profile.fullName} · built with Portxz
         </footer>
       </Stagger>
 
-      {/* reduced-motion-safe custom keyframe */}
-      <style>{`
-        @keyframes pxz-ping-soft { 75%,100% { transform: scale(2); opacity: 0 } }
-        .pxz-pulse { animation: pxz-ping-soft 1.8s cubic-bezier(0,0,0.2,1) infinite; }
-        @media (prefers-reduced-motion: reduce) { .pxz-pulse { animation: none; } }
-      `}</style>
     </main>
   );
 }

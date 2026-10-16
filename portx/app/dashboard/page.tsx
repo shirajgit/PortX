@@ -50,6 +50,8 @@ export default async function Overview() {
       where: {
         profileId: profile.id,
         kind: "view",
+        // Server component: renders once per request, so reading the clock here is fine.
+        // eslint-disable-next-line react-hooks/purity
         createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
       },
     }),

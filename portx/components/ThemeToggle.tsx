@@ -11,6 +11,8 @@ export function ThemeToggle({ className }: { className?: string } = {}) {
 
     if (saved === "dark") {
       document.documentElement.classList.remove("light");
+      // localStorage only exists in the browser, so the saved theme is applied after hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLight(false);
     } else {
       document.documentElement.classList.add("light");

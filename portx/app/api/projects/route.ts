@@ -11,6 +11,8 @@ export const ProjectInput = z.object({
   tech: z.array(z.string().max(30)).max(15).default([]),
   liveUrl: z.string().url().optional().nullable(),
   repoUrl: z.string().url().optional().nullable(),
+  // Cover image shown on the portfolio. https only, like the profile photo.
+  imageUrl: z.string().url().max(500).startsWith("https://").optional().nullable(),
   featured: z.boolean().default(false),
   source: z.enum(["manual", "github"]).default("manual"),
   githubRepo: z.string().max(120).optional().nullable(),

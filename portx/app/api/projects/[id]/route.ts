@@ -10,6 +10,7 @@ const PatchInput = z.object({
   tech: z.array(z.string().max(30)).max(15).optional(),
   liveUrl: z.string().url().nullable().optional(),
   repoUrl: z.string().url().nullable().optional(),
+  imageUrl: z.string().url().max(500).startsWith("https://").nullable().optional(),
   featured: z.boolean().optional(),
   sort: z.number().int().optional(),
 });

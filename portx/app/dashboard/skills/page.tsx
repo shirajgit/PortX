@@ -35,6 +35,8 @@ export default function SkillsPage() {
     );
     setLoaded(true);
   };
+  // Fetch on mount: load() only sets state after its request resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   const itemsUsed = rows.reduce((n, g) => n + g.items.length, 0);

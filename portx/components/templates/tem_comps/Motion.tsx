@@ -106,10 +106,13 @@ export function Item({
   y = 20,
   className,
   as = "div",
+  id,
 }: {
   children: React.ReactNode;
   y?: number;
   className?: string;
+  /** Anchor for in-page navigation. */
+  id?: string;
   as?: "div" | "li" | "article" | "span";
 }) {
   const reduce = useReducedMotion();
@@ -123,7 +126,7 @@ export function Item({
     },
   };
   return (
-    <M className={className} variants={variants}>
+    <M id={id} className={className} variants={variants}>
       {children}
     </M>
   );

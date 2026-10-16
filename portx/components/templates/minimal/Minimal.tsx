@@ -16,6 +16,7 @@ import {
   CountUp,
   Avatar3D,
 } from "../tem_comps/Motion";
+import { FloatingNav, ProjectCover, StatusPill, jumpTo, resumeHref, type NavItem } from "../tem_comps/Premium";
 import { getInsights } from "../insights";
 
 /* ── Minimal / Developer Matrix Template ──────────────────────────────
@@ -28,9 +29,27 @@ import { getInsights } from "../insights";
    count-up overview stats and a closing contact card keep even a short
    profile feeling complete.                                            */
 
-export function Minimal({ data }: TemplateProps) {
+function updateDOM(mode: "light" | "dark") {
+  if (mode === "light") {
+    document.documentElement.classList.add("light");
+    document.documentElement.classList.remove("dark");
+  } else {
+    document.documentElement.classList.add("dark");
+    document.documentElement.classList.remove("light");
+  }
+}
+
+export function Minimal({ data, username }: TemplateProps) {
   const { profile, links, experiences, projects, skills, educations, sections } = data;
   const { initials, current, stats } = getInsights(data);
+  const resume = resumeHref(username);
+
+  const nav: NavItem[] = [
+    projects.length > 0 && { id: "projects", label: "Projects" },
+    experiences.length > 0 && { id: "experience", label: "Experience" },
+    skills.length > 0 && { id: "stack", label: "Stack" },
+    (profile.email || links.length > 0) && { id: "contact", label: "Contact" },
+  ].filter((x): x is NavItem => !!x);
 
   // Default to light mode, fall back to localStorage if set
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -41,22 +60,14 @@ export function Minimal({ data }: TemplateProps) {
       | "dark"
       | null;
     if (savedTheme) {
+      // localStorage only exists in the browser, so the saved theme is applied after hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTheme(savedTheme);
       updateDOM(savedTheme);
     } else {
       updateDOM("light");
     }
   }, []);
-
-  const updateDOM = (mode: "light" | "dark") => {
-    if (mode === "light") {
-      document.documentElement.classList.add("light");
-      document.documentElement.classList.remove("dark");
-    } else {
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-    }
-  };
 
   const toggleTheme = () => {
     const nextTheme = theme === "light" ? "dark" : "light";
@@ -66,8 +77,27 @@ export function Minimal({ data }: TemplateProps) {
   };
 
   return (
-    <main className="min-h-screen w-full bg-[#F8FAFC] text-[#0F172A] antialiased selection:bg-[#2563EB]/20 selection:text-[#2563EB] transition-colors duration-300 dark:bg-[#030712] dark:text-[#F1F5F9]">
+    <main id="top" data-fixed-theme className="mx-root min-h-screen w-full bg-[#F8FAFC] text-[#0F172A] antialiased selection:bg-[#2563EB]/20 selection:text-[#2563EB] transition-colors duration-300 dark:bg-[#030712] dark:text-[#F1F5F9]">
       <ScrollProgress color="linear-gradient(90deg,#2563EB,#4F46E5,#0EA5E9)" />
+      {/* project covers follow the theme */}
+      <style>{`.mx-root{--mx-cover:#EAF1FF;--mx-ink:rgba(15,23,42,0.07);--mx-grid:rgba(15,23,42,0.05)}.dark .mx-root{--mx-cover:#0A1222;--mx-ink:rgba(255,255,255,0.06);--mx-grid:rgba(255,255,255,0.04)}`}</style>
+
+      {/* floats over the feed column, clear of the sidebar */}
+      <FloatingNav
+        className="lg:pl-[380px] xl:pl-[420px]"
+        brand={<span className="font-mono text-sm font-bold text-slate-900 dark:text-white">~/{(username ?? initials).toLowerCase()}</span>}
+        items={nav}
+        cta={resume ? { label: "resume.pdf ↓", href: resume } : null}
+        tone={{
+          bar: "rounded-xl border border-slate-200/80 bg-white/75 shadow-[0_10px_30px_-15px_rgba(15,23,42,0.25)] backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#070D19]/75",
+          scrolled: "bg-white/90 dark:bg-[#070D19]/90",
+          link: "rounded-lg font-mono text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white",
+          linkActive: "rounded-lg font-mono text-xs text-blue-600 dark:text-[#4DA6FF]",
+          pill: "rounded-lg border border-blue-500/25 bg-blue-500/10",
+          cta: "rounded-lg bg-blue-600 font-mono text-xs text-white shadow-lg shadow-blue-600/25 hover:bg-blue-500",
+          menu: "border-slate-200 dark:border-slate-800",
+        }}
+      />
 
       {/* Background ambient lighting accents */}
       <div
@@ -80,24 +110,21 @@ export function Minimal({ data }: TemplateProps) {
 
       <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
         {/* LEFT COLUMN: Sticky Profile Dashboard */}
-        <aside className="w-full shrink-0 border-b border-slate-200/80 bg-white/70 backdrop-blur-md dark:border-slate-800/60 dark:bg-[#070D19]/50 lg:sticky lg:top-0 lg:h-screen lg:w-[380px] lg:overflow-y-auto lg:border-b-0 lg:border-r xl:w-[420px]">
+        <aside className="w-full shrink-0 border-b border-slate-200/80 bg-white/70 backdrop-blur-md dark:border-slate-800/60 dark:bg-[#070D19]/50 lg:sticky lg:top-0 lg:h-screen lg:w-[380px] lg:overflow-y-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden lg:border-b-0 lg:border-r xl:w-[420px]">
           <Spotlight
             className="h-full"
             color="rgba(37,99,235,0.10)"
             size={420}
           >
-            <div className="flex h-full flex-col justify-between gap-8 px-6 py-10 lg:px-10 lg:py-16">
+            <div className="flex h-full flex-col justify-between gap-8 px-6 pb-10 pt-24 lg:px-10 lg:py-16">
               <div>
                 {/* Header Status & Theme Switcher */}
                 <div className="mb-8 flex items-center justify-between">
                   {profile.openToWork ? (
-                    <div className="inline-flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wide text-emerald-600 dark:text-[#39D98A]">
-                      <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                      </span>
+                    <StatusPill dot="bg-emerald-500"
+                      className="rounded-md border border-emerald-500/30 bg-emerald-500/10 font-mono text-[11px] font-semibold tracking-wide text-emerald-600 dark:text-[#39D98A]">
                       AVAILABLE FOR WORK
-                    </div>
+                    </StatusPill>
                   ) : (
                     <div />
                   )}
@@ -121,11 +148,11 @@ export function Minimal({ data }: TemplateProps) {
                   src={profile.avatarUrl}
                   name={profile.fullName}
                   initials={initials}
-                  size={84}
+                  size={104}
                   colors={["#2563EB", "#0EA5E9", "#4F46E5"]}
                   surface="linear-gradient(135deg,#2563EB,#4F46E5)"
                   glow={0.3}
-                  className="mb-10 ml-6 mt-4"
+                  className="mb-10 ml-8 mt-6"
                 />
 
                 <Reveal y={16} duration={0.7}>
@@ -142,7 +169,7 @@ export function Minimal({ data }: TemplateProps) {
                 {profile.headline && (
                   <Reveal y={12} delay={0.08}>
                     <p className="mt-3 font-mono text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-[#4DA6FF]">
-                      // {profile.headline}
+                      {"// "}{profile.headline}
                     </p>
                   </Reveal>
                 )}
@@ -186,6 +213,27 @@ export function Minimal({ data }: TemplateProps) {
                     </div>
                   </Reveal>
                 )}
+
+                <Reveal y={12} delay={0.26}>
+                  <div className="mt-8 flex flex-wrap gap-2.5">
+                    {projects.length > 0 && (
+                      <Magnetic strength={0.3}>
+                        <a href="#projects" onClick={(e) => jumpTo(e, "projects")}
+                          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 outline-none transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/50">
+                          View projects <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                      </Magnetic>
+                    )}
+                    {resume && (
+                      <Magnetic strength={0.3}>
+                        <a href={resume}
+                          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-mono text-xs font-semibold text-slate-700 outline-none transition-colors hover:border-blue-500/40 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:border-slate-800 dark:bg-[#0E172A] dark:text-slate-300 dark:hover:text-white">
+                          resume.pdf ↓
+                        </a>
+                      </Magnetic>
+                    )}
+                  </div>
+                </Reveal>
               </div>
 
               {/* Profile Contact & Links */}
@@ -236,11 +284,11 @@ export function Minimal({ data }: TemplateProps) {
         </aside>
 
         {/* RIGHT COLUMN: Scrolling Feed */}
-        <div className="flex-1 px-6 py-10 lg:px-12 lg:py-16 xl:px-20">
+        <div className="flex-1 px-6 py-10 lg:px-12 lg:pb-16 lg:pt-28 xl:px-20">
           <div className="mx-auto max-w-4xl space-y-16">
             {/* At-a-glance overview */}
             {stats.length > 1 && (
-              <Section title="System Overview">
+              <Section label="system overview" title="At a glance">
                 <Stagger stagger={0.07} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {stats.map((s) => (
                     <Item key={s.label} y={16}>
@@ -262,94 +310,90 @@ export function Minimal({ data }: TemplateProps) {
 
             {/* Projects Showcase */}
             {projects.length > 0 && (
-              <Section title="Production Repositories">
-                <Stagger
-                  stagger={0.09}
-                  className={`grid gap-4 ${projects.length > 1 ? "sm:grid-cols-2" : ""}`}
-                >
-                  {projects.map((p) => (
-                    <Item key={p.name} as="article" y={22} className="h-full">
-                      <TiltCard
-                        max={5}
-                        glareColor="rgba(37,99,235,0.10)"
-                        className="h-full rounded-xl"
-                      >
-                        <div className="group flex h-full flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs transition-colors duration-300 [transform-style:preserve-3d] hover:border-blue-500/40 hover:shadow-md dark:border-slate-800/80 dark:bg-[#090F1C]/50 dark:hover:border-blue-500/40 dark:hover:bg-[#0D1527]">
-                          <div className="[transform:translateZ(22px)]">
-                            {p.featured && (
-                              <span className="mb-3 inline-block rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-blue-600 dark:text-[#4DA6FF]">
-                                ★ featured
-                              </span>
-                            )}
-                            <div className="flex items-start justify-between gap-3">
-                              <h3 className="text-base font-bold text-slate-900 transition-colors duration-150 group-hover:text-blue-600 dark:text-white dark:group-hover:text-[#4DA6FF]">
-                                {p.name}
-                              </h3>
-                              <div className="flex shrink-0 gap-2.5 pt-0.5 font-mono text-[11px] font-medium">
-                                {p.liveUrl && (
-                                  <a
-                                    className="text-blue-600 hover:underline dark:text-[#4DA6FF]"
-                                    href={p.liveUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    live ↗
-                                  </a>
+              <Section id="projects" label="production repositories" title="Projects">
+                <Stagger stagger={0.09} className="grid gap-5 sm:grid-cols-2">
+                  {projects.map((p, i) => {
+                    const lead = i === 0 && projects.length > 1;
+                    return (
+                      <Item key={p.name} as="article" y={22} className={`h-full ${lead ? "sm:col-span-2" : ""}`}>
+                        <TiltCard max={lead ? 3 : 5} glareColor="rgba(37,99,235,0.10)" className="h-full rounded-2xl">
+                          <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-colors duration-300 hover:border-blue-500/40 hover:shadow-md dark:border-slate-800/80 dark:bg-[#090F1C]/60 dark:hover:border-blue-500/40">
+                            <ProjectCover
+                              name={p.name}
+                              imageUrl={p.imageUrl}
+                              palette={["rgba(37,99,235,0.35)", "rgba(79,70,229,0.30)", "rgba(14,165,233,0.30)"]}
+                              base="var(--mx-cover)"
+                              ink="var(--mx-ink)"
+                              grid="var(--mx-grid)"
+                              overlay="none"
+                              className={`border-b border-slate-200/80 dark:border-slate-800/80 ${lead ? "h-56 sm:h-72" : "h-40"}`}
+                            >
+                              <div className="flex h-full items-start justify-between p-4">
+                                {(p.featured || lead) ? (
+                                  <span className="rounded border border-blue-500/30 bg-white/80 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-blue-600 backdrop-blur dark:bg-[#070D19]/70 dark:text-[#4DA6FF]">
+                                    ★ featured
+                                  </span>
+                                ) : <span />}
+                                <span className="rounded bg-white/80 px-1.5 py-0.5 font-mono text-[10px] text-slate-500 backdrop-blur dark:bg-[#070D19]/70 dark:text-slate-400">
+                                  {String(i + 1).padStart(2, "0")}
+                                </span>
+                              </div>
+                            </ProjectCover>
+                            <div className="flex flex-1 flex-col justify-between p-6">
+                              <div>
+                                <div className="flex items-start justify-between gap-3">
+                                  <h3 className={`font-bold text-slate-900 transition-colors duration-150 group-hover:text-blue-600 dark:text-white dark:group-hover:text-[#4DA6FF] ${lead ? "text-xl" : "text-base"}`}>
+                                    {p.name}
+                                  </h3>
+                                  <div className="flex shrink-0 gap-2.5 pt-0.5 font-mono text-[11px] font-medium">
+                                    {p.liveUrl && (
+                                      <a className="text-blue-600 hover:underline dark:text-[#4DA6FF]" href={p.liveUrl} target="_blank" rel="noopener noreferrer">
+                                        live ↗
+                                      </a>
+                                    )}
+                                    {p.repoUrl && (
+                                      <a className="text-slate-400 hover:text-slate-900 hover:underline dark:text-slate-500 dark:hover:text-white" href={p.repoUrl} target="_blank" rel="noopener noreferrer">
+                                        code
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                                {p.tagline && (
+                                  <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{p.tagline}</p>
                                 )}
-                                {p.repoUrl && (
-                                  <a
-                                    className="text-slate-400 hover:text-slate-900 hover:underline dark:text-slate-500 dark:hover:text-white"
-                                    href={p.repoUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    code
-                                  </a>
+                                {p.bullets.length > 0 && (
+                                  <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400/90">
+                                    {p.bullets.slice(0, lead ? 4 : 3).map((b, j) => (
+                                      <li key={j} className="flex items-start gap-2">
+                                        <span className="shrink-0 font-mono text-blue-500/70 dark:text-[#4DA6FF]/70">›</span>
+                                        <span>{b}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
                                 )}
                               </div>
-                            </div>
-                            {p.tagline && (
-                              <p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                                {p.tagline}
-                              </p>
-                            )}
-                            {p.bullets.length > 0 && (
-                              <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400/90">
-                                {p.bullets.slice(0, 3).map((b, j) => (
-                                  <li key={j} className="flex items-start gap-2">
-                                    <span className="shrink-0 font-mono text-blue-500/70 dark:text-[#4DA6FF]/70">
-                                      ›
+                              {p.tech.length > 0 && (
+                                <div className="mt-6 flex flex-wrap gap-1.5">
+                                  {p.tech.map((t) => (
+                                    <span key={t} className="rounded border border-slate-200/60 bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-medium text-slate-600 dark:border-slate-800 dark:bg-[#121B30] dark:text-[#8FC4FF]/90">
+                                      {t}
                                     </span>
-                                    <span>{b}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-
-                          {p.tech.length > 0 && (
-                            <div className="mt-6 flex flex-wrap gap-1.5 [transform:translateZ(12px)]">
-                              {p.tech.map((t) => (
-                                <span
-                                  key={t}
-                                  className="rounded border border-slate-200/60 bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-medium text-slate-600 dark:border-slate-800 dark:bg-[#121B30] dark:text-[#8FC4FF]/90"
-                                >
-                                  {t}
-                                </span>
-                              ))}
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </TiltCard>
-                    </Item>
-                  ))}
+                          </div>
+                        </TiltCard>
+                      </Item>
+                    );
+                  })}
                 </Stagger>
               </Section>
             )}
 
             {/* Work History Timeline */}
             {experiences.length > 0 && (
-              <Section title="Deployment History">
+              <Section id="experience" label="deployment history" title="Experience">
                 <Stagger
                   stagger={0.1}
                   className="relative space-y-8 border-l border-slate-200 pl-6 dark:border-slate-800/80"
@@ -393,7 +437,7 @@ export function Minimal({ data }: TemplateProps) {
 
             {/* Stack / Skills Block */}
             {skills.length > 0 && (
-              <Section title="Core Capabilities">
+              <Section id="stack" label="core capabilities" title="Stack">
                 <Stagger stagger={0.07} className="grid gap-3 sm:grid-cols-2">
                   {skills.map((s) => (
                     <Item key={s.category} y={16}>
@@ -413,7 +457,7 @@ export function Minimal({ data }: TemplateProps) {
 
             {/* Education History */}
             {educations.length > 0 && (
-              <Section title="Academic Grounding">
+              <Section label="academic grounding" title="Education">
                 <Stagger stagger={0.07} className="grid gap-4 sm:grid-cols-2">
                   {educations.map((ed, i) => (
                     <Item key={i} y={16}>
@@ -448,7 +492,7 @@ export function Minimal({ data }: TemplateProps) {
 
             {/* Custom sections */}
             {sections.map((sec) => (
-              <Section key={sec.title} title={sec.title}>
+              <Section key={sec.title} label={sec.kind || "more"} title={sec.title}>
                 <Stagger stagger={0.07} className="grid gap-4 sm:grid-cols-2">
                   {sec.items.map((it, i) => (
                     <Item key={i} y={16}>
@@ -480,9 +524,9 @@ export function Minimal({ data }: TemplateProps) {
                 <Spotlight
                   color="rgba(37,99,235,0.14)"
                   size={520}
-                  className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-8 shadow-xs dark:border-slate-800/80 dark:bg-[#090F1C]/60 sm:p-10"
+                  className="scroll-mt-28 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-8 shadow-xs dark:border-slate-800/80 dark:bg-[#090F1C]/60 sm:p-10"
                 >
-                  <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-[#4DA6FF]">
+                  <p id="contact" className="scroll-mt-28 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-[#4DA6FF]">
                     {"// open a channel"}
                   </p>
                   <h2 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
@@ -501,6 +545,12 @@ export function Minimal({ data }: TemplateProps) {
                           <ArrowUpRight className="h-4 w-4" />
                         </a>
                       </Magnetic>
+                    )}
+                    {resume && (
+                      <a href={resume}
+                        className="rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-xs text-slate-600 outline-none transition-colors hover:border-blue-500/40 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white">
+                        resume.pdf ↓
+                      </a>
                     )}
                     {links.slice(0, 3).map((l) => (
                       <a
@@ -538,19 +588,25 @@ export function Minimal({ data }: TemplateProps) {
 }
 
 function Section({
+  id,
+  label,
   title,
   children,
 }: {
+  id?: string;
+  /** Mono kicker in the template's console voice, e.g. "deployment history". */
+  label: string;
   title: string;
   children: React.ReactNode;
 }) {
   const reduce = useReducedMotion();
   return (
-    <section>
-      <div className="mb-6 flex items-center gap-4">
-        <h2 className="whitespace-nowrap font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-          {title}
-        </h2>
+    <section id={id} className="scroll-mt-28">
+      <h2 className="mb-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">{title}</h2>
+      <div className="mb-7 flex items-center gap-4">
+        <span className="whitespace-nowrap font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+          {"// "}{label}
+        </span>
         <motion.div
           aria-hidden
           className="h-px w-full origin-left bg-gradient-to-r from-blue-500/40 via-slate-200 to-transparent dark:via-slate-800/80"

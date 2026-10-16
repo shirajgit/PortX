@@ -24,6 +24,8 @@ export default function AdminPaymentsPage() {
     if (r.status === 403) { setForbidden(true); return; }
     if (r.ok) setRows(await r.json());
   };
+  // Fetch on mount: load() only sets state after its request resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   async function act(id: string, action: "approve" | "reject") {
@@ -50,7 +52,7 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="w-full max-w-none">
-      <PageHeader eyebrow="Admin" title="Payments admin" description={<>Match the Payer + amount in your UPI app before approving. Approve extends the user's Pro expiry.</>} />
+      <PageHeader eyebrow="Admin" title="Payments admin" description={<>Match the Payer + amount in your UPI app before approving. Approve extends the user&apos;s Pro expiry.</>} />
 
       {error && (
         <p className="mt-4 rounded-lg border border-lp-danger/30 bg-lp-danger/10 px-4 py-3 font-mono text-xs text-lp-danger">{error}</p>

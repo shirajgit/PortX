@@ -5,6 +5,7 @@ import type { PortfolioData, TemplateProps } from "../types";
 import { useSoundEffects } from "../tem_comps/useSoundEffects";
 import { MatrixRain } from "../tem_comps/MatrixRain";
 import { TiltCard } from "../tem_comps/Motion";
+import { HeroBackdrop, StatusPill, resumeHref } from "../tem_comps/Premium";
 import { getInsights } from "../insights";
 
 /* ── Portxz · CLI flagship template ───────────────────────────────────────
@@ -367,7 +368,8 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
       setBootCmd(null);
       setLines((l) => [...l, ...mkLines([promptLine(target)], false), ...mkLines(commands.about.run()), ...mkLines([""], false)]);
       setBooted(true);
-      inputRef.current?.focus();
+      // Not when embedded (e.g. a template-picker thumbnail) — it would pull focus from the host page.
+      if (window.self === window.top) inputRef.current?.focus();
     }
     void boot();
     return () => {
@@ -478,11 +480,14 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
 
   return (
     <main
+      id="top"
+      data-fixed-theme
       className="pxz-cli relative flex min-h-screen flex-col justify-center overflow-hidden bg-[#030712] px-3 py-6 font-mono text-[13.5px] leading-relaxed sm:px-6 sm:py-12"
       style={{ color: C.text }}
       onClick={() => inputRef.current?.focus()}
     >
       <MatrixRain />
+      <HeroBackdrop glow="rgba(56,189,248,0.07)" />
 
       {/* ambient glow meshes */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
@@ -491,7 +496,36 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:32px_32px]" />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-3xl space-y-4">
+      <div className="relative z-10 mx-auto w-full max-w-4xl space-y-4">
+        {/* identity bar — the essentials in one click, for visitors who won't type */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+          <div className="min-w-0">
+            <p className="truncate text-base font-bold text-slate-100">
+              {data.profile.fullName}
+              {data.profile.headline && <span className="font-normal text-slate-500"> · {data.profile.headline}</span>}
+            </p>
+            {data.profile.openToWork && (
+              <StatusPill dot="bg-emerald-400" className="mt-1.5 border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 text-[11px] text-emerald-300">
+                available for work
+              </StatusPill>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+            {resumeHref(usernameProp) && (
+              <a href={resumeHref(usernameProp)!}
+                className="rounded-xl bg-sky-400 px-4 py-2 text-xs font-bold tracking-wider text-[#030712] shadow-[0_0_24px_rgba(56,189,248,0.35)] transition hover:bg-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+                ↓ resume.pdf
+              </a>
+            )}
+            {data.profile.email && (
+              <a href={`mailto:${data.profile.email}`}
+                className="rounded-xl border border-sky-500/30 bg-[#0D152D]/70 px-4 py-2 text-xs font-semibold tracking-wider text-sky-300 backdrop-blur-md transition hover:border-sky-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70">
+                ✉ email
+              </a>
+            )}
+          </div>
+        </div>
+
         {/* terminal window — swings up into place in 3D, then leans toward the cursor */}
         <div className="pxz-cli-rise">
         <TiltCard max={2.5} glareColor="rgba(56,189,248,0.07)" className="rounded-2xl">

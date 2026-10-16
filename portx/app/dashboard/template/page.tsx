@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePlan } from "@/lib/usePlan";
 import { PRICES, SALE, SALE_PRICES, formatPrice, saleActive } from "@/lib/pricing";
@@ -10,7 +10,7 @@ import { ArrowRight, ArrowUpRight, Check, Copy, EyeOff, Globe, Lock, Rocket, Spa
 import { Card, Notice, UpgradeLink, btn, friendlyError } from "@/components/ui";
 
 /* ── Template & Publish — gallery edition ───────────────────────────────
-   3-wide grid of template cards, each showing a real screenshot. */
+   3-wide grid of template cards, each showing the live template. */
 
 const OPTIONS = [
   { id: "minimal", name: "Minimal", note: "Clean and simple. Free for everyone.", proOnly: false },
@@ -23,12 +23,44 @@ const OPTIONS = [
   { id: "cli", name: "Terminal", note: "Looks like a computer terminal — fun for developers.", proOnly: true },
 ];
 
-/* real screenshot of each template, cropped to its header */
+/* Live thumbnail: the real template, rendered at desktop size in an iframe and scaled
+   down to the card — always matches the current design, unlike a saved screenshot.
+   1440×900 is the card's own 16:10 shape. The iframe keeps each template's page-level
+   effects (fixed nav, theme classes, window listeners) away from the dashboard. */
+const FRAME_W = 1440;
+const FRAME_H = 900;
+
 function Thumb({ id, name }: { id: string; name: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setScale(entry.contentRect.width / FRAME_W));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <Image src={`/brand/templates/${id}.png`} alt={`${name} template`} fill
-      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-      className="pointer-events-none object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]" />
+    <div ref={box} className="pointer-events-none absolute inset-0">
+      {!ready && <div className="absolute inset-0 animate-pulse bg-lp-surface-2" />}
+      {scale > 0 && (
+        <div className="h-full w-full origin-top transition-transform duration-500 group-hover:scale-[1.03]">
+          <iframe
+            src={`/preview/${id}?thumb=1`}
+            title={`${name} template preview`}
+            loading="lazy"
+            tabIndex={-1}
+            aria-hidden
+            onLoad={() => setReady(true)}
+            className={`absolute left-0 top-0 origin-top-left border-0 transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`}
+            style={{ width: FRAME_W, height: FRAME_H, transform: `scale(${scale})` }}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -261,9 +293,9 @@ export default function TemplatePage() {
                 <span className="text-sm text-lp-muted">for 1 month</span>
               </p>
               {saleActive() && <p className="mt-1 text-xs text-lp-muted">Launch sale · {SALE.percent}% off every plan until {SALE.endsLabel}</p>}
-              <a href="/dashboard/billing" className={btn("primary", "lg", "mt-5 w-full")}>
+              <Link href="/dashboard/billing" className={btn("primary", "lg", "mt-5 w-full")}>
                 See Pro plans <ArrowRight className="h-4 w-4" />
-              </a>
+              </Link>
               <button onClick={() => setUpgradeFor(null)} className={btn("ghost", "md", "mt-2 w-full")}>
                 Maybe later
               </button>

@@ -11,6 +11,7 @@ import {
   CountUp,
   SplitText,
 } from "../tem_comps/Motion";
+import { FloatingNav, ProjectCover, jumpTo, resumeHref, type NavItem } from "../tem_comps/Premium";
 import { getInsights } from "../insights";
 
 /* ── Editorial template ─────────────────────────────────────────────────
@@ -29,7 +30,7 @@ const FAINT = "#98907F"; // labels / meta
 const RULE = "#1B1713"; // rule ink
 const ACCENT = "#6E2436"; // oxblood
 
-export function Editorial({ data }: TemplateProps) {
+export function Editorial({ data, username }: TemplateProps) {
   const { profile, links, experiences, projects, skills, educations, sections } = data;
 
   // Pull-quote sourced from the strongest available editorial line.
@@ -37,17 +38,40 @@ export function Editorial({ data }: TemplateProps) {
   const pullQuote = profile.headline || featured?.tagline || "";
   const { initials, current, stats } = getInsights(data);
   const sealText = `${profile.openToWork ? "Open to opportunities" : "Selected works"} · ${profile.fullName} · `;
+  const resume = resumeHref(username);
+
+  const nav: NavItem[] = [
+    projects.length > 0 && { id: "work", label: "Work" },
+    experiences.length > 0 && { id: "experience", label: "Experience" },
+    skills.length > 0 && { id: "capabilities", label: "Capabilities" },
+    (profile.email || links.length > 0) && { id: "contact", label: "Contact" },
+  ].filter((x): x is NavItem => !!x);
 
   return (
     <main
+      id="top"
       className="pxz-ed min-h-screen overflow-x-hidden font-serif antialiased"
       style={{ background: PAPER, color: INK }}
       data-fixed-theme
     >
       <PxzStyle />
       <ScrollProgress color={ACCENT} height={3} />
+      <FloatingNav
+        brand={<span className="pxz-d text-xl font-medium tracking-[-0.01em]">{profile.fullName}<span style={{ color: ACCENT }}>.</span></span>}
+        items={nav}
+        cta={resume ? { label: "Résumé", href: resume } : null}
+        tone={{
+          bar: "border border-[#1B1713]/15 bg-[#F6F2E9]/85 backdrop-blur-md",
+          scrolled: "border-[#1B1713]/30 shadow-[0_10px_30px_-18px_rgba(27,23,19,0.45)]",
+          link: "pxz-sans text-[11px] uppercase tracking-[0.24em] text-[#655C4F] hover:text-[#1B1713]",
+          linkActive: "pxz-sans text-[11px] uppercase tracking-[0.24em] text-[#1B1713]",
+          pill: "border-b-2 border-[#6E2436]",
+          cta: "pxz-sans bg-[#1B1713] text-[11px] uppercase tracking-[0.24em] text-[#F6F2E9] hover:bg-[#6E2436]",
+          menu: "border-[#1B1713]/15",
+        }}
+      />
 
-      <div className="mx-auto max-w-[74rem] px-6 py-16 sm:px-10 sm:py-24 lg:px-14">
+      <div className="mx-auto max-w-[74rem] px-6 pb-16 pt-28 sm:px-10 sm:pb-24 sm:pt-36 lg:px-14">
         {/* ── Masthead ────────────────────────────────────────────── */}
         <Reveal as="header" duration={1.1} y={16}>
           <div
@@ -83,6 +107,23 @@ export function Editorial({ data }: TemplateProps) {
                   {current.organization && <span style={{ color: ACCENT }}> · {current.organization}</span>}
                 </p>
               )}
+
+              <div className="pxz-sans mt-9 flex flex-wrap items-center gap-x-7 gap-y-4 text-[11px] uppercase tracking-[0.24em]">
+                {projects.length > 0 && (
+                  <Magnetic as="span" strength={0.25}>
+                    <a href="#work" onClick={(e) => jumpTo(e, "work")}
+                      className="inline-flex items-center gap-3 px-7 py-4 transition-colors duration-300 hover:bg-[#6E2436]"
+                      style={{ background: INK, color: PAPER }}>
+                      Read the work <span aria-hidden>→</span>
+                    </a>
+                  </Magnetic>
+                )}
+                {resume && (
+                  <a href={resume} className="pxz-link" style={{ color: INK }}>
+                    Download résumé ↓
+                  </a>
+                )}
+              </div>
             </div>
 
             {/* portrait plate: tilts in 3D, with a slowly turning press seal */}
@@ -99,12 +140,12 @@ export function Editorial({ data }: TemplateProps) {
                     <img
                       src={profile.avatarUrl}
                       alt={profile.fullName}
-                      className="relative block h-48 w-40 object-cover grayscale-[35%] lg:h-56 lg:w-44"
+                      className="relative block h-60 w-48 object-cover grayscale-[35%] lg:h-80 lg:w-64"
                       style={{ border: `1px solid ${RULE}` }}
                     />
                   ) : (
                     <div
-                      className="pxz-d relative flex h-48 w-40 items-center justify-center text-6xl font-medium lg:h-56 lg:w-44"
+                      className="pxz-d relative flex h-60 w-48 items-center justify-center text-7xl font-medium lg:h-80 lg:w-64"
                       style={{ border: `1px solid ${RULE}`, background: "#EFE9DC", color: ACCENT }}
                     >
                       {initials}
@@ -230,10 +271,10 @@ export function Editorial({ data }: TemplateProps) {
 
         {/* ── Selected Work ───────────────────────────────────────── */}
         {projects.length > 0 && (
-          <Section title="Selected Work" meta={`${projects.length} ${projects.length === 1 ? "piece" : "pieces"}`}>
+          <Section id="work" title="Selected Work" meta={`${projects.length} ${projects.length === 1 ? "piece" : "pieces"}`}>
             <Stagger className="space-y-0">
               {projects.map((p, i) => (
-                <Item key={p.name} as="article" className="group relative isolate grid gap-4 border-t border-[#1B17131f] py-9 md:grid-cols-[1fr_2fr]">
+                <Item key={p.name} as="article" className="group relative isolate grid gap-6 border-t border-[#1B17131f] py-10 md:grid-cols-[1fr_2fr] md:gap-10">
                   <span
                     aria-hidden
                     className="pxz-d pointer-events-none absolute right-0 top-4 -z-10 select-none text-[7rem] font-medium leading-none opacity-[0.05] transition-all duration-700 group-hover:-translate-x-2 group-hover:opacity-[0.12] max-md:hidden"
@@ -242,6 +283,16 @@ export function Editorial({ data }: TemplateProps) {
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div>
+                    <ProjectCover
+                      name={p.name}
+                      imageUrl={p.imageUrl}
+                      palette={["rgba(110,36,54,0.22)", "rgba(152,144,127,0.35)", "rgba(110,36,54,0.10)"]}
+                      base="#EFE9DC"
+                      ink="rgba(27,23,19,0.07)"
+                      grid="rgba(27,23,19,0.04)"
+                      overlay="none"
+                      className="mb-5 aspect-[4/3] border grayscale-[25%] transition duration-700 group-hover:grayscale-0"
+                    />
                     <div
                       className="pxz-mono text-xs tabular-nums"
                       style={{ color: FAINT }}
@@ -322,7 +373,7 @@ export function Editorial({ data }: TemplateProps) {
 
         {/* ── Experience ──────────────────────────────────────────── */}
         {experiences.length > 0 && (
-          <Section title="Experience">
+          <Section id="experience" title="Experience">
             <Stagger className="space-y-0">
               {experiences.map((e, i) => (
                 <Item key={i} className="grid gap-3 border-t border-[#1B17131f] py-8 md:grid-cols-[1fr_2fr]">
@@ -367,7 +418,7 @@ export function Editorial({ data }: TemplateProps) {
 
         {/* ── Capabilities ────────────────────────────────────────── */}
         {skills.length > 0 && (
-          <Section title="Capabilities">
+          <Section id="capabilities" title="Capabilities">
             <Stagger className="grid gap-x-12 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
               {skills.map((s) => (
                 <Item key={s.category} className="pxz-sans">
@@ -458,7 +509,7 @@ export function Editorial({ data }: TemplateProps) {
         {/* ── Closing line ────────────────────────────────────────── */}
         {(profile.email || links.length > 0) && (
           <Reveal as="section" className="mt-24 text-center sm:mt-32" duration={1}>
-            <p className="pxz-sans text-[11px] uppercase tracking-[0.3em]" style={{ color: ACCENT }}>
+            <p id="contact" className="pxz-sans scroll-mt-28 text-[11px] uppercase tracking-[0.3em]" style={{ color: ACCENT }}>
               {profile.openToWork ? "Open to opportunities" : "Correspondence"}
             </p>
             <h2 className="pxz-d mt-5 text-[clamp(2.5rem,9vw,6.5rem)] font-medium italic leading-[0.95] tracking-[-0.02em]">
@@ -477,8 +528,13 @@ export function Editorial({ data }: TemplateProps) {
                 </Magnetic>
               </div>
             )}
-            {links.length > 0 && (
+            {(links.length > 0 || resume) && (
               <div className="pxz-sans mt-7 flex flex-wrap justify-center gap-x-7 gap-y-2 text-xs uppercase tracking-[0.2em]">
+                {resume && (
+                  <a href={resume} className="pxz-link" style={{ color: ACCENT }}>
+                    Résumé ↓
+                  </a>
+                )}
                 {links.map((l) => (
                   <a
                     key={l.url}
@@ -511,17 +567,19 @@ export function Editorial({ data }: TemplateProps) {
 
 /* ── Section: quiet reveal + hairline kicker header ──────────────────── */
 function Section({
+  id,
   title,
   meta,
   children,
 }: {
+  id?: string;
   title: string;
   meta?: string;
   children: React.ReactNode;
 }) {
   return (
     <Reveal as="section" className="mt-20 sm:mt-24">
-      <div className="pxz-sans mb-8 flex items-baseline gap-5">
+      <div id={id} className="pxz-sans mb-8 flex scroll-mt-28 items-baseline gap-5">
         <h2 className="text-xs font-medium uppercase tracking-[0.3em]" style={{ color: INK }}>
           {title}
         </h2>

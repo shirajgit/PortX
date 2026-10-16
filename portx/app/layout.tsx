@@ -93,7 +93,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <head>
           <script
             dangerouslySetInnerHTML={{
-              __html: `try{if(localStorage.getItem('Portxz-theme')!=='dark')document.documentElement.classList.add('light')}catch(e){}`,
+              // "dark" too, so templates using dark: render dark from the first paint.
+              __html: `try{document.documentElement.classList.add(localStorage.getItem('Portxz-theme')==='dark'?'dark':'light')}catch(e){}`,
             }}
           />
         </head>

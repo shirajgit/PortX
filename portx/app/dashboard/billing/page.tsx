@@ -89,6 +89,8 @@ export default function BillingPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [prefill, setPrefill] = useState<{ name?: string; email?: string }>({});
+  // Read the clock once per visit, so renders stay pure.
+  const [now] = useState(() => Date.now());
   const currency = useCurrency();
   const sale = saleActive();
   const PASSES = passesFor(currency, sale);
@@ -114,12 +116,14 @@ export default function BillingPage() {
       setLoaded(true); // never leave the page stuck on the loading skeleton
     }
   };
+  // Fetch on mount: load() only sets state after its request resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
-  const pro = plan === "pro" && !!expires && new Date(expires) > new Date();
+  const pro = plan === "pro" && !!expires && new Date(expires).getTime() > now;
   const pending = requests.find((r) => r.status === "pending");
   const daysLeft = expires
-    ? Math.ceil((new Date(expires).getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+    ? Math.ceil((new Date(expires).getTime() - now) / (24 * 60 * 60 * 1000))
     : 0;
   const showPasses = !pending && (!pro || daysLeft <= 7);
   // phone list: best value picked by default

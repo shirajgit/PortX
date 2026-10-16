@@ -7,40 +7,32 @@ export default function Onboarding() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
-  const [status, setStatus] = useState<"idle" | "checking" | "free" | "taken" | "invalid">("idle");
   const [saving, setSaving] = useState(false);
+  // Last server answer, tagged with the name it was for so a stale reply is ignored.
+  const [checked, setChecked] = useState<{ name: string; status: "free" | "taken" | "invalid" } | null>(null);
+
+  // 3-30 chars, alphanumeric + hyphens only — checked locally before asking the server
+  const clean = username.toLowerCase().trim();
+  const validFormat = /^[a-z0-9-]{3,30}$/.test(clean);
+  const status: "idle" | "checking" | "free" | "taken" | "invalid" =
+    !clean ? "idle" : !validFormat ? "invalid" : checked?.name === clean ? checked.status : "checking";
 
   // Debounce the API check to protect your database/network logs
   useEffect(() => {
-    const clean = username.toLowerCase().trim();
-
-    if (!clean) {
-      setStatus("idle");
-      return;
-    }
-
-    // 1. Local Validation: 3-30 chars, alphanumeric + hyphens only
-    const isValidRegex = /^[a-z0-9-]{3,30}$/.test(clean);
-    if (!isValidRegex) {
-      setStatus("invalid");
-      return;
-    }
-
-    setStatus("checking");
-
+    if (!validFormat) return;
     const delayDebounceFn = setTimeout(async () => {
       try {
         const res = await fetch(`/api/username/check?u=${encodeURIComponent(clean)}`);
         if (!res.ok) throw new Error();
         const data = await res.json();
-        setStatus(data.available ? "free" : data.reason === "invalid" ? "invalid" : "taken");
-      } catch (err) {
-        setStatus("taken"); // Fail-safe fallback
+        setChecked({ name: clean, status: data.available ? "free" : data.reason === "invalid" ? "invalid" : "taken" });
+      } catch {
+        setChecked({ name: clean, status: "taken" }); // Fail-safe fallback
       }
     }, 400); // Wait 400ms after user stops typing before making API call
 
     return () => clearTimeout(delayDebounceFn);
-  }, [username]);
+  }, [clean, validFormat]);
 
   async function submit() {
     if (status !== "free" || !fullName.trim() || saving) return;
@@ -50,15 +42,15 @@ export default function Onboarding() {
       const res = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.toLowerCase().trim(), fullName: fullName.trim() }),
+        body: JSON.stringify({ username: clean, fullName: fullName.trim() }),
       });
       if (res.ok) {
         router.push("/setup");
       } else {
-        setStatus("taken");
+        setChecked({ name: clean, status: "taken" });
       }
     } catch {
-      setStatus("taken");
+      setChecked({ name: clean, status: "taken" });
     } finally {
       setSaving(false);
     }

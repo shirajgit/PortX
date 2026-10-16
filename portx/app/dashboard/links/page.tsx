@@ -43,6 +43,8 @@ export default function LinksPage() {
     setRows(Array.isArray(data) ? data : []);
     setLoaded(true);
   };
+  // Fetch on mount: load() only sets state after its request resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   const atLimit = !pro && rows.length >= FREE_UI_LIMITS.links;

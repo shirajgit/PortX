@@ -91,6 +91,8 @@ export default function SectionsPage() {
     })));
     setLoaded(true);
   };
+  // Fetch on mount: load() only sets state after its request resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   function startNew(p: Preset) {

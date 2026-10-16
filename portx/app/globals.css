@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* dark: follows the theme the visitor picked (html.dark, set by the Minimal template's
+   toggle), not the OS setting — otherwise that toggle can't switch a dark-OS visitor to light. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -47,46 +51,49 @@ body {
    The app's palette is hardcoded hex utilities; these overrides remap
    every used color when <html class="light"> is set by the toggle.
    Un-layered CSS wins over Tailwind's layered utilities in v4.
+   Portfolio templates with their own fixed palette mark their root with
+   data-fixed-theme; nothing inside it is remapped (the class is set for
+   every visitor, so otherwise a dark template's white text turns navy).
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ---- backgrounds ---- */
-html.light .bg-\[\#0A0F1E\]        { background-color: #F3F5FA; }
-html.light .bg-\[\#0A0F1E\]\/90    { background-color: rgba(243,245,250,.92); }
-html.light .bg-\[\#0F1730\]        { background-color: #FFFFFF; }
-html.light .bg-\[\#0F1730\]\/80    { background-color: rgba(255,255,255,.85); }
-html.light .bg-\[\#0F1730\]\/60    { background-color: rgba(255,255,255,.7); }
-html.light .bg-\[\#111A36\]        { background-color: #FFFFFF; }
-html.light .hover\:bg-\[\#111A36\]:hover { background-color: #EAF0FA; }
-html.light .bg-\[\#2A1414\]        { background-color: #FDECEC; }
-html.light .bg-\[\#1F1A08\]        { background-color: #FFF6E0; }
-html.light .bg-\[\#0E2018\]        { background-color: #E6F8EF; }
+html.light .bg-\[\#0A0F1E\]:not([data-fixed-theme] *)        { background-color: #F3F5FA; }
+html.light .bg-\[\#0A0F1E\]\/90:not([data-fixed-theme] *)    { background-color: rgba(243,245,250,.92); }
+html.light .bg-\[\#0F1730\]:not([data-fixed-theme] *)        { background-color: #FFFFFF; }
+html.light .bg-\[\#0F1730\]\/80:not([data-fixed-theme] *)    { background-color: rgba(255,255,255,.85); }
+html.light .bg-\[\#0F1730\]\/60:not([data-fixed-theme] *)    { background-color: rgba(255,255,255,.7); }
+html.light .bg-\[\#111A36\]:not([data-fixed-theme] *)        { background-color: #FFFFFF; }
+html.light .hover\:bg-\[\#111A36\]:hover:not([data-fixed-theme] *) { background-color: #EAF0FA; }
+html.light .bg-\[\#2A1414\]:not([data-fixed-theme] *)        { background-color: #FDECEC; }
+html.light .bg-\[\#1F1A08\]:not([data-fixed-theme] *)        { background-color: #FFF6E0; }
+html.light .bg-\[\#0E2018\]:not([data-fixed-theme] *)        { background-color: #E6F8EF; }
 /* #070C1A (terminal surfaces) intentionally stays dark in both themes */
 
 /* ---- text ---- */
-html.light .text-\[\#E8EDF7\]      { color: #111A2E; }
-html.light .text-\[\#8B98B8\]      { color: #55637F; }
-html.light .text-\[\#8FC4FF\]      { color: #1D6FD1; }
-html.light .text-\[\#5C6A87\]      { color: #7A88A3; }
-html.light .text-\[\#6B7A99\]      { color: #7A88A3; }
-html.light .text-\[\#FFB454\]      { color: #A66A00; }
-html.light .text-\[\#39D98A\]      { color: #0C9A5F; }
-html.light .text-\[\#FF6B6B\]      { color: #D43F3F; }
-html.light .text-\[\#FF9B9B\]      { color: #C03A3A; }
-html.light .text-white             { color: #111A2E; }
-html.light .hover\:text-white:hover { color: #111A2E; }
-html.light .hover\:text-\[\#8FC4FF\]:hover { color: #1D6FD1; }
+html.light .text-\[\#E8EDF7\]:not([data-fixed-theme] *)      { color: #111A2E; }
+html.light .text-\[\#8B98B8\]:not([data-fixed-theme] *)      { color: #55637F; }
+html.light .text-\[\#8FC4FF\]:not([data-fixed-theme] *)      { color: #1D6FD1; }
+html.light .text-\[\#5C6A87\]:not([data-fixed-theme] *)      { color: #7A88A3; }
+html.light .text-\[\#6B7A99\]:not([data-fixed-theme] *)      { color: #7A88A3; }
+html.light .text-\[\#FFB454\]:not([data-fixed-theme] *)      { color: #A66A00; }
+html.light .text-\[\#39D98A\]:not([data-fixed-theme] *)      { color: #0C9A5F; }
+html.light .text-\[\#FF6B6B\]:not([data-fixed-theme] *)      { color: #D43F3F; }
+html.light .text-\[\#FF9B9B\]:not([data-fixed-theme] *)      { color: #C03A3A; }
+html.light .text-white:not([data-fixed-theme] *)             { color: #111A2E; }
+html.light .hover\:text-white:hover:not([data-fixed-theme] *) { color: #111A2E; }
+html.light .hover\:text-\[\#8FC4FF\]:hover:not([data-fixed-theme] *) { color: #1D6FD1; }
 
 /* ---- borders ---- */
-html.light .border-\[\#1E2C52\]    { border-color: #D8E0F0; }
-html.light .border-\[\#2A3E6E\]    { border-color: #BECBE6; }
-html.light .hover\:border-\[\#2A3E6E\]:hover { border-color: #BECBE6; }
-html.light .border-\[\#5C2B2B\]    { border-color: #F1C6C6; }
-html.light .border-\[\#3A2E10\]    { border-color: #EDDCAE; }
-html.light .border-\[\#1E3A2E\]    { border-color: #BDE8D2; }
+html.light .border-\[\#1E2C52\]:not([data-fixed-theme] *)    { border-color: #D8E0F0; }
+html.light .border-\[\#2A3E6E\]:not([data-fixed-theme] *)    { border-color: #BECBE6; }
+html.light .hover\:border-\[\#2A3E6E\]:hover:not([data-fixed-theme] *) { border-color: #BECBE6; }
+html.light .border-\[\#5C2B2B\]:not([data-fixed-theme] *)    { border-color: #F1C6C6; }
+html.light .border-\[\#3A2E10\]:not([data-fixed-theme] *)    { border-color: #EDDCAE; }
+html.light .border-\[\#1E3A2E\]:not([data-fixed-theme] *)    { border-color: #BDE8D2; }
 
 /* ---- misc surfaces ---- */
-html.light .bg-black\/60           { background-color: rgba(20,28,46,.45); }
-html.light .bg-\[\#1E2C52\]        { background-color: #E3E9F5; } /* progress track / bars */
+html.light .bg-black\/60:not([data-fixed-theme] *)           { background-color: rgba(20,28,46,.45); }
+html.light .bg-\[\#1E2C52\]:not([data-fixed-theme] *)        { background-color: #E3E9F5; } /* progress track / bars */
 html.light select, html.light input, html.light textarea { color-scheme: light; }
 html:not(.light) select, html:not(.light) input, html:not(.light) textarea { color-scheme: dark; }
 
