@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, BadgeCheck, BarChart3, BookOpen, Briefcase, Check, CodeXml, FileText, Globe, GraduationCap, HeartHandshake, Languages, Link2, Menu, Palette, PenLine, Plus, Rocket, Search, Share2, ShieldCheck, Smartphone, Sparkles, Star, Target, Terminal, Trophy, WandSparkles, X } from "lucide-react";
@@ -97,7 +98,23 @@ const PHONE_W = 390;
 const PHONE_H = 845; // 9 : 19.5
 const KEEP_MOUNTED = 4;
 
+/* Live templates are whole pages — too heavy for phones, which get the screenshots
+   instead. Matches Tailwind's `sm` breakpoint. Server render assumes a phone. */
+const WIDE_QUERY = "(min-width: 640px)";
+function useWideScreen() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia(WIDE_QUERY);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(WIDE_QUERY).matches,
+    () => false,
+  );
+}
+
 function PhoneFrame({ slug, alt, eager, className }: { slug: string; alt: string; eager?: boolean; className?: string }) {
+  const wide = useWideScreen();
   const screen = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
   const [mounted, setMounted] = useState([slug]);
@@ -115,9 +132,20 @@ function PhoneFrame({ slug, alt, eager, className }: { slug: string; alt: string
 
   return (
     <div className={`relative rounded-[2.4rem] border border-[#2A2D36] bg-[#0B0C10] p-2 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)] ${className ?? ""}`}>
-      <div ref={screen} className="pointer-events-none relative aspect-[9/19.5] overflow-hidden rounded-[1.9rem] bg-black">
-        {!loaded.includes(slug) && <div className="absolute inset-0 animate-pulse bg-lp-surface-2" />}
-        {scale > 0 && mounted.map((s) => (
+      {/* Screenshots are 9:16, so the phone version is a little shorter to avoid cropping them. */}
+      <div ref={screen} className={`pointer-events-none relative overflow-hidden rounded-[1.9rem] bg-black ${wide ? "aspect-[9/19.5]" : "aspect-[9/18]"}`}>
+        {!wide && (
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div key={slug} className="absolute inset-0"
+              initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease }}>
+              <Image src={`/brand/templates/${slug}.png`} alt={alt} fill loading={eager ? "eager" : undefined}
+                sizes="60vw" className="object-cover object-top" />
+            </motion.div>
+          </AnimatePresence>
+        )}
+        {wide && !loaded.includes(slug) && <div className="absolute inset-0 animate-pulse bg-lp-surface-2" />}
+        {wide && scale > 0 && mounted.map((s) => (
           <iframe key={s}
             src={`/preview/${s}?thumb=1`}
             title={s === slug ? alt : `${s} template`}
@@ -231,12 +259,12 @@ function HeroVisual() {
   const name = TEMPLATES.find((t) => t.slug === slug)?.name;
 
   return (
-    <div className="relative mx-auto aspect-[1/0.85] w-full max-w-[540px] sm:aspect-[1/1.02]">
+    <div className="relative mx-auto aspect-[1/1.02] w-full max-w-[540px]">
       <div aria-hidden className="absolute inset-[12%] rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)] blur-2xl" />
 
       {/* phone — the live portfolio */}
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.25, ease }}
-        className="absolute right-[6%] top-0 hidden w-[42%] sm:block">
+        className="absolute right-[6%] top-0 w-[42%]">
         <PhoneFrame slug={slug} alt={`${name} portfolio template`} eager />
         <div className="mt-3 flex justify-center">
           <span className="lp-mono rounded-full border border-lp-border bg-lp-surface px-3 py-1 text-[11px] text-lp-muted">
@@ -248,7 +276,7 @@ function HeroVisual() {
       {/* resume paper — always light */}
       <motion.div initial={{ opacity: 0, x: -30, rotate: -8 }} animate={{ opacity: 1, x: 0, rotate: -5 }}
         transition={{ duration: 0.9, delay: 0.4, ease }}
-        className="absolute left-[3%] top-[2%] w-[58%] sm:left-0 sm:top-[10%] sm:w-[47%]">
+        className="absolute left-0 top-[10%] w-[47%]">
         <div className="lp-float rounded-xl bg-white p-4 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.45)] ring-1 ring-black/5 sm:p-5">
           <div className="flex items-center justify-between">
             <span className="lp-mono text-[9px] font-medium uppercase tracking-widest text-[#8A92A6]">resume.pdf</span>
@@ -275,7 +303,7 @@ function HeroVisual() {
       {/* README — always dark */}
       <motion.div initial={{ opacity: 0, y: 30, rotate: 6 }} animate={{ opacity: 1, y: 0, rotate: 3 }}
         transition={{ duration: 0.9, delay: 0.55, ease }}
-        className="absolute bottom-[12%] right-[3%] w-[60%] sm:bottom-[3%] sm:left-[5%] sm:right-auto sm:w-[52%]">
+        className="absolute bottom-[3%] left-[5%] w-[52%]">
         <div className="lp-float-2 overflow-hidden rounded-xl border border-white/10 bg-[#0B0F19] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)]">
           <div className="flex items-center gap-1.5 border-b border-white/10 px-3 py-2">
             <GithubIcon className="h-3 w-3 text-[#9AA3B5]" />
@@ -295,7 +323,7 @@ function HeroVisual() {
 
       {/* sync chip */}
       <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.9, ease }}
-        className="absolute bottom-0 left-[3%] sm:bottom-[24%] sm:left-auto sm:right-[-2%]">
+        className="absolute bottom-[24%] right-0 sm:right-[-2%]">
         <div className="flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lp-green opacity-60" />
@@ -790,7 +818,7 @@ function Templates() {
           </motion.div>
         </div>
 
-        <motion.div {...delayed(0.15)} className="relative mx-auto hidden w-[270px] sm:block">
+        <motion.div {...delayed(0.15)} className="relative mx-auto w-[240px] sm:w-[270px]">
           <div aria-hidden className="absolute -inset-16 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
           <PhoneFrame slug={t.slug} alt={`${t.name} template preview`} className="relative" />
           <p className="relative mt-5 text-center text-sm">
