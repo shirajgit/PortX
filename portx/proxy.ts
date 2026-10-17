@@ -13,8 +13,15 @@ const isProtected = createRouteMatcher([
   "/api/ai(.*)",
 ]);
 
+// Pages a signed-in user has no reason to see — send them straight to the app.
+const isGuestOnly = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+
 export default clerkMiddleware(async (auth, req) => {
   if (isProtected(req)) await auth.protect();
+
+  if (isGuestOnly(req) && (await auth()).userId) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
 
   // Tell the UI which currency to show. Display only — orders re-derive it server-side.
   const currency = currencyFromHeaders(req.headers);
@@ -23,7 +30,7 @@ export default clerkMiddleware(async (auth, req) => {
     res.cookies.set(CURRENCY_COOKIE, currency, { path: "/", sameSite: "lax", maxAge: 60 * 60 * 24 * 30 });
     return res;
   }
-});
+}, { signInUrl: "/sign-in", signUpUrl: "/sign-up" });
 
 export const config = {
   matcher: [

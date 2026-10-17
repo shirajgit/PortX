@@ -31,15 +31,23 @@ type Props = {
 };
 
 export default async function PreviewPage({ params, searchParams }: Props) {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
-
   const { template } = await params;
   const Template = TEMPLATES[template];
   if (!Template) notFound();
 
-  // ?thumb=1: the template picker's live card thumbnail — just the template, no banner.
-  if ((await searchParams).thumb) return <Template data={DEMO_DATA} username={DEMO_USERNAME} />;
+  // ?thumb=1: a live thumbnail (dashboard picker, landing page phone) — just the template,
+  // no banner. Demo data only, so it's open to signed-out visitors too.
+  if ((await searchParams).thumb)
+    return (
+      <>
+        {/* Thumbnails are scaled-down pictures of the page — a scrollbar inside one looks broken. */}
+        <style>{`html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}`}</style>
+        <Template data={DEMO_DATA} username={DEMO_USERNAME} />
+      </>
+    );
+
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
 
   return (
     <>

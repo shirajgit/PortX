@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
-import { ArrowRight, ArrowUpRight, BarChart3, Briefcase, Check, CodeXml, FileText, Globe, Link2, Menu, Palette, PenLine, Plus, Rocket, ShieldCheck, Sparkles, Star, Target, Terminal, WandSparkles, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, BarChart3, BookOpen, Briefcase, Check, CodeXml, FileText, Globe, GraduationCap, HeartHandshake, Languages, Link2, Menu, Palette, PenLine, Plus, Rocket, Search, Share2, ShieldCheck, Smartphone, Sparkles, Star, Target, Terminal, Trophy, WandSparkles, X } from "lucide-react";
+import { RESUME_TEMPLATES } from "@/lib/resume";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
 import { faqFor } from "@/lib/faq";
@@ -30,6 +31,7 @@ const CONTAINER = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 const NAV_LINKS = [
   { href: "#features", label: "Features" },
   { href: "#templates", label: "Templates" },
+  { href: "#resume", label: "Resume" },
   { href: "#tailor", label: "Job tailoring" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
@@ -87,19 +89,48 @@ function PrimaryButton({ href, children, className }: { href: string; children: 
   );
 }
 
-function PhoneFrame({ slug, alt, priority, className }: { slug: string; alt: string; priority?: boolean; className?: string }) {
+/* Live phone preview: the real template with demo data, rendered at phone width in an
+   iframe and scaled to the frame — always matches the current design, like the
+   dashboard's picker. Recently shown templates stay mounted so switching back is
+   instant; the cap keeps hidden templates from piling up. */
+const PHONE_W = 390;
+const PHONE_H = 845; // 9 : 19.5
+const KEEP_MOUNTED = 4;
+
+function PhoneFrame({ slug, alt, eager, className }: { slug: string; alt: string; eager?: boolean; className?: string }) {
+  const screen = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0);
+  const [mounted, setMounted] = useState([slug]);
+  const [loaded, setLoaded] = useState<string[]>([]);
+
+  useEffect(() => {
+    const el = screen.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setScale(entry.contentRect.width / PHONE_W));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  if (!mounted.includes(slug)) setMounted([...mounted, slug].slice(-KEEP_MOUNTED));
+
   return (
-    <div className={`relative rounded-[2.4rem] border border-lp-border-strong bg-lp-surface-2 p-2 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)] ${className ?? ""}`}>
-      <div className="relative aspect-[9/16] overflow-hidden rounded-[1.9rem] bg-black">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.div key={slug} className="absolute inset-0"
-            initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease }}>
-            <Image src={`/brand/templates/${slug}.png`} alt={alt} fill preload={priority} loading={priority ? "eager" : undefined}
-              sizes="(min-width: 1024px) 300px, 60vw" className="object-cover object-top" />
-          </motion.div>
-        </AnimatePresence>
-        <div className="absolute left-1/2 top-1.5 h-4 w-16 -translate-x-1/2 rounded-full bg-black/90" />
+    <div className={`relative rounded-[2.4rem] border border-[#2A2D36] bg-[#0B0C10] p-2 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)] ${className ?? ""}`}>
+      <div ref={screen} className="pointer-events-none relative aspect-[9/19.5] overflow-hidden rounded-[1.9rem] bg-black">
+        {!loaded.includes(slug) && <div className="absolute inset-0 animate-pulse bg-lp-surface-2" />}
+        {scale > 0 && mounted.map((s) => (
+          <iframe key={s}
+            src={`/preview/${s}?thumb=1`}
+            title={s === slug ? alt : `${s} template`}
+            loading={eager ? "eager" : "lazy"}
+            tabIndex={-1}
+            scrolling="no"
+            aria-hidden={s !== slug}
+            onLoad={() => setLoaded((l) => (l.includes(s) ? l : [...l, s]))}
+            className="absolute left-0 top-0 origin-top-left border-0 transition-opacity duration-500"
+            style={{ width: PHONE_W, height: PHONE_H, transform: `scale(${scale})`, opacity: s === slug && loaded.includes(s) ? 1 : 0 }}
+          />
+        ))}
+        <div className="absolute left-1/2 top-2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-black ring-1 ring-white/10" />
       </div>
     </div>
   );
@@ -110,6 +141,7 @@ function PhoneFrame({ slug, alt, priority, className }: { slug: string; alt: str
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -136,12 +168,20 @@ function Nav() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link href="/sign-in" className="hidden rounded-lg px-3 py-1.5 text-sm text-lp-muted transition hover:text-lp-text sm:block">
-            Sign in
-          </Link>
-          <Link href="/sign-up" className="lp-btn-primary hidden rounded-lg px-4 py-2 text-sm font-medium sm:block">
-            Get started
-          </Link>
+          {isSignedIn ? (
+            <Link href="/dashboard" className="lp-btn-primary hidden rounded-lg px-4 py-2 text-sm font-medium sm:block">
+              Go to dashboard
+            </Link>
+          ) : (
+            <>
+              <Link href="/sign-in" className="hidden rounded-lg px-3 py-1.5 text-sm text-lp-muted transition hover:text-lp-text sm:block">
+                Sign in
+              </Link>
+              <Link href="/sign-up" className="lp-btn-primary hidden rounded-lg px-4 py-2 text-sm font-medium sm:block">
+                Get started
+              </Link>
+            </>
+          )}
           <button onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}
             className="rounded-lg border border-lp-border p-2 text-lp-muted md:hidden">
             {open ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
@@ -160,10 +200,16 @@ function Nav() {
                 {l.label}
               </a>
             ))}
-            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-lp-border pt-3">
-              <Link href="/sign-in" className="rounded-lg border border-lp-border px-3 py-2.5 text-center text-sm">Sign in</Link>
-              <Link href="/sign-up" className="lp-btn-primary rounded-lg px-3 py-2.5 text-center text-sm font-medium">Get started</Link>
-            </div>
+            {isSignedIn ? (
+              <div className="mt-2 border-t border-lp-border pt-3">
+                <Link href="/dashboard" className="lp-btn-primary block rounded-lg px-3 py-2.5 text-center text-sm font-medium">Go to dashboard</Link>
+              </div>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-lp-border pt-3">
+                <Link href="/sign-in" className="rounded-lg border border-lp-border px-3 py-2.5 text-center text-sm">Sign in</Link>
+                <Link href="/sign-up" className="lp-btn-primary rounded-lg px-3 py-2.5 text-center text-sm font-medium">Get started</Link>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -190,8 +236,8 @@ function HeroVisual() {
 
       {/* phone — the live portfolio */}
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.25, ease }}
-        className="absolute right-[4%] top-0 w-[48%]">
-        <PhoneFrame slug={slug} alt={`${name} portfolio template`} priority />
+        className="absolute right-[6%] top-0 w-[42%]">
+        <PhoneFrame slug={slug} alt={`${name} portfolio template`} eager />
         <div className="mt-3 flex justify-center">
           <span className="lp-mono rounded-full border border-lp-border bg-lp-surface px-3 py-1 text-[11px] text-lp-muted">
             template: <span className="text-lp-text">{name}</span>
@@ -744,13 +790,214 @@ function Templates() {
           </motion.div>
         </div>
 
-        <motion.div {...delayed(0.15)} className="relative mx-auto w-[260px] sm:w-[300px]">
+        <motion.div {...delayed(0.15)} className="relative mx-auto w-[240px] sm:w-[270px]">
           <div aria-hidden className="absolute -inset-16 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
           <PhoneFrame slug={t.slug} alt={`${t.name} template preview`} className="relative" />
           <p className="relative mt-5 text-center text-sm">
             <span className="font-medium">{t.name}</span>
             <span className="text-lp-muted"> — {t.tag}</span>
           </p>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ── resume templates ────────────────────────────────────────────── */
+
+const RESUME_FONTS: Record<string, string> = {
+  arimo: "Arial, Helvetica, sans-serif",
+  carlito: "Calibri, Carlito, Arial, sans-serif",
+  gelasio: "Georgia, 'Times New Roman', serif",
+};
+const CUSTOM_ACCENTS = ["#1d4ed8", "#7c3aed", "#be123c", "#0f766e", "#111111"];
+
+const RESUME_SAMPLE: Record<string, { h: string; lines: string[] }> = {
+  summary: { h: "Summary", lines: ["Full-stack engineer with 4 years shipping products used by 50k+ people."] },
+  skills: { h: "Skills", lines: ["TypeScript · React · Node.js · PostgreSQL · AWS · Docker"] },
+  experience: { h: "Experience", lines: ["Software Engineer — Ledgerly, 2022–now", "• Cut checkout latency 38% by moving pricing to the edge", "• Led a team of 3 to ship invoicing, now 22% of revenue"] },
+  projects: { h: "Projects", lines: ["brief-day — AI daily planner, 486 ★ on GitHub"] },
+  education: { h: "Education", lines: ["B.Tech, Computer Science — 2021"] },
+};
+
+function ResumeShowcase() {
+  const [active, setActive] = useState(0);
+  const [accent, setAccent] = useState(CUSTOM_ACCENTS[1]);
+  const t = RESUME_TEMPLATES[active];
+  const s = t.style;
+  const color = t.id === "custom" ? accent : s.accent;
+  const small = s.size === "small";
+  const gap = s.spacing === "compact" ? "0.5rem" : s.spacing === "relaxed" ? "1rem" : "0.75rem";
+
+  return (
+    <section id="resume" className="relative scroll-mt-24 py-20 sm:py-28">
+      <div className={`${CONTAINER} grid items-center gap-14 lg:grid-cols-[1fr_1.05fr] lg:gap-20`}>
+        <div>
+          <SectionHead
+            eyebrow="the resume"
+            title={<>Six resumes. <span className="lp-serif lp-gradient-text">All</span> ATS-safe.</>}
+            sub="The same profile, printed six ways. Every layout is single column with real text, so applicant tracking systems read it cleanly. Change the font, color and spacing yourself, and download a fresh PDF anytime."
+          />
+
+          <motion.div {...delayed(0.1)} className="mt-10 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {RESUME_TEMPLATES.map((tpl, k) => (
+              <button key={tpl.id} onClick={() => setActive(k)} onMouseEnter={() => setActive(k)}
+                aria-pressed={k === active}
+                className={`rounded-xl border px-4 py-3 text-left transition ${
+                  k === active ? "border-lp-accent/50 bg-lp-surface shadow-sm" : "border-lp-border hover:border-lp-border-strong hover:bg-lp-surface/60"
+                }`}>
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">{tpl.name}</span>
+                  <span className={`lp-mono rounded px-1.5 py-0.5 text-[9px] uppercase tracking-wider ${
+                    tpl.id === "classic" ? "bg-lp-green/10 text-lp-green" : "bg-lp-accent-soft text-lp-accent"
+                  }`}>{tpl.id === "classic" ? "Free" : "Pro"}</span>
+                </span>
+              </button>
+            ))}
+          </motion.div>
+
+          <motion.p {...delayed(0.15)} className="mt-5 min-h-[3rem] text-sm leading-relaxed text-lp-muted">
+            <span className="font-medium text-lp-text">{t.name}:</span> {t.blurb}
+          </motion.p>
+
+          <motion.ul {...delayed(0.2)} className="mt-4 grid gap-2 text-sm text-lp-muted sm:grid-cols-2">
+            {["Public resume page at /you/resume", "One-click PDF download", "Reorder sections freely", "Updates when your profile does"].map((f) => (
+              <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-lp-green" />{f}</li>
+            ))}
+          </motion.ul>
+        </div>
+
+        <motion.div {...delayed(0.15)} className="relative">
+          <div aria-hidden className="absolute -inset-10 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
+          <div className="relative mx-auto max-w-md rotate-[0.6deg] rounded-md bg-white p-7 text-[#1a1a1a] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.5)] ring-1 ring-black/5 sm:p-9"
+            style={{ fontFamily: RESUME_FONTS[s.font] ?? RESUME_FONTS.arimo, fontSize: small ? "10.5px" : "12px", lineHeight: 1.5 }}>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div key={t.id + color} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.3, ease }}>
+                <div style={{ textAlign: s.align === "center" ? "center" : "left" }}>
+                  <p style={{ fontSize: small ? "18px" : "21px", fontWeight: 700, color: s.colorHeadings ? color : "#111" }}>Aarav Sharma</p>
+                  <p className="text-[#555]">Full-stack Engineer · Bengaluru · portxz.xyz/aarav</p>
+                </div>
+                <div style={{ display: "grid", gap, marginTop: gap }}>
+                  {t.order.filter((k) => RESUME_SAMPLE[k]).map((k) => (
+                    <div key={k}>
+                      <p style={{ fontSize: "0.85em", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+                        color: s.colorHeadings ? color : "#111", borderBottom: `1px solid ${s.colorHeadings ? color : "#111"}33`, paddingBottom: 2, marginBottom: 4 }}>
+                        {RESUME_SAMPLE[k].h}
+                      </p>
+                      {RESUME_SAMPLE[k].lines.map((l) => <p key={l}>{l}</p>)}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <AnimatePresence>
+            {t.id === "custom" && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                className="relative mx-auto mt-5 flex w-fit items-center gap-2 rounded-full border border-lp-border bg-lp-surface px-3 py-2 shadow-sm">
+                <span className="text-xs text-lp-muted">Accent</span>
+                {CUSTOM_ACCENTS.map((c) => (
+                  <button key={c} onClick={() => setAccent(c)} aria-label={`Use color ${c}`} aria-pressed={accent === c}
+                    className={`h-5 w-5 rounded-full transition ${accent === c ? "ring-2 ring-lp-accent ring-offset-2 ring-offset-lp-surface" : ""}`}
+                    style={{ background: c }} />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ── more than projects ──────────────────────────────────────────── */
+
+function Extras() {
+  const items = [
+    { icon: GraduationCap, t: "Education", d: "Degrees and courses, with links to transcripts or theses." },
+    { icon: BadgeCheck, t: "Certifications", d: "Show what you've earned, with a link to verify it." },
+    { icon: Trophy, t: "Awards", d: "Hackathon wins, scholarships and recognition." },
+    { icon: HeartHandshake, t: "Volunteering", d: "Community work and causes you care about." },
+    { icon: Languages, t: "Languages", d: "Every language you speak, with your level." },
+    { icon: BookOpen, t: "Publications", d: "Papers, articles and talks." },
+  ];
+  const reach = [
+    { icon: Search, t: "Found on Google", d: "Your portfolio is set up for search engines, so people who search your name can find it." },
+    { icon: Share2, t: "Rich link previews", d: "Share your link on LinkedIn, WhatsApp or X and it shows your name, role and photo." },
+    { icon: Smartphone, t: "Looks right everywhere", d: "Every template works on phones as well as desktops, so your link looks right wherever it's opened." },
+  ];
+
+  return (
+    <section className="relative border-y border-lp-border bg-lp-surface-2/40 py-20 sm:py-28">
+      <div className={CONTAINER}>
+        <SectionHead center eyebrow="more than projects"
+          title={<>Your <span className="lp-serif lp-gradient-text">whole</span> story, not just the code.</>}
+          sub="Add the sections that make you, you. Each one appears on your portfolio and your resume at the same time." />
+
+        <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-3">
+          {items.map((it, k) => (
+            <motion.div key={it.t} {...delayed(k * 0.05)} className="lp-card rounded-2xl p-5">
+              <it.icon className="h-5 w-5 text-lp-accent" />
+              <p className="mt-3 font-medium">{it.t}</p>
+              <p className="mt-1 text-sm leading-relaxed text-lp-muted">{it.d}</p>
+            </motion.div>
+          ))}
+        </div>
+        <motion.p {...delayed(0.1)} className="mt-4 text-center text-sm text-lp-muted">
+          Need something else? Create a custom section with any title you like.
+        </motion.p>
+
+        <div className="mt-16 grid gap-6 md:grid-cols-3">
+          {reach.map((r, k) => (
+            <motion.div key={r.t} {...delayed(k * 0.08)} className="flex gap-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-lp-border bg-lp-surface text-lp-accent">
+                <r.icon className="h-[18px] w-[18px]" />
+              </span>
+              <div>
+                <p className="font-medium">{r.t}</p>
+                <p className="mt-1 text-sm leading-relaxed text-lp-muted">{r.d}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── before / after ──────────────────────────────────────────────── */
+
+function Compare() {
+  const rows = [
+    ["A website builder, a resume editor and a README written by hand", "One profile that powers all three"],
+    ["Fix a typo in three places", "Edit once, and everything updates"],
+    ["Rewrite your resume for every job", "Paste the job post and get a tailored resume"],
+    ["Guess whether the ATS can read your PDF", "ATS-safe layouts with a score"],
+    ["Pay for several tools every month", "Free to start, with one-time Pro passes"],
+  ];
+  return (
+    <section className="relative py-20 sm:py-28">
+      <div className={CONTAINER}>
+        <SectionHead center eyebrow="why portxz"
+          title={<>Stop <span className="lp-serif text-lp-muted">juggling</span> four tools.</>} />
+
+        <motion.div {...delayed(0.1)} className="mx-auto mt-14 max-w-4xl overflow-hidden rounded-3xl border border-lp-border">
+          <div className="grid grid-cols-2 border-b border-lp-border bg-lp-surface-2/60 text-sm font-medium">
+            <p className="px-5 py-4 text-lp-muted sm:px-7">The usual way</p>
+            <p className="border-l border-lp-border px-5 py-4 sm:px-7">With Portxz</p>
+          </div>
+          {rows.map(([before, after]) => (
+            <div key={before} className="grid grid-cols-2 border-b border-lp-border text-sm last:border-b-0">
+              <p className="flex items-start gap-2.5 px-5 py-4 text-lp-muted sm:px-7">
+                <X className="mt-0.5 h-4 w-4 shrink-0 text-lp-subtle" />{before}
+              </p>
+              <p className="flex items-start gap-2.5 border-l border-lp-border bg-lp-accent-soft/40 px-5 py-4 sm:px-7">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-lp-green" />{after}
+              </p>
+            </div>
+          ))}
         </motion.div>
       </div>
     </section>
@@ -1003,7 +1250,10 @@ export function Landing() {
         <SyncDemo />
         <Features />
         <Templates />
+        <ResumeShowcase />
+        <Extras />
         <Steps />
+        <Compare />
         <Pricing />
         <Faq />
         <FinalCta />
