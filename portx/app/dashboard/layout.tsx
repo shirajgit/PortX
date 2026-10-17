@@ -3,6 +3,10 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { isPro } from "@/lib/billing";
 import { DashboardNav } from "@/components/DashboardNav";
+import type { Metadata } from "next";
+import { NO_INDEX } from "@/lib/site";
+
+export const metadata: Metadata = { title: "Dashboard", robots: NO_INDEX };
 
 export default async function DashboardLayout({
   children,

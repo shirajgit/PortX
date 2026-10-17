@@ -1,6 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SignUp } from "@clerk/nextjs";
 import { Logo } from "@/components/Logo";
+import { NO_INDEX } from "@/lib/site";
+
+export const metadata: Metadata = { title: "Create your account", robots: NO_INDEX };
 
 export default function Page() {
   return (

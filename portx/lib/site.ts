@@ -27,3 +27,6 @@ export const LEGAL_LINKS = [
 
 /** Serialise structured data for a <script type="application/ld+json"> tag. */
 export const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c");
+
+/** Metadata robots value for pages that must never appear in search results. */
+export const NO_INDEX = { index: false, follow: false } as const;

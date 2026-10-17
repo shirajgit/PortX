@@ -1,6 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SignIn } from "@clerk/nextjs";
 import { Logo } from "@/components/Logo";
+import { NO_INDEX } from "@/lib/site";
+
+export const metadata: Metadata = { title: "Sign in", robots: NO_INDEX };
 
 export default function Page() {
   return (

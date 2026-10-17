@@ -11,6 +11,11 @@ import { Bento } from "@/components/templates/bento/Bento";
 import { Executive } from "@/components/templates/executive/Executive";
 import { Aurora } from "@/components/templates/aurora/Aurora";
 import { DEMO_DATA, DEMO_USERNAME } from "@/lib/demo-data";
+import type { Metadata } from "next";
+import { NO_INDEX } from "@/lib/site";
+
+// Demo data, not a real person's page — keep it out of search results.
+export const metadata: Metadata = { title: "Template preview", robots: NO_INDEX };
 
 /* Full-screen template preview — demo data, no dashboard chrome. */
 

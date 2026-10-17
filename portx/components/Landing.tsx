@@ -231,12 +231,12 @@ function HeroVisual() {
   const name = TEMPLATES.find((t) => t.slug === slug)?.name;
 
   return (
-    <div className="relative mx-auto aspect-[1/1.02] w-full max-w-[540px]">
+    <div className="relative mx-auto aspect-[1/0.85] w-full max-w-[540px] sm:aspect-[1/1.02]">
       <div aria-hidden className="absolute inset-[12%] rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)] blur-2xl" />
 
       {/* phone — the live portfolio */}
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.25, ease }}
-        className="absolute right-[6%] top-0 w-[42%]">
+        className="absolute right-[6%] top-0 hidden w-[42%] sm:block">
         <PhoneFrame slug={slug} alt={`${name} portfolio template`} eager />
         <div className="mt-3 flex justify-center">
           <span className="lp-mono rounded-full border border-lp-border bg-lp-surface px-3 py-1 text-[11px] text-lp-muted">
@@ -248,7 +248,7 @@ function HeroVisual() {
       {/* resume paper — always light */}
       <motion.div initial={{ opacity: 0, x: -30, rotate: -8 }} animate={{ opacity: 1, x: 0, rotate: -5 }}
         transition={{ duration: 0.9, delay: 0.4, ease }}
-        className="absolute left-0 top-[10%] w-[47%]">
+        className="absolute left-[3%] top-[2%] w-[58%] sm:left-0 sm:top-[10%] sm:w-[47%]">
         <div className="lp-float rounded-xl bg-white p-4 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.45)] ring-1 ring-black/5 sm:p-5">
           <div className="flex items-center justify-between">
             <span className="lp-mono text-[9px] font-medium uppercase tracking-widest text-[#8A92A6]">resume.pdf</span>
@@ -275,7 +275,7 @@ function HeroVisual() {
       {/* README — always dark */}
       <motion.div initial={{ opacity: 0, y: 30, rotate: 6 }} animate={{ opacity: 1, y: 0, rotate: 3 }}
         transition={{ duration: 0.9, delay: 0.55, ease }}
-        className="absolute bottom-[3%] left-[5%] w-[52%]">
+        className="absolute bottom-[12%] right-[3%] w-[60%] sm:bottom-[3%] sm:left-[5%] sm:right-auto sm:w-[52%]">
         <div className="lp-float-2 overflow-hidden rounded-xl border border-white/10 bg-[#0B0F19] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)]">
           <div className="flex items-center gap-1.5 border-b border-white/10 px-3 py-2">
             <GithubIcon className="h-3 w-3 text-[#9AA3B5]" />
@@ -295,7 +295,7 @@ function HeroVisual() {
 
       {/* sync chip */}
       <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.9, ease }}
-        className="absolute bottom-[24%] right-0 sm:right-[-2%]">
+        className="absolute bottom-0 left-[3%] sm:bottom-[24%] sm:left-auto sm:right-[-2%]">
         <div className="flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lp-green opacity-60" />
@@ -790,7 +790,7 @@ function Templates() {
           </motion.div>
         </div>
 
-        <motion.div {...delayed(0.15)} className="relative mx-auto w-[240px] sm:w-[270px]">
+        <motion.div {...delayed(0.15)} className="relative mx-auto hidden w-[270px] sm:block">
           <div aria-hidden className="absolute -inset-16 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
           <PhoneFrame slug={t.slug} alt={`${t.name} template preview`} className="relative" />
           <p className="relative mt-5 text-center text-sm">
@@ -940,7 +940,7 @@ function Extras() {
           {items.map((it, k) => (
             <motion.div key={it.t} {...delayed(k * 0.05)} className="lp-card rounded-2xl p-5">
               <it.icon className="h-5 w-5 text-lp-accent" />
-              <p className="mt-3 font-medium">{it.t}</p>
+              <h3 className="mt-3 font-medium">{it.t}</h3>
               <p className="mt-1 text-sm leading-relaxed text-lp-muted">{it.d}</p>
             </motion.div>
           ))}
@@ -956,7 +956,7 @@ function Extras() {
                 <r.icon className="h-[18px] w-[18px]" />
               </span>
               <div>
-                <p className="font-medium">{r.t}</p>
+                <h3 className="font-medium">{r.t}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-lp-muted">{r.d}</p>
               </div>
             </motion.div>
@@ -1043,7 +1043,7 @@ function Steps() {
               <div key={a.t} className="flex gap-4 rounded-xl bg-lp-surface-2/60 p-5">
                 <a.icon className="mt-0.5 h-5 w-5 shrink-0 text-lp-accent" />
                 <div>
-                  <p className="font-medium">{a.t}</p>
+                  <h3 className="font-medium">{a.t}</h3>
                   <p className="mt-1 text-sm leading-relaxed text-lp-muted">{a.d}</p>
                 </div>
               </div>
@@ -1156,14 +1156,11 @@ function Faq() {
                     <Plus className="h-3.5 w-3.5" />
                   </span>
                 </button>
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease }} className="overflow-hidden">
-                      <p className="max-w-xl pb-6 pr-10 text-[15px] leading-relaxed text-lp-muted">{f.a}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Always in the HTML (just collapsed) so search engines can read every answer. */}
+                <motion.div initial={false} animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+                  transition={{ duration: 0.3, ease }} className="overflow-hidden" aria-hidden={!isOpen}>
+                  <p className="max-w-xl pb-6 pr-10 text-[15px] leading-relaxed text-lp-muted">{f.a}</p>
+                </motion.div>
               </div>
             );
           })}
