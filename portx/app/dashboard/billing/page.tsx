@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, Notice, btn } from "@/components/ui";
-import { PASSES as ALL_PASSES } from "@/lib/billing";
+import { PASSES as ALL_PASSES, LAUNCH_OFFER_LIMIT } from "@/lib/billing";
 import {
   PRICES, SALE, formatPrice, isCurrency, perMonth, priceOf, saleActive, type Currency, type SellablePass,
 } from "@/lib/pricing";
@@ -20,18 +20,21 @@ type PassInfo = { id: SellablePass; label: string; short: string; days: number }
 /** price = what it costs now; was = the crossed-out comparison price. */
 type Pass = PassInfo & { price: number; was: number };
 const PASS_INFO: PassInfo[] = [
+  { id: "launch", label: "Launch Offer — 1 Month", short: "First month", days: 30 },
   { id: "month", label: "Pro — 1 Month", short: "1 month", days: 30 },
   { id: "halfyear", label: "Pro — 6 Months", short: "6 months", days: 180 },
   { id: "year", label: "Pro — 1 Year", short: "1 year", days: 365 },
 ];
-/* During the sale a pass is compared with its own regular price (so every plan shows
-   50% off). Otherwise longer passes are compared with paying monthly for as long. */
+/* The launch pass is compared with the regular monthly price. During the sale other passes
+   are compared with their own regular price (so every plan shows 50% off); otherwise longer
+   passes are compared with paying monthly for as long. */
 function passesFor(currency: Currency, sale: boolean): Pass[] {
   const monthly = PRICES[currency].month;
   return PASS_INFO.map((info) => ({
     ...info,
     price: priceOf(info.id, currency),
-    was: sale ? PRICES[currency][info.id] : Math.round(monthly * (info.days / 30) * 100) / 100,
+    was: info.id === "launch" ? monthly
+      : sale ? PRICES[currency][info.id] : Math.round(monthly * (info.days / 30) * 100) / 100,
   }));
 }
 const savePct = (p: Pass) => Math.round((1 - p.price / p.was) * 100);
@@ -83,6 +86,7 @@ export default function BillingPage() {
   const [plan, setPlan] = useState("free");
   const [expires, setExpires] = useState<string | null>(null);
   const [requests, setRequests] = useState<PayReq[]>([]);
+  const [launchLeft, setLaunchLeft] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [paying, setPaying] = useState<string | null>(null); // pass id being paid for
   const [choice, setChoice] = useState<string | null>(null); // plan picked in the phone list
@@ -93,7 +97,7 @@ export default function BillingPage() {
   const [now] = useState(() => Date.now());
   const currency = useCurrency();
   const sale = saleActive();
-  const PASSES = passesFor(currency, sale);
+  const ALL = passesFor(currency, sale);
   const fmt = (n: number) => formatPrice(n, currency);
   const TRUST = trustFor(currency);
 
@@ -105,6 +109,7 @@ export default function BillingPage() {
         setPlan(d.plan);
         setExpires(d.planExpiresAt);
         setRequests(d.requests);
+        setLaunchLeft(d.launchLeft ?? 0);
       }
       if (p.ok) {
         const d = await p.json();
@@ -126,8 +131,12 @@ export default function BillingPage() {
     ? Math.ceil((new Date(expires).getTime() - now) / (24 * 60 * 60 * 1000))
     : 0;
   const showPasses = !pending && (!pro || daysLeft <= 7);
-  // phone list: best value picked by default
-  const pick = choice ?? "year";
+  // The launch pass shows while slots are left and this user hasn't had it.
+  const launchUsed = requests.some((r) => r.plan === "launch" && r.status === "approved");
+  const launchOpen = !launchUsed && launchLeft > 0;
+  const PASSES = launchOpen ? ALL : ALL.filter((p) => p.id !== "launch");
+  // phone list: launch offer by default, best value once it's gone
+  const pick = choice && PASSES.some((p) => p.id === choice) ? choice : launchOpen ? "launch" : "year";
   const chosen = loaded && showPasses ? PASSES.find((p) => p.id === pick) ?? null : null;
 
   async function pay(pass: Pass) {
@@ -146,8 +155,11 @@ export default function BillingPage() {
     if (!res.ok) {
       setPaying(null);
       const b = await res.json().catch(() => ({}));
+      if (b.error === "launch_offer_over" || b.error === "launch_once_per_user") load();
       setError(
-        b.error === "razorpay_not_configured" ? "Payments are temporarily unavailable — please try again later."
+        b.error === "launch_offer_over" ? "The launch offer has sold out — please choose one of the other plans."
+        : b.error === "launch_once_per_user" ? "The launch offer can only be used once — please choose one of the other plans."
+        : b.error === "razorpay_not_configured" ? "Payments are temporarily unavailable — please try again later."
         : "We couldn't start the payment. Please try again."
       );
       return;
@@ -192,8 +204,9 @@ export default function BillingPage() {
     pending: { label: "Being checked", cls: "bg-lp-warning/10 text-lp-warning" },
     created: { label: "Not completed", cls: "bg-lp-surface-2 text-lp-muted" },
   };
-  // From lib/billing so old payments (e.g. the retired "launch" pass) keep their names.
+  // From lib/billing so every pass a payment was made for has a name.
   const PLAN_NAME: Record<string, string> = Object.fromEntries(Object.values(ALL_PASSES).map((p) => [p.id, p.label]));
+  // Hero offer: the launch pass while it's open, otherwise one month of Pro.
   const month = PASSES[0];
 
   return (
@@ -230,10 +243,14 @@ export default function BillingPage() {
               </p>
               <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 sm:mt-6">
                 <span className="text-4xl font-semibold tracking-tight">{fmt(month.price)}</span>
-                {sale && <span className="text-lg text-lp-subtle line-through">{fmt(month.was)}</span>}
-                <span className="text-sm text-lp-muted">for 1 month</span>
+                {(sale || launchOpen) && <span className="text-lg text-lp-subtle line-through">{fmt(month.was)}</span>}
+                <span className="text-sm text-lp-muted">{launchOpen ? "for your first month" : "for 1 month"}</span>
               </div>
-              {sale
+              {launchOpen
+                ? <p className="mt-1 text-[13px] font-medium text-lp-green">
+                    Launch offer · first {LAUNCH_OFFER_LIMIT} users only · {launchLeft} left
+                  </p>
+                : sale
                 ? <p className="mt-1 text-[13px] font-medium text-lp-green">Launch sale · {SALE.percent}% off every plan until {SALE.endsLabel}</p>
                 : <p className="mt-1 text-[13px] font-medium text-lp-muted">Or save more with a 6-month or yearly pass</p>}
               {/* phones use the sticky pay bar instead */}
@@ -295,6 +312,7 @@ export default function BillingPage() {
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-1.5">
                       <span className="text-[15px] font-semibold">{p.short}</span>
+                      {p.id === "launch" && <span className="rounded-full bg-lp-accent px-1.5 py-0.5 text-[10px] font-semibold text-white">Launch offer</span>}
                       {p.id === "year" && <span className="rounded-full bg-lp-green px-1.5 py-0.5 text-[10px] font-semibold text-white">Best value</span>}
                     </span>
                     <span className="mt-0.5 block text-[13px] text-lp-muted">
@@ -306,7 +324,7 @@ export default function BillingPage() {
                       {save > 0 && <span className="mr-1.5 text-[13px] font-normal text-lp-subtle line-through">{fmt(p.was)}</span>}
                       {fmt(p.price)}
                     </span>
-                    {save > 0 && <span className="block text-[11px] font-semibold text-lp-green">{sale ? `${save}% off` : `Save ${save}%`}</span>}
+                    {save > 0 && <span className="block text-[11px] font-semibold text-lp-green">{sale || p.id === "launch" ? `${save}% off` : `Save ${save}%`}</span>}
                   </span>
                 </button>
               );
@@ -314,15 +332,20 @@ export default function BillingPage() {
           </div>
 
           {/* tablets & desktop: cards */}
-          <div className="mt-5 hidden gap-4 sm:grid sm:grid-cols-3">
+          <div className={`mt-5 hidden gap-4 sm:grid ${launchOpen ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
             {PASSES.map((p) => {
-              const featured = p.id === "year";
+              const featured = p.id === (launchOpen ? "launch" : "year");
               const save = savePct(p);
               return (
                 <div key={p.id}
                   className={`relative flex min-w-0 flex-col rounded-2xl p-5 ${
                     featured ? "lp-gradient-border shadow-[0_24px_60px_-28px_rgba(79,110,255,0.7)]" : "lp-card"}`}>
-                  {featured && (
+                  {p.id === "launch" && (
+                    <span className="absolute -top-3 left-5 inline-flex items-center gap-1 rounded-full bg-lp-accent px-2.5 py-1 text-[11px] font-semibold text-white shadow">
+                      <Sparkles className="h-3 w-3" /> Launch offer · {launchLeft} left
+                    </span>
+                  )}
+                  {p.id === "year" && (
                     <span className="absolute -top-3 left-5 rounded-full bg-lp-green px-2.5 py-1 text-[11px] font-semibold text-white shadow">Best value</span>
                   )}
                   <p className="mt-1 text-sm font-medium text-lp-muted">{p.short}</p>
@@ -335,13 +358,13 @@ export default function BillingPage() {
                   </p>
                   <div className="mt-3 h-6">
                     {save > 0 && (
-                      <span className="inline-flex rounded-full bg-lp-green/10 px-2 py-0.5 text-xs font-semibold text-lp-green">{sale ? `${save}% off · until ${SALE.endsLabel}` : `Save ${save}%`}</span>
+                      <span className="inline-flex rounded-full bg-lp-green/10 px-2 py-0.5 text-xs font-semibold text-lp-green">{p.id === "launch" ? `${save}% off · first ${LAUNCH_OFFER_LIMIT} only` : sale ? `${save}% off · until ${SALE.endsLabel}` : `Save ${save}%`}</span>
                     )}
                   </div>
                   <div className="mt-auto pt-5">
                     <button onClick={() => pay(p)} disabled={!!paying}
                       className={btn(featured ? "primary" : "secondary", "md", "w-full")}>
-                      {paying === p.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : `Get ${p.short}`}
+                      {paying === p.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : p.id === "launch" ? `Get Pro for ${fmt(p.price)}` : `Get ${p.short}`}
                     </button>
                   </div>
                 </div>

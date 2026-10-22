@@ -43,3 +43,6 @@ lib/generated/
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# marketing assets / ad prompts
+/marketing/

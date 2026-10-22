@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { requireProfile, handleAuthError } from "@/lib/auth";
+import { launchSlotsLeft } from "@/lib/launch";
 
 export async function GET() {
   try {
@@ -14,6 +15,7 @@ export async function GET() {
       plan: profile.plan,
       planExpiresAt: profile.planExpiresAt,
       requests,
+      launchLeft: await launchSlotsLeft(profile.id),
     });
   } catch (e) {
     return handleAuthError(e);

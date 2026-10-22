@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { GithubIcon } from "@/components/BrandIcons";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { SALE, SALE_PRICES, PRICES, formatPrice, saleActive } from "@/lib/pricing";
+import { PRICES, formatPrice } from "@/lib/pricing";
 import { useCurrency } from "@/lib/useCurrency";
 import { Logo } from "@/components/Logo";
 
@@ -130,9 +130,7 @@ function UpgradeStrip({ onNavigate }: { onNavigate?: () => void }) {
       <span className="min-w-0 flex-1">
         <span className="block text-[13px] font-semibold">Upgrade to Pro</span>
         <span className="block text-[11px] text-lp-muted">
-          {saleActive()
-            ? `${SALE.percent}% off · ${formatPrice(SALE_PRICES[currency].month, currency)} until ${SALE.endsLabel}`
-            : `From ${formatPrice(PRICES[currency].month, currency)} a month`}
+          Launch offer · {formatPrice(PRICES[currency].launch, currency)} for your first month
         </span>
       </span>
       <ArrowUpRight className="h-4 w-4 shrink-0 text-lp-subtle transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-lp-accent" />

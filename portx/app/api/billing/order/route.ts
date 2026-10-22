@@ -5,8 +5,8 @@ import { requireProfile, handleAuthError } from "@/lib/auth";
 import { PASSES } from "@/lib/billing";
 import { createOrder, razorpayConfigured } from "@/lib/razorpay";
 import { SELLABLE_PASSES, currencyFromHeaders, priceOf } from "@/lib/pricing";
+import { launchSlotsLeft, launchUsedBy } from "@/lib/launch";
 
-// "launch" (the old ₹49 first-50 pass) is no longer sold — the launch sale replaced it.
 const Input = z.object({ plan: z.enum(SELLABLE_PASSES) });
 
 export async function POST(req: Request) {
@@ -17,6 +17,13 @@ export async function POST(req: Request) {
       return Response.json({ error: body.error.flatten() }, { status: 400 });
     if (!razorpayConfigured())
       return Response.json({ error: "razorpay_not_configured" }, { status: 503 });
+
+    if (body.data.plan === "launch") {
+      if ((await launchSlotsLeft(profile.id)) <= 0)
+        return Response.json({ error: "launch_offer_over" }, { status: 410 });
+      if (await launchUsedBy(profile.id))
+        return Response.json({ error: "launch_once_per_user" }, { status: 409 });
+    }
 
     const pass = PASSES[body.data.plan];
     // Currency comes from the request's IP country, never from the browser.

@@ -17,13 +17,17 @@ export const PRICES: Record<Currency, Record<PassId, number>> = {
   GBP: { launch: 2.49, month: 3.99, halfyear: 15, year: 25 },
 };
 
-/* ── Launch sale ── half price on every plan until the end of 17 Nov 2026 (India time).
-   It replaced the ₹49 first-50 "launch" pass, which is no longer sold (old payments
-   still show under that name). After SALE.endsAt the regular PRICES apply on their own. */
+/* ── Launch offer ── the "launch" pass: one month of Pro at PRICES.launch (₹49) for the
+   first LAUNCH_OFFER_LIMIT buyers, once per user. The sale below never changes its price.
+
+   ── Launch sale ── half price on the regular plans until the end of 17 Nov 2026 (India time).
+   After SALE.endsAt the regular PRICES apply on their own. */
 
 /** Passes that can be bought. */
-export const SELLABLE_PASSES = ["month", "halfyear", "year"] as const;
+export const SELLABLE_PASSES = ["launch", "month", "halfyear", "year"] as const;
 export type SellablePass = (typeof SELLABLE_PASSES)[number];
+/** Passes the launch sale discounts. */
+export type SalePass = Exclude<SellablePass, "launch">;
 
 export const SALE = {
   percent: 50,
@@ -33,7 +37,7 @@ export const SALE = {
 };
 
 /** Half price, rounded to amounts that look natural in each currency. */
-export const SALE_PRICES: Record<Currency, Record<SellablePass, number>> = {
+export const SALE_PRICES: Record<Currency, Record<SalePass, number>> = {
   INR: { month: 75, halfyear: 325, year: 499 },
   USD: { month: 2.49, halfyear: 9.49, year: 14.49 },
   EUR: { month: 2.49, halfyear: 9.49, year: 14.49 },
@@ -44,6 +48,7 @@ export const saleActive = (now: Date = new Date()) => now < SALE.endsAt;
 
 /** What a pass costs right now. The order API uses this, so the sale ends server-side too. */
 export function priceOf(pass: SellablePass, currency: Currency, now: Date = new Date()): number {
+  if (pass === "launch") return PRICES[currency].launch;
   return saleActive(now) ? SALE_PRICES[currency][pass] : PRICES[currency][pass];
 }
 

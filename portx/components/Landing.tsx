@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
 import { faqFor } from "@/lib/faq";
 import { PRICES, SALE, SALE_PRICES, formatPrice, saleActive } from "@/lib/pricing";
+import { LAUNCH_OFFER_LIMIT } from "@/lib/billing";
 import { useCurrency } from "@/lib/useCurrency";
 import { LEGAL_LINKS } from "@/lib/site";
 
@@ -346,16 +347,14 @@ function Hero() {
 
       <div className={`${CONTAINER} relative grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-8`}>
         <div className="text-center lg:text-left">
-          {saleActive() && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <a href="#pricing"
-                className="group inline-flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface py-1 pl-1 pr-3 text-[13px] text-lp-muted shadow-sm transition hover:border-lp-border-strong">
-                <span className="rounded-full bg-lp-green/15 px-2 py-0.5 text-[11px] font-semibold text-lp-green">Launch sale</span>
-                {SALE.percent}% off Pro · from {formatPrice(SALE_PRICES[currency].month, currency)} until {SALE.endsLabel}
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-              </a>
-            </motion.div>
-          )}
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <a href="#launch-offer"
+              className="group inline-flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface py-1 pl-1 pr-3 text-[13px] text-lp-muted shadow-sm transition hover:border-lp-border-strong">
+              <span className="rounded-full bg-lp-green/15 px-2 py-0.5 text-[11px] font-semibold text-lp-green">Launch offer</span>
+              Pro for {formatPrice(PRICES[currency].launch, currency)} · first {LAUNCH_OFFER_LIMIT} users
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </a>
+          </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.08, ease }}
             className="mt-7 text-[2.75rem] font-semibold leading-[1.02] tracking-[-0.045em] sm:text-6xl lg:text-[4.4rem]">
@@ -1128,6 +1127,14 @@ function Pricing() {
               {sale && <span className="rounded-full bg-lp-green/15 px-2.5 py-1 text-[11px] font-semibold text-lp-green">Launch sale · {SALE.percent}% off until {SALE.endsLabel}</span>}
             </div>
             <p className="relative mt-1 text-sm text-lp-muted">The full kit, for less than a coffee.</p>
+            <div id="launch-offer" className="relative mt-5 scroll-mt-28 rounded-2xl border border-lp-accent/30 bg-lp-accent-soft px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-lp-accent">Launch offer · first {LAUNCH_OFFER_LIMIT} users</p>
+              <p className="mt-1 flex items-baseline gap-2">
+                <span className="text-2xl font-semibold tracking-tight">{fmt(p.launch)}</span>
+                <span className="text-sm text-lp-subtle line-through">{fmt(p.month)}</span>
+                <span className="text-sm text-lp-muted">for your first month</span>
+              </p>
+            </div>
             <p className="relative mt-6 flex items-baseline gap-2">
               {sale && <span className="text-xl text-lp-subtle line-through">{fmt(p.month)}</span>}
               <span className="text-5xl font-semibold tracking-tight">{fmt(now.month)}</span>

@@ -1,4 +1,5 @@
 import { PRICES, SALE, SALE_PRICES, formatPrice, saleActive, type Currency } from "./pricing";
+import { LAUNCH_OFFER_LIMIT } from "./billing";
 
 /* Landing-page FAQ — shared by the page and its FAQ structured data. Prices follow the visitor's currency. */
 export const faqFor = (currency: Currency) => {
@@ -7,6 +8,7 @@ export const faqFor = (currency: Currency) => {
   const s = SALE_PRICES[currency];
   return [
     { q: "Is the free plan actually free?", a: "Forever. You get a published portfolio with the Minimal template, 5 projects, 5 experience entries, skills, education, links, GitHub import, and a Classic ATS resume PDF. Pro adds the premium templates, AI review, resume tailoring for any job, 6 resume templates with a resume editor, and removes all limits." },
+    { q: `What does the ${fmt(p.launch)} launch offer include?`, a: `One full month of Pro — every premium template, AI portfolio review, unlimited entries, resume tailoring for any job, and all 6 resume templates. It's limited to the first ${LAUNCH_OFFER_LIMIT} users, once per user. After that, Pro is ${saleActive() ? fmt(s.month) : fmt(p.month)} for a month (or less on 6-month and yearly passes).` },
     saleActive()
       ? { q: `Is there a launch sale?`, a: `Yes — every Pro plan is ${SALE.percent}% off until ${SALE.endsLabel} 2026: ${fmt(s.month)} for a month (was ${fmt(p.month)}), ${fmt(s.halfyear)} for 6 months (was ${fmt(p.halfyear)}) and ${fmt(s.year)} for a year (was ${fmt(p.year)}). Pro includes every premium template, AI portfolio review, unlimited entries, resume tailoring for any job, and all 6 resume templates.` }
       : { q: "What does Pro include?", a: `Every premium template, AI portfolio review, unlimited entries, resume tailoring for any job, and all 6 resume templates — from ${fmt(p.month)} for a month, or less per month on 6-month and yearly passes.` },
