@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { isAdminId } from "@/lib/auth";
 import { PASSES, newExpiry, type PassId } from "@/lib/billing";
 
 const Input = z.object({ action: z.enum(["approve", "reject"]) });
@@ -8,7 +9,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function POST(req: Request, ctx: Ctx) {
   const { userId } = await auth();
-  if (!userId || userId !== process.env.ADMIN_CLERK_ID)
+  if (!isAdminId(userId))
     return Response.json({ error: "forbidden" }, { status: 403 });
 
   const { id } = await ctx.params;

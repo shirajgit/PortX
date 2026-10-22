@@ -62,3 +62,22 @@ export async function recordEvent(
   await db.pageView.create({ data: { profileId, kind, ref, visitor } });
   return true;
 }
+
+/** Records a visit to one of the site's own pages, with the same bot, repeat and burst rules. */
+export async function recordSiteView(req: Request, path: string, ref: string | null = null): Promise<boolean> {
+  const visitor = visitorId(req);
+  if (!visitor) return false;
+  const now = Date.now();
+
+  const [burst, repeat] = await Promise.all([
+    db.siteView.count({ where: { visitor, createdAt: { gte: new Date(now - BURST_WINDOW_MS) } } }),
+    db.siteView.findFirst({
+      where: { visitor, path, createdAt: { gte: new Date(now - VIEW_WINDOW_MS) } },
+      select: { id: true },
+    }),
+  ]);
+  if (burst >= BURST_MAX || repeat) return false;
+
+  await db.siteView.create({ data: { path, ref, visitor } });
+  return true;
+}

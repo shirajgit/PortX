@@ -17,6 +17,13 @@ export async function requireProfile() {
   return profile;
 }
 
+/** ADMIN_CLERK_ID is a comma-separated list of Clerk user ids. */
+export function isAdminId(userId: string | null | undefined): boolean {
+  if (!userId) return false;
+  const ids = (process.env.ADMIN_CLERK_ID ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  return ids.includes(userId);
+}
+
 export class AuthError extends Error {
   status: number;
   constructor(status: number, message: string) {

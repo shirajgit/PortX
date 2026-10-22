@@ -161,6 +161,19 @@ model PageView {
   @@map("page_views")
 }
 
+/// Visits to portxz.xyz's own pages (landing, help, legal, dashboard…). Portfolio visits live in page_views.
+model SiteView {
+  id        BigInt   @id @default(autoincrement())
+  path      String
+  ref       String?
+  visitor   String   // daily-rotating hash of IP + user agent; never the raw IP
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([visitor, createdAt])
+  @@map("site_views")
+}
+
 /// Stored AI answers keyed by a hash of the exact request, so repeats are free.
 model AiCache {
   key       String   @id

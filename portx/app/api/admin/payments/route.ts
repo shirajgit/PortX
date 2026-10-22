@@ -1,9 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { isAdminId } from "@/lib/auth";
 
 async function requireAdmin() {
   const { userId } = await auth();
-  if (!userId || userId !== process.env.ADMIN_CLERK_ID) return null;
+  if (!isAdminId(userId)) return null;
   return userId;
 }
 

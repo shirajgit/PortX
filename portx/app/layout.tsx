@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
+import { SiteTracker } from "@/components/SiteTracker";
 
 /* Brand fonts — exposed as CSS variables; .lp (landing + dashboard) opts in. */
 const sans = Geist({ subsets: ["latin"], variable: "--font-lp-sans" });
@@ -100,6 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </head>
         <body className="antialiased min-h-screen  bg-background text-foreground selection:bg-blue-500/30">
           {children}
+          <SiteTracker />
         </body>
       </html>
     </ClerkProvider>

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { isPro } from "@/lib/billing";
+import { isAdminId } from "@/lib/auth";
 import { DashboardNav } from "@/components/DashboardNav";
 import type { Metadata } from "next";
 import { NO_INDEX } from "@/lib/site";
@@ -18,7 +19,7 @@ export default async function DashboardLayout({
 
   const profile = await db.profile.findUnique({ where: { clerkId: userId } });
   if (!profile || profile.onboardingStep < 8) redirect("/setup");
-  const isAdmin = userId === process.env.ADMIN_CLERK_ID;
+  const isAdmin = isAdminId(userId);
 
   return (
     <div className="lp relative isolate flex min-h-screen">
