@@ -283,6 +283,68 @@ function buildCommands(data: PortfolioData, username: string) {
   return { commands, has, sectionNames: sectionCmds.map((c) => c.name) };
 }
 
+/* The same content the commands print, as plain HTML for screen readers and search
+   engines — the terminal starts empty, so without this the page reads as just a name. */
+function TextVersion({ data }: { data: PortfolioData }) {
+  const { profile, experiences, projects, skills, educations, sections, links } = data;
+  return (
+    <div className="sr-only">
+      {profile.summary && <p>{profile.summary}</p>}
+      {experiences.length > 0 && (
+        <section>
+          <h2>Experience</h2>
+          {experiences.map((e, i) => (
+            <article key={i}>
+              <h3>{e.title}{e.organization && ` at ${e.organization}`}</h3>
+              <p>{[e.startDate, e.endDate ?? "Present"].filter(Boolean).join(" – ")}{e.location && ` · ${e.location}`}</p>
+              {e.bullets.length > 0 && <ul>{e.bullets.map((b, j) => <li key={j}>{b}</li>)}</ul>}
+            </article>
+          ))}
+        </section>
+      )}
+      {projects.length > 0 && (
+        <section>
+          <h2>Projects</h2>
+          {projects.map((p, i) => (
+            <article key={i}>
+              <h3>{p.name}</h3>
+              {(p.tagline || p.description) && <p>{p.tagline || p.description}</p>}
+              {p.tech.length > 0 && <p>Built with {p.tech.join(", ")}</p>}
+              {p.liveUrl && <a href={p.liveUrl}>{p.name} live site</a>}
+              {p.repoUrl && <a href={p.repoUrl}>{p.name} source code</a>}
+            </article>
+          ))}
+        </section>
+      )}
+      {skills.length > 0 && (
+        <section>
+          <h2>Skills</h2>
+          <ul>{skills.map((s, i) => <li key={i}>{s.category}: {s.items.join(", ")}</li>)}</ul>
+        </section>
+      )}
+      {educations.length > 0 && (
+        <section>
+          <h2>Education</h2>
+          <ul>
+            {educations.map((e, i) => (
+              <li key={i}>{[e.degree, e.institution, [e.startYear, e.endYear].filter(Boolean).join("–")].filter(Boolean).join(", ")}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {sections.map((s, i) => (
+        <section key={i}>
+          <h2>{s.title}</h2>
+          <ul>{s.items.map((it, j) => <li key={j}>{[it.title, it.subtitle, it.date].filter(Boolean).join(" · ")}</li>)}</ul>
+        </section>
+      ))}
+      {links.length > 0 && (
+        <ul>{links.map((l, i) => <li key={i}><a href={l.url}>{l.label || l.kind}</a></li>)}</ul>
+      )}
+    </div>
+  );
+}
+
 export function Cli({ data, username: usernameProp }: TemplateProps) {
   const username =
     usernameProp ?? (data.profile.fullName.toLowerCase().split(" ")[0] || "guest");
@@ -509,6 +571,7 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
                 available for work
               </StatusPill>
             )}
+            <TextVersion data={data} />
           </div>
           <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
             {resumeHref(usernameProp) && (

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { NO_INDEX } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Page not found" };
+export const metadata: Metadata = { title: "Page not found", robots: NO_INDEX };
 
 /* Shown for unknown URLs and unpublished or missing portfolios. */
 export default function NotFound() {
