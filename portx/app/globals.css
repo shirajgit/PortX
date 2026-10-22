@@ -255,6 +255,46 @@ html.light {
   .lp-float, .lp-float-2, .lp-caret { animation: none; }
 }
 
+/* ── landing page motion ── smooth anchor scrolling, card spotlight, button shine,
+   drifting hero glow. Scoped to the landing page; the dashboard keeps plain cards. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.lp-landing) { scroll-behavior: smooth; }
+}
+/* Cards light up under the cursor. --mx/--my are set on mousemove (see spot in Landing);
+   the hover lift is a framer whileHover there, since framer owns these cards' transform. */
+.lp-spot {
+  position: relative;
+  isolation: isolate;
+  transition: border-color .3s;
+}
+.lp-spot::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), var(--lp-accent-soft), transparent 45%);
+  opacity: 0; transition: opacity .4s;
+}
+@media (hover: hover) {
+  .lp-spot:hover { border-color: var(--lp-border-strong); }
+  .lp-spot:hover::before { opacity: 1; }
+}
+/* light sweep across primary buttons on hover */
+.lp-shine { position: relative; overflow: hidden; isolation: isolate; }
+.lp-shine::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.lp-shine:hover::after { transform: translateX(120%); transition: transform .8s cubic-bezier(.22,1,.36,1); }
+.lp-shine:active { transform: scale(.98); }
+@keyframes lp-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(4%, 30px) scale(1.08); }
+}
+.lp-drift { animation: lp-drift 14s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .lp-shine::after { display: none; }
+  .lp-drift { animation: none; }
+}
+
 /* thin scrollbar that only shows while hovering (dashboard sidebar) */
 .lp-scroll-thin { scrollbar-width: thin; scrollbar-color: transparent transparent; }
 .lp-scroll-thin:hover { scrollbar-color: var(--lp-border-strong) transparent; }

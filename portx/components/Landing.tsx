@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@clerk/nextjs";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion, useScroll, useSpring } from "framer-motion";
 import { ArrowRight, ArrowUpRight, BadgeCheck, BarChart3, BookOpen, Briefcase, Check, CodeXml, FileText, Globe, GraduationCap, HeartHandshake, Languages, Link2, Menu, Palette, PenLine, Plus, Rocket, Search, Share2, ShieldCheck, Smartphone, Sparkles, Star, Target, Terminal, Trophy, WandSparkles, X } from "lucide-react";
 import { RESUME_TEMPLATES } from "@/lib/resume";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -13,6 +13,7 @@ import { PRICES, SALE, SALE_PRICES, formatPrice, saleActive } from "@/lib/pricin
 import { LAUNCH_OFFER_LIMIT } from "@/lib/billing";
 import { useCurrency } from "@/lib/useCurrency";
 import { LEGAL_LINKS } from "@/lib/site";
+import { TESTIMONIALS } from "@/lib/testimonials";
 
 /* ═══ Portxz landing ═══
    Colors come from the lp-* tokens in globals.css so the page works in both
@@ -21,8 +22,8 @@ import { LEGAL_LINKS } from "@/lib/site";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 const reveal = {
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
+  initial: { opacity: 0, y: 24, filter: "blur(6px)" },
+  whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
   viewport: { once: true, margin: "-80px" },
   transition: { duration: 0.7, ease },
 };
@@ -30,14 +31,26 @@ const delayed = (d: number) => ({ ...reveal, transition: { ...reveal.transition,
 
 const CONTAINER = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 
+/* Card spotlight + lift — pairs with .lp-spot in globals.css. The lift is a framer
+   whileHover because framer owns these cards' transform after the reveal. */
+const spot = {
+  onMouseMove: (e: React.MouseEvent<HTMLElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+  },
+  whileHover: { y: -3, transition: { duration: 0.3, ease } },
+};
+
 const NAV_LINKS = [
+  { href: "#tailor", label: "Job tailoring" },
   { href: "#features", label: "Features" },
   { href: "#templates", label: "Templates" },
   { href: "#resume", label: "Resume" },
-  { href: "#tailor", label: "Job tailoring" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ];
+const NAV_IDS = NAV_LINKS.map((l) => l.href.slice(1));
 
 const TEMPLATES = [
   { slug: "aurora", name: "Aurora", tag: "Glowing gradients, dark", pro: true },
@@ -84,7 +97,7 @@ function SectionHead({
 function PrimaryButton({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) {
   return (
     <Link href={href}
-      className={`lp-btn-primary group inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-[15px] font-medium transition ${className ?? ""}`}>
+      className={`lp-btn-primary lp-shine group inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-[15px] font-medium transition ${className ?? ""}`}>
       {children}
       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
     </Link>
@@ -167,7 +180,33 @@ function PhoneFrame({ slug, alt, eager, className }: { slug: string; alt: string
 
 /* ── nav ─────────────────────────────────────────────────────────── */
 
+/* The nav section in the middle of the screen, or null between nav sections. */
+function useActiveSection(ids: string[]) {
+  const [active, setActive] = useState<string | null>(null);
+  useEffect(() => {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const id = e.target.id;
+        setActive((a) => (e.isIntersecting ? id : a === id ? null : a));
+      }
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    ids.forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el); });
+    return () => io.disconnect();
+  }, [ids]);
+  return active;
+}
+
+function ScrollProgress() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 });
+  return (
+    <motion.div aria-hidden style={{ scaleX }}
+      className="fixed inset-x-0 top-0 z-[60] h-[2px] origin-left bg-gradient-to-r from-[#3B9BFF] via-[#5B5BF6] to-[#A16BFF]" />
+  );
+}
+
 function Nav() {
+  const active = useActiveSection(NAV_IDS);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { isSignedIn } = useAuth();
@@ -187,12 +226,17 @@ function Nav() {
         <Link href="/" aria-label="Portxz home"><Logo size="sm" /></Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((l) => (
-            <a key={l.href} href={l.href}
-              className="rounded-lg px-3 py-1.5 text-sm text-lp-muted transition hover:bg-lp-surface-2 hover:text-lp-text">
-              {l.label}
-            </a>
-          ))}
+          {NAV_LINKS.map((l) => {
+            const on = active === l.href.slice(1);
+            return (
+              <a key={l.href} href={l.href} aria-current={on ? "true" : undefined}
+                className={`relative isolate rounded-lg px-3 py-1.5 text-sm transition-colors hover:text-lp-text ${on ? "text-lp-text" : "text-lp-muted"}`}>
+                {on && <motion.span layoutId="nav-pill" transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                  className="absolute inset-0 -z-10 rounded-lg bg-lp-surface-2" />}
+                {l.label}
+              </a>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -322,6 +366,17 @@ function HeroVisual() {
         </div>
       </motion.div>
 
+      {/* tailoring chip */}
+      <motion.a href="#tailor" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 1.05, ease }}
+        className="absolute left-[2%] top-0 z-10">
+        <div className="flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur transition hover:border-lp-border-strong">
+          <Target className="h-3.5 w-3.5 text-lp-accent" />
+          <span className="font-medium">Job match</span>
+          <span className="text-lp-subtle line-through">54%</span>
+          <span className="font-semibold text-lp-green">91%</span>
+        </div>
+      </motion.a>
+
       {/* sync chip */}
       <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.9, ease }}
         className="absolute bottom-[24%] right-0 sm:right-[-2%]">
@@ -343,7 +398,7 @@ function Hero() {
   return (
     <section className="relative pt-32 sm:pt-40">
       <div aria-hidden className="lp-grid-bg pointer-events-none absolute inset-x-0 top-0 h-[820px]" />
-      <div aria-hidden className="pointer-events-none absolute left-1/2 top-[-280px] h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
+      <div aria-hidden className="lp-drift pointer-events-none absolute left-1/2 top-[-280px] h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
 
       <div className={`${CONTAINER} relative grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-8`}>
         <div className="text-center lg:text-left">
@@ -351,17 +406,20 @@ function Hero() {
             <a href="#launch-offer"
               className="group inline-flex items-center gap-2 rounded-full border border-lp-border bg-lp-surface py-1 pl-1 pr-3 text-[13px] text-lp-muted shadow-sm transition hover:border-lp-border-strong">
               <span className="rounded-full bg-lp-green/15 px-2 py-0.5 text-[11px] font-semibold text-lp-green">Launch offer</span>
-              Pro for {formatPrice(PRICES[currency].launch, currency)} · first {LAUNCH_OFFER_LIMIT} users
+              Pro for {formatPrice(PRICES[currency].launch, currency)}<span className="hidden sm:inline"> · first {LAUNCH_OFFER_LIMIT} users</span>
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </a>
           </motion.div>
 
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.08, ease }}
-            className="mt-7 text-[2.75rem] font-semibold leading-[1.02] tracking-[-0.045em] sm:text-6xl lg:text-[4.4rem]">
-            Build it once.
-            <br />
-            Stay <span className="lp-serif lp-gradient-text pr-1 text-[1.12em]">in sync</span> everywhere.
-          </motion.h1>
+          <h1 className="mt-7 text-[2.75rem] font-semibold leading-[1.02] tracking-[-0.045em] sm:text-6xl lg:text-[4.4rem]">
+            {[<>Build it once.</>, <>Stay <span className="lp-serif lp-gradient-text pr-1 text-[1.12em]">in sync</span> everywhere.</>].map((line, k) => (
+              <motion.span key={k} className="block"
+                initial={{ opacity: 0, y: 24, filter: "blur(10px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ duration: 0.9, delay: 0.08 + k * 0.12, ease }}>
+                {line}
+              </motion.span>
+            ))}
+          </h1>
 
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.16, ease }}
             className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-lp-muted lg:mx-0">
@@ -396,7 +454,7 @@ function Hero() {
         <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-lp-border bg-lp-border sm:grid-cols-4" style={{ gap: 1 }}>
           {[
             ["8", "portfolio templates"],
-            ["1-click", "GitHub import"],
+            ["Any job", "resume tailored in seconds"],
             ["3 min", "from sign-up to live"],
             [formatPrice(0, currency), "to get started"],
           ].map(([v, l]) => (
@@ -581,8 +639,8 @@ function BentoCard({
   icon: typeof Globe; title: string; desc: string; className?: string; children?: React.ReactNode; delay?: number;
 }) {
   return (
-    <motion.div {...delayed(delay)}
-      className={`lp-card group relative flex flex-col overflow-hidden rounded-2xl p-6 transition-colors hover:border-lp-border-strong ${className ?? ""}`}>
+    <motion.div {...delayed(delay)} {...spot}
+      className={`lp-card lp-spot group flex flex-col overflow-hidden rounded-2xl p-6 ${className ?? ""}`}>
       <div className="flex items-center gap-3">
         <span className="grid h-9 w-9 place-items-center rounded-lg border border-lp-border bg-lp-surface-2 text-lp-accent">
           <Icon className="h-[18px] w-[18px]" />
@@ -595,76 +653,95 @@ function BentoCard({
   );
 }
 
-/* Resume tailoring — the job post on the left, what Portxz does with it on the right. */
-function TailorCard() {
+/* ── resume tailoring ── its own section: the job post on the right, the steps on the left. */
+function Tailor() {
   const keywords: [string, boolean][] = [["React", true], ["TypeScript", true], ["REST APIs", true], ["GraphQL", false], ["CI/CD", false]];
+  const steps = [
+    { t: "Paste the job post", d: "Any role, from LinkedIn, Naukri or a careers page." },
+    { t: "See where you stand", d: "A match score and the keywords the job wants that your resume is missing." },
+    { t: "Download a resume for that job", d: "Bullets rewritten in the job's language and a tailored summary. Keep the suggestions you like, then download an ATS-ready PDF." },
+  ];
   return (
-    <motion.div id="tailor" {...delayed(0.04)}
-      className="lp-card relative scroll-mt-24 overflow-hidden rounded-2xl p-6 md:col-span-6 sm:p-8">
-      <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
-      <div className="relative grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-lg border border-lp-border bg-lp-surface-2 text-lp-accent">
-              <Target className="h-[18px] w-[18px]" />
-            </span>
-            <h3 className="text-[17px] font-semibold tracking-tight">Tailor your resume to any job</h3>
-            <span className="rounded-full bg-lp-accent-soft px-2 py-0.5 text-[11px] font-semibold text-lp-accent">Pro</span>
-          </div>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-lp-muted">
-            Paste a job description. Get a match score, the keywords you&apos;re missing, your bullets rewritten in the
-            job&apos;s language and a tailored summary — then download a resume made for that role. Your portfolio stays untouched.
-          </p>
-          <ul className="mt-5 grid gap-2 text-sm sm:grid-cols-2">
-            {["Match score for every job", "Missing keywords, at a glance", "Bullets rewritten to fit", "Tailored ATS-ready PDF"].map((t) => (
-              <li key={t} className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-lp-green" />{t}</li>
-            ))}
-          </ul>
-        </div>
+    <section id="tailor" className="relative scroll-mt-24 py-20 sm:py-28">
+      <div className={CONTAINER}>
+        <SectionHead
+          eyebrow="resume tailoring"
+          title={<>A resume made for <span className="lp-serif lp-gradient-text">every job</span> you apply to.</>}
+          sub="Recruiters and ATS filters look for the job's own words. Paste a job description and Portxz rewrites your resume to match it in seconds, so you stop sending one generic PDF everywhere."
+        />
 
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-          <div className="space-y-3">
-            <div className="rounded-xl border border-lp-border bg-lp-surface-2 p-4">
-              <p className="lp-mono text-[10px] uppercase tracking-widest text-lp-subtle">job description</p>
-              <p className="mt-2 text-[13px] leading-relaxed text-lp-muted">
-                Frontend Engineer · We&apos;re looking for strong <b className="font-semibold text-lp-text">React</b> and{" "}
-                <b className="font-semibold text-lp-text">TypeScript</b> skills, experience with <b className="font-semibold text-lp-text">GraphQL</b>…
+        <motion.div {...delayed(0.1)}
+          className="lp-card relative mt-14 overflow-hidden rounded-3xl p-6 sm:p-8">
+          <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
+          <div className="relative grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <div className="flex items-center gap-2">
+                <Target className="h-[18px] w-[18px] text-lp-accent" />
+                <p className="text-sm font-medium">How it works</p>
+                <span className="rounded-full bg-lp-accent-soft px-2 py-0.5 text-[11px] font-semibold text-lp-accent">Pro</span>
+              </div>
+              <ol className="mt-6 space-y-5">
+                {steps.map((s, k) => (
+                  <li key={s.t} className="flex gap-4">
+                    <span className="lp-mono grid h-7 w-7 shrink-0 place-items-center rounded-full bg-lp-text text-xs font-semibold text-lp-bg">{k + 1}</span>
+                    <div>
+                      <p className="font-medium">{s.t}</p>
+                      <p className="mt-0.5 text-sm leading-relaxed text-lp-muted">{s.d}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-6 flex items-start gap-2 text-sm text-lp-muted">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-lp-green" />
+                Your saved profile, main resume and public portfolio stay exactly as they are.
               </p>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {keywords.map(([k, have]) => (
-                <span key={k} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  have ? "bg-lp-green/10 text-lp-green" : "bg-lp-warning/10 text-lp-warning"}`}>
-                  {have ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}{k}
-                </span>
-              ))}
-            </div>
-            <div className="relative rounded-xl border border-lp-accent/30 bg-lp-accent-soft p-4 text-[13px] leading-relaxed">
-              <Sparkles className="absolute -top-2 right-4 h-4 w-4 text-lp-accent" />
-              Built <b className="font-semibold">React + TypeScript</b> dashboards consuming <b className="font-semibold">REST APIs</b> for 12k monthly users.
-            </div>
-          </div>
 
-          <div className="flex items-center justify-center gap-4 rounded-xl border border-lp-border bg-lp-surface-2 p-4 sm:flex-col">
-            {[["Before", 54, "var(--lp-subtle)"], ["After", 91, "var(--lp-green)"]].map(([label, v, color]) => (
-              <div key={label as string} className="text-center">
-                <div className="relative h-16 w-16">
-                  <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
-                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--lp-border-strong)" strokeWidth="3" />
-                    <motion.circle cx="18" cy="18" r="15.5" fill="none" stroke={color as string} strokeWidth="3" strokeLinecap="round"
-                      strokeDasharray="97.4" initial={{ strokeDashoffset: 97.4 }}
-                      whileInView={{ strokeDashoffset: 97.4 * (1 - (v as number) / 100) }}
-                      viewport={{ once: true }} transition={{ duration: 1.2, ease }} />
-                  </svg>
-                  <span className="absolute inset-0 grid place-items-center text-sm font-semibold">{v}%</span>
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div className="space-y-3">
+                <div className="rounded-xl border border-lp-border bg-lp-surface-2 p-4">
+                  <p className="lp-mono text-[10px] uppercase tracking-widest text-lp-subtle">job description</p>
+                  <p className="mt-2 text-[13px] leading-relaxed text-lp-muted">
+                    Frontend Engineer · We&apos;re looking for strong <b className="font-semibold text-lp-text">React</b> and{" "}
+                    <b className="font-semibold text-lp-text">TypeScript</b> skills, experience with <b className="font-semibold text-lp-text">GraphQL</b>…
+                  </p>
                 </div>
-                <p className="mt-1 text-[11px] text-lp-muted">{label} match</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {keywords.map(([k, have]) => (
+                    <span key={k} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                      have ? "bg-lp-green/10 text-lp-green" : "bg-lp-warning/10 text-lp-warning"}`}>
+                      {have ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}{k}
+                    </span>
+                  ))}
+                </div>
+                <div className="relative rounded-xl border border-lp-accent/30 bg-lp-accent-soft p-4 text-[13px] leading-relaxed">
+                  <Sparkles className="absolute -top-2 right-4 h-4 w-4 text-lp-accent" />
+                  Built <b className="font-semibold">React + TypeScript</b> dashboards consuming <b className="font-semibold">REST APIs</b> for 12k monthly users.
+                </div>
               </div>
-            ))}
+
+              <div className="flex items-center justify-center gap-4 rounded-xl border border-lp-border bg-lp-surface-2 p-4 sm:flex-col">
+                {[["Before", 54, "var(--lp-subtle)"], ["After", 91, "var(--lp-green)"]].map(([label, v, color]) => (
+                  <div key={label as string} className="text-center">
+                    <div className="relative h-16 w-16">
+                      <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+                        <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--lp-border-strong)" strokeWidth="3" />
+                        <motion.circle cx="18" cy="18" r="15.5" fill="none" stroke={color as string} strokeWidth="3" strokeLinecap="round"
+                          strokeDasharray="97.4" initial={{ strokeDashoffset: 97.4 }}
+                          whileInView={{ strokeDashoffset: 97.4 * (1 - (v as number) / 100) }}
+                          viewport={{ once: true }} transition={{ duration: 1.2, ease }} />
+                      </svg>
+                      <span className="absolute inset-0 grid place-items-center text-sm font-semibold">{v}%</span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-lp-muted">{label} match</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </motion.div>
+    </section>
   );
 }
 
@@ -712,8 +789,6 @@ function Features() {
               </ul>
             </div>
           </BentoCard>
-
-          <TailorCard />
 
           <BentoCard icon={Terminal} title="A portfolio visitors can type into" className="md:col-span-3" delay={0.04}
             desc="The CLI template turns your page into a real terminal. Recruiters remember the one where they ran sudo hire-me.">
@@ -802,9 +877,11 @@ function Templates() {
             {TEMPLATES.map((tpl, k) => (
               <button key={tpl.slug} onClick={() => setActive(k)} onMouseEnter={() => setActive(k)}
                 aria-pressed={k === active}
-                className={`group relative rounded-xl border px-4 py-3 text-left transition ${
-                  k === active ? "border-lp-accent/50 bg-lp-surface shadow-sm" : "border-lp-border hover:border-lp-border-strong hover:bg-lp-surface/60"
+                className={`group relative isolate rounded-xl border px-4 py-3 text-left transition-colors ${
+                  k === active ? "border-transparent" : "border-lp-border hover:border-lp-border-strong hover:bg-lp-surface/60"
                 }`}>
+                {k === active && <motion.span layoutId="template-pick" transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                  className="absolute -inset-px -z-10 rounded-xl border border-lp-accent/50 bg-lp-surface shadow-sm" />}
                 <span className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium">{tpl.name}</span>
                   <span className={`lp-mono rounded px-1.5 py-0.5 text-[9px] uppercase tracking-wider ${
@@ -870,9 +947,11 @@ function ResumeShowcase() {
             {RESUME_TEMPLATES.map((tpl, k) => (
               <button key={tpl.id} onClick={() => setActive(k)} onMouseEnter={() => setActive(k)}
                 aria-pressed={k === active}
-                className={`rounded-xl border px-4 py-3 text-left transition ${
-                  k === active ? "border-lp-accent/50 bg-lp-surface shadow-sm" : "border-lp-border hover:border-lp-border-strong hover:bg-lp-surface/60"
+                className={`relative isolate rounded-xl border px-4 py-3 text-left transition-colors ${
+                  k === active ? "border-transparent" : "border-lp-border hover:border-lp-border-strong hover:bg-lp-surface/60"
                 }`}>
+                {k === active && <motion.span layoutId="resume-pick" transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                  className="absolute -inset-px -z-10 rounded-xl border border-lp-accent/50 bg-lp-surface shadow-sm" />}
                 <span className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium">{tpl.name}</span>
                   <span className={`lp-mono rounded px-1.5 py-0.5 text-[9px] uppercase tracking-wider ${
@@ -965,7 +1044,7 @@ function Extras() {
 
         <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-3">
           {items.map((it, k) => (
-            <motion.div key={it.t} {...delayed(k * 0.05)} className="lp-card rounded-2xl p-5">
+            <motion.div key={it.t} {...delayed(k * 0.05)} {...spot} className="lp-card lp-spot rounded-2xl p-4 sm:p-5">
               <it.icon className="h-5 w-5 text-lp-accent" />
               <h3 className="mt-3 font-medium">{it.t}</h3>
               <p className="mt-1 text-sm leading-relaxed text-lp-muted">{it.d}</p>
@@ -1011,21 +1090,63 @@ function Compare() {
           title={<>Stop <span className="lp-serif text-lp-muted">juggling</span> four tools.</>} />
 
         <motion.div {...delayed(0.1)} className="mx-auto mt-14 max-w-4xl overflow-hidden rounded-3xl border border-lp-border">
-          <div className="grid grid-cols-2 border-b border-lp-border bg-lp-surface-2/60 text-sm font-medium">
-            <p className="px-5 py-4 text-lp-muted sm:px-7">The usual way</p>
-            <p className="border-l border-lp-border px-5 py-4 sm:px-7">With Portxz</p>
+          {/* Two columns from sm up; on phones each row stacks "before" over "after". */}
+          <div className="hidden grid-cols-2 border-b border-lp-border bg-lp-surface-2/60 text-sm font-medium sm:grid">
+            <p className="px-7 py-4 text-lp-muted">The usual way</p>
+            <p className="border-l border-lp-border px-7 py-4">With Portxz</p>
           </div>
           {rows.map(([before, after]) => (
-            <div key={before} className="grid grid-cols-2 border-b border-lp-border text-sm last:border-b-0">
-              <p className="flex items-start gap-2.5 px-5 py-4 text-lp-muted sm:px-7">
+            <div key={before} className="grid border-b border-lp-border text-sm last:border-b-0 sm:grid-cols-2">
+              <p className="flex items-start gap-2.5 px-5 pb-2 pt-4 text-lp-muted sm:px-7 sm:py-4">
                 <X className="mt-0.5 h-4 w-4 shrink-0 text-lp-subtle" />{before}
               </p>
-              <p className="flex items-start gap-2.5 border-l border-lp-border bg-lp-accent-soft/40 px-5 py-4 sm:px-7">
+              <p className="flex items-start gap-2.5 bg-lp-accent-soft/40 px-5 py-3 sm:border-l sm:border-lp-border sm:px-7 sm:py-4">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-lp-green" />{after}
               </p>
             </div>
           ))}
         </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ── testimonials ────────────────────────────────────────────────── */
+
+function Testimonials() {
+  if (TESTIMONIALS.length === 0) return null;
+  return (
+    <section className="relative border-y border-lp-border bg-lp-surface-2/40 py-20 sm:py-28">
+      <div className={CONTAINER}>
+        <SectionHead center eyebrow="from our users"
+          title={<>People are <span className="lp-serif lp-gradient-text">shipping</span> with Portxz.</>} />
+
+        <div className="mt-14 gap-4 sm:columns-2 lg:columns-3">
+          {TESTIMONIALS.map((t, k) => {
+            const initials = t.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+            return (
+              <motion.figure key={t.name + k} {...delayed((k % 3) * 0.06)} {...spot}
+                className="lp-card lp-spot mb-4 break-inside-avoid rounded-2xl p-6">
+                <blockquote className="text-[15px] leading-relaxed">&ldquo;{t.quote}&rdquo;</blockquote>
+                <figcaption className="mt-5 flex items-center gap-3">
+                  {t.photo ? (
+                    <Image src={t.photo} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-cover" />
+                  ) : (
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-lp-accent-soft text-xs font-semibold text-lp-accent">{initials}</span>
+                  )}
+                  <span className="min-w-0 text-sm">
+                    {t.url ? (
+                      <a href={t.url} target="_blank" rel="noopener noreferrer" className="block truncate font-medium hover:text-lp-accent">{t.name}</a>
+                    ) : (
+                      <span className="block truncate font-medium">{t.name}</span>
+                    )}
+                    <span className="block truncate text-lp-muted">{t.role}</span>
+                  </span>
+                </figcaption>
+              </motion.figure>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -1101,7 +1222,7 @@ function Pricing() {
           sub="No trials, no traps. Upgrade only if you love it." />
 
         <div className="mx-auto mt-14 grid max-w-4xl gap-5 md:grid-cols-2">
-          <motion.div {...reveal} className="lp-card flex flex-col rounded-3xl p-8">
+          <motion.div {...reveal} className="lp-card flex flex-col rounded-3xl p-6 sm:p-8">
             <p className="font-medium">Free</p>
             <p className="mt-1 text-sm text-lp-muted">Everything you need to get online.</p>
             <p className="mt-6 flex items-baseline gap-1">
@@ -1120,26 +1241,24 @@ function Pricing() {
           </motion.div>
 
           <motion.div id="pro" {...delayed(0.1)}
-            className="lp-gradient-border relative flex scroll-mt-24 flex-col overflow-hidden rounded-3xl p-8 shadow-[0_30px_80px_-30px_rgba(79,110,255,0.45)]">
+            className="lp-gradient-border relative flex scroll-mt-24 flex-col overflow-hidden rounded-3xl p-6 sm:p-8 shadow-[0_30px_80px_-30px_rgba(79,110,255,0.45)]">
             <div aria-hidden className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
-            <div className="relative flex items-center justify-between">
+            <div className="relative flex flex-wrap items-center justify-between gap-2">
               <p className="font-medium">Pro</p>
               {sale && <span className="rounded-full bg-lp-green/15 px-2.5 py-1 text-[11px] font-semibold text-lp-green">Launch sale · {SALE.percent}% off until {SALE.endsLabel}</span>}
             </div>
             <p className="relative mt-1 text-sm text-lp-muted">The full kit, for less than a coffee.</p>
-            <div id="launch-offer" className="relative mt-5 scroll-mt-28 rounded-2xl border border-lp-accent/30 bg-lp-accent-soft px-4 py-3">
+            <div id="launch-offer" className="relative mt-6 scroll-mt-28">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-lp-accent">Launch offer · first {LAUNCH_OFFER_LIMIT} users</p>
-              <p className="mt-1 flex items-baseline gap-2">
-                <span className="text-2xl font-semibold tracking-tight">{fmt(p.launch)}</span>
-                <span className="text-sm text-lp-subtle line-through">{fmt(p.month)}</span>
-                <span className="text-sm text-lp-muted">for your first month</span>
+              <p className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className="text-xl text-lp-subtle line-through">{fmt(p.month)}</span>
+                <span className="text-5xl font-semibold tracking-tight">{fmt(p.launch)}</span>
+                <span className="text-lp-muted">/ first month</span>
+              </p>
+              <p className="mt-2 text-sm text-lp-muted">
+                Then {fmt(now.month)}/month{sale && <> <span className="text-lp-subtle line-through">{fmt(p.month)}</span> during the launch sale</>}
               </p>
             </div>
-            <p className="relative mt-6 flex items-baseline gap-2">
-              {sale && <span className="text-xl text-lp-subtle line-through">{fmt(p.month)}</span>}
-              <span className="text-5xl font-semibold tracking-tight">{fmt(now.month)}</span>
-              <span className="text-lp-muted">/ month</span>
-            </p>
             <ul className="relative mt-8 flex-1 space-y-3 text-sm">
               {pro.map((f) => (
                 <li key={f} className="flex items-start gap-2.5">
@@ -1150,7 +1269,7 @@ function Pricing() {
                 </li>
               ))}
             </ul>
-            <PrimaryButton href="/sign-up" className="relative mt-8">{sale ? "Get it at half price" : "Get Pro"}</PrimaryButton>
+            <PrimaryButton href="/sign-up" className="relative mt-8">Get Pro for {fmt(p.launch)}</PrimaryButton>
             <p className="lp-mono relative mt-3 text-center text-[11px] text-lp-subtle">
               or {fmt(now.halfyear)}/6mo · {fmt(now.year)}/yr{sale && ` (was ${fmt(p.halfyear)} · ${fmt(p.year)})`}
             </p>
@@ -1276,16 +1395,19 @@ function Footer() {
 export function Landing() {
   return (
     <MotionConfig reducedMotion="user">
-      <main className="lp relative min-h-screen overflow-x-clip">
+      <main className="lp lp-landing relative min-h-screen overflow-x-clip">
+        <ScrollProgress />
         <Nav />
         <Hero />
         <SyncDemo />
+        <Tailor />
         <Features />
         <Templates />
         <ResumeShowcase />
         <Extras />
         <Steps />
         <Compare />
+        <Testimonials />
         <Pricing />
         <Faq />
         <FinalCta />
