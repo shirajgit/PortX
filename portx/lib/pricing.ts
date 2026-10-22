@@ -12,9 +12,9 @@ export type Currency = (typeof CURRENCIES)[number];
 /** Prices in each currency's major unit (rupees, dollars…). */
 export const PRICES: Record<Currency, Record<PassId, number>> = {
   INR: { launch: 49, month: 149, halfyear: 649, year: 999 },
-  USD: { launch: 2.99, month: 4.99, halfyear: 19, year: 29 },
-  EUR: { launch: 2.99, month: 4.99, halfyear: 19, year: 29 },
-  GBP: { launch: 2.49, month: 3.99, halfyear: 15, year: 25 },
+  USD: { launch: 1.49, month: 4.99, halfyear: 19, year: 29 },
+  EUR: { launch: 1.49, month: 4.99, halfyear: 19, year: 29 },
+  GBP: { launch: 1.29, month: 3.99, halfyear: 15, year: 25 },
 };
 
 /* ── Launch offer ── the "launch" pass: one month of Pro at PRICES.launch (₹49) for the
