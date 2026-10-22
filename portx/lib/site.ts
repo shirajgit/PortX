@@ -12,8 +12,9 @@ export const SITE_DESCRIPTION =
    gateways check these during website review; an empty field is left off the page. */
 export const BUSINESS = {
   legalName: "", // registered business name, or your full name if a sole proprietor
-  email: "",     // support email
-  phone: "",     // e.g. "+91 98765 43210"
+  email: "hello.aishitech@gmail.com", // support email
+  altEmail: "shirajmujawar03@gmail.com", // founder's direct email
+  phone: "+91 81053 69922",
   address: "",   // registered / operating address
 };
 
@@ -22,6 +23,7 @@ export const LEGAL_LINKS = [
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/refund-policy", label: "Refund & Cancellation" },
   { href: "/shipping-policy", label: "Shipping & Delivery" },
+  { href: "/help", label: "Help Center" },
   { href: "/contact", label: "Contact Us" },
 ] as const;
 

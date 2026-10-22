@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BUSINESS, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -27,6 +28,9 @@ export default function ContactPage() {
           <div>
             <dt className="font-mono text-xs uppercase tracking-wider">Email</dt>
             <dd className="mt-1 text-base"><a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a></dd>
+            {BUSINESS.altEmail && (
+              <dd className="mt-1 text-base"><a href={`mailto:${BUSINESS.altEmail}`}>{BUSINESS.altEmail}</a></dd>
+            )}
           </div>
         )}
         {BUSINESS.phone && (
@@ -46,6 +50,9 @@ export default function ContactPage() {
       <p className="mt-6">
         For payment issues, please include your {SITE_NAME} username and the payment reference from your
         Billing page so we can find it quickly.
+      </p>
+      <p>
+        Looking for how-to answers? The <Link href="/help">Help Center</Link> covers setup, templates, resumes and billing.
       </p>
     </>
   );

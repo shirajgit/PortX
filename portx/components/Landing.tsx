@@ -1291,9 +1291,12 @@ function Faq() {
         <div className="lg:sticky lg:top-28 lg:self-start">
           <SectionHead eyebrow="questions" title={<>Asked &amp; <span className="lp-serif text-lp-muted">answered</span>.</>} />
           <motion.p {...delayed(0.1)} className="mt-5 text-lp-muted">
-            Something else on your mind?{" "}
+            Something else on your mind? Browse the{" "}
+            <Link href="/help" className="text-lp-text underline decoration-lp-border-strong underline-offset-4 hover:decoration-lp-accent">
+              Help Center
+            </Link>{" "}or{" "}
             <Link href="/contact" className="text-lp-text underline decoration-lp-border-strong underline-offset-4 hover:decoration-lp-accent">
-              Get in touch
+              get in touch
             </Link>.
           </motion.p>
         </div>
