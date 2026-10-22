@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BUSINESS, SITE_NAME, SITE_URL } from "@/lib/site";
+import { BUSINESS, SITE_NAME, SITE_URL, pageMeta } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Terms & Conditions",
   description: `The terms that apply when you use ${SITE_NAME}.`,
-  alternates: { canonical: "/terms" },
-};
+  path: "/terms",
+});
 
 export default function TermsPage() {
   const operator = BUSINESS.legalName || SITE_NAME;

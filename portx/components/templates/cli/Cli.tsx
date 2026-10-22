@@ -500,10 +500,10 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
         {/* identity bar — the essentials in one click, for visitors who won't type */}
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
           <div className="min-w-0">
-            <p className="truncate text-base font-bold text-slate-100">
+            <h1 className="truncate text-base font-bold text-slate-100">
               {data.profile.fullName}
               {data.profile.headline && <span className="font-normal text-slate-500"> · {data.profile.headline}</span>}
-            </p>
+            </h1>
             {data.profile.openToWork && (
               <StatusPill dot="bg-emerald-400" className="mt-1.5 border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 text-[11px] text-emerald-300">
                 available for work

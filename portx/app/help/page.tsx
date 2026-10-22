@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { HelpCenter } from "@/components/HelpCenter";
 import { HELP_TOPICS } from "@/lib/help";
-import { SITE_NAME, jsonLd } from "@/lib/site";
+import { SITE_NAME, jsonLd, pageMeta } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Help Center",
   description: `How-to answers for ${SITE_NAME}: setting up your portfolio, templates, resume PDFs, job tailoring, billing and your account.`,
-  alternates: { canonical: "/help" },
-};
+  path: "/help",
+});
 
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",

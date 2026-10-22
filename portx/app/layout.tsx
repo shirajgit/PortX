@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, OG_IMAGE } from "@/lib/site";
 import { SiteTracker } from "@/components/SiteTracker";
 
 /* Brand fonts — exposed as CSS variables; .lp (landing + dashboard) opts in. */
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description:
       "One profile → live portfolio + ATS resume you can tailor to any job + GitHub README, always in sync. Free to start.",
-    images: [{ url: "/brand/og.png", width: 1200, height: 630, alt: "Portxz — one profile, always in sync" }],
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     description:
       "One profile → portfolio + ATS resume tailored to any job + GitHub README, always in sync. Free to start.",
     creator: "@portxz",
-    images: ["/brand/og.png"],
+    images: [OG_IMAGE.url],
   },
   icons: {
     icon: [

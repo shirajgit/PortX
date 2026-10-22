@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   // @sparticuz/chromium reads its compressed Chrome from bin/ at runtime, which the
   // file tracer can't see — without this the PDF function deploys without a browser.

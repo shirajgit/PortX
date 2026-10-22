@@ -4,7 +4,7 @@ import { faqFor } from "@/lib/faq";
 
 // Structured data is static, so it uses the home-market (INR) prices.
 const FAQ = faqFor("INR");
-import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, jsonLd } from "@/lib/site";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, BUSINESS, jsonLd } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -20,6 +20,7 @@ const STRUCTURED_DATA = {
       name: SITE_NAME,
       url: SITE_URL,
       logo: `${SITE_URL}/brand/portxz-mark.png`,
+      contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: BUSINESS.email },
     },
     {
       "@type": "WebSite",

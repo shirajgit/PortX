@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPortfolioData } from "@/lib/data";
 import { Minimal } from "@/components/templates/minimal/Minimal";
@@ -10,7 +12,7 @@ import { Executive } from "@/components/templates/executive/Executive";
 import { Aurora } from "@/components/templates/aurora/Aurora";
 import { ViewTracker } from "@/components/ViewTracker";
 import type { PortfolioData } from "@/components/templates/types";
-import { SITE_URL, jsonLd } from "@/lib/site";
+import { SITE_URL, SITE_NAME, jsonLd, clip } from "@/lib/site";
 
 export const revalidate = 60;
 
@@ -27,36 +29,36 @@ const TEMPLATES: Record<string, typeof Minimal> = {
 
 type Props = { params: Promise<{ username: string }> };
 
-export async function generateMetadata({ params }: Props) {
+// Metadata and the page both need the profile — one query per request.
+const load = cache((username: string) => getPortfolioData(username));
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
-  const result = await getPortfolioData(username.toLowerCase());
+  const result = await load(username.toLowerCase());
   if (!result) return {};
   const { profile } = result.data;
   const path = `/${username.toLowerCase()}`;
   const title = profile.headline ? `${profile.fullName} — ${profile.headline}` : profile.fullName;
-  const description =
-    profile.summary?.slice(0, 155) ||
-    `${profile.fullName}'s portfolio${profile.headline ? ` — ${profile.headline}` : ""}. Projects, experience and skills.`;
-  const image = profile.avatarUrl?.startsWith("https://") ? profile.avatarUrl : "/brand/og.png";
+  const description = clip(
+    profile.summary ||
+      `${profile.fullName}'s portfolio${profile.headline ? ` — ${profile.headline}` : ""}. Projects, experience and skills.`
+  );
+  // The share image comes from ./opengraph-image.tsx, which Next wires up on its own.
   return {
     title,
     description,
+    authors: [{ name: profile.fullName, url: path }],
     alternates: { canonical: path },
-    openGraph: {
-      type: "profile",
-      url: path,
-      title,
-      description,
-      images: [{ url: image, alt: profile.fullName }],
-    },
-    twitter: { card: "summary", title, description, images: [image] },
+    openGraph: { type: "profile", siteName: SITE_NAME, url: path, title, description },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
-/* Tells search engines this page is about a person: name, role, links. */
+/* Tells search engines this page is about a person: name, role, skills, schools, links. */
 function personJsonLd(username: string, data: PortfolioData) {
-  const { profile, links, experiences } = data;
+  const { profile, links, experiences, skills, educations } = data;
   const current = experiences.find((e) => !e.endDate);
+  const knowsAbout = [...new Set(skills.flatMap((s) => s.items))].slice(0, 30);
   return jsonLd({
     "@context": "https://schema.org",
     "@type": "ProfilePage",
@@ -69,6 +71,10 @@ function personJsonLd(username: string, data: PortfolioData) {
       ...(profile.avatarUrl?.startsWith("https://") && { image: profile.avatarUrl }),
       ...(profile.location && { address: { "@type": "PostalAddress", addressLocality: profile.location } }),
       ...(current?.organization && { worksFor: { "@type": "Organization", name: current.organization } }),
+      ...(knowsAbout.length > 0 && { knowsAbout }),
+      ...(educations.length > 0 && {
+        alumniOf: educations.map((e) => ({ "@type": "EducationalOrganization", name: e.institution })),
+      }),
       ...(links.length > 0 && { sameAs: links.map((l) => l.url) }),
       url: `${SITE_URL}/${username}`,
     },
@@ -77,7 +83,7 @@ function personJsonLd(username: string, data: PortfolioData) {
 
 export default async function PortfolioPage({ params }: Props) {
   const { username } = await params;
-  const result = await getPortfolioData(username.toLowerCase());
+  const result = await load(username.toLowerCase());
   if (!result) notFound();
   const Template = TEMPLATES[result.template] ?? Minimal;
   return (

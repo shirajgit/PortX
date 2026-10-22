@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, pageMeta } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Refund & Cancellation Policy",
   description: `How refunds and cancellations work for ${SITE_NAME} Pro passes.`,
-  alternates: { canonical: "/refund-policy" },
-};
+  path: "/refund-policy",
+});
 
 export default function RefundPolicyPage() {
   return (

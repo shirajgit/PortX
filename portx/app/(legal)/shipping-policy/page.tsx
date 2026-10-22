@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, pageMeta } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Shipping & Delivery Policy",
   description: `${SITE_NAME} is a digital service — access is delivered online, instantly.`,
-  alternates: { canonical: "/shipping-policy" },
-};
+  path: "/shipping-policy",
+});
 
 export default function ShippingPolicyPage() {
   return (

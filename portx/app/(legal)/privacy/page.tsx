@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BUSINESS, SITE_NAME } from "@/lib/site";
+import { BUSINESS, SITE_NAME, pageMeta } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Privacy Policy",
   description: `What ${SITE_NAME} collects, why, and who it is shared with.`,
-  alternates: { canonical: "/privacy" },
-};
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   const operator = BUSINESS.legalName || SITE_NAME;
