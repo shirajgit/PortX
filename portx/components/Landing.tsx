@@ -3,8 +3,8 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@clerk/nextjs";
-import { AnimatePresence, MotionConfig, motion, useScroll, useSpring } from "framer-motion";
-import { ArrowRight, ArrowUpRight, BadgeCheck, BarChart3, BookOpen, Briefcase, Check, CodeXml, FileText, Globe, GraduationCap, HeartHandshake, Languages, Link2, Menu, Palette, PenLine, Plus, Rocket, Search, Share2, ShieldCheck, Smartphone, Sparkles, Star, Target, Terminal, Trophy, WandSparkles, X } from "lucide-react";
+import { AnimatePresence, MotionConfig, animate, motion, useInView, useScroll, useSpring } from "framer-motion";
+import { ArrowRight, ArrowUpRight, BadgeCheck, BarChart3, BookOpen, Briefcase, Check, ClipboardPaste, CodeXml, Download, FileText, Globe, GraduationCap, HeartHandshake, Languages, Link2, Menu, Palette, PenLine, Plus, Rocket, ScanSearch, Search, Share2, ShieldCheck, Smartphone, Sparkles, Star, Target, Terminal, Trophy, WandSparkles, X } from "lucide-react";
 import { RESUME_TEMPLATES } from "@/lib/resume";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
@@ -653,93 +653,250 @@ function BentoCard({
   );
 }
 
-/* ── resume tailoring ── its own section: the job post on the right, the steps on the left. */
-function Tailor() {
-  const keywords: [string, boolean][] = [["React", true], ["TypeScript", true], ["REST APIs", true], ["GraphQL", false], ["CI/CD", false]];
-  const steps = [
-    { t: "Paste the job post", d: "Any role, from LinkedIn, Naukri or a careers page." },
-    { t: "See where you stand", d: "A match score and the keywords the job wants that your resume is missing." },
-    { t: "Download a resume for that job", d: "Bullets rewritten in the job's language and a tailored summary. Keep the suggestions you like, then download an ATS-ready PDF." },
-  ];
+/* ── resume tailoring ────────────────────────────────────────────── */
+
+/* Sample jobs for the demo. **word** marks a keyword the job asks for. */
+const TAILOR_JOBS = [
+  {
+    id: "frontend", role: "Frontend Engineer", where: "Fintech startup · Bengaluru",
+    post: "We're hiring a frontend engineer with strong **React** and **TypeScript** skills. You'll build dashboards on **GraphQL** APIs, write **tests** and own **CI/CD** for the web app.",
+    keywords: [["React", true], ["TypeScript", true], ["GraphQL", false], ["Testing", false], ["CI/CD", false]] as [string, boolean][],
+    before: "Worked on the company dashboard using React.",
+    after: "Built **React + TypeScript** dashboards on **GraphQL** APIs for 12k monthly users, with **tests** and **CI/CD** on every merge.",
+    from: 54, to: 91,
+  },
+  {
+    id: "design", role: "Product Designer", where: "SaaS company · Remote",
+    post: "Looking for a product designer who runs **user research**, prototypes in **Figma**, and grows our **design system**. Experience with **A/B testing** is a plus.",
+    keywords: [["Figma", true], ["Prototyping", true], ["User research", false], ["Design systems", false], ["A/B testing", false]] as [string, boolean][],
+    before: "Designed screens for the mobile app.",
+    after: "Ran **user research** with 20 customers and shipped **Figma** prototypes that lifted onboarding 18% in **A/B tests**, documented in the **design system**.",
+    from: 48, to: 88,
+  },
+  {
+    id: "data", role: "Data Analyst", where: "E-commerce · Pune",
+    post: "We need an analyst fluent in **SQL** and **Python** who builds **Power BI** dashboards and presents insights to **stakeholders** every week.",
+    keywords: [["SQL", true], ["Excel", true], ["Python", false], ["Power BI", false], ["Stakeholders", false]] as [string, boolean][],
+    before: "Made weekly reports for the sales team.",
+    after: "Automated weekly sales reporting with **SQL** and **Python**, and built **Power BI** dashboards used by 6 regional **stakeholders**.",
+    from: 51, to: 89,
+  },
+];
+const TAILOR_CYCLE_MS = 7000;
+
+/** Renders **word** as a highlighted keyword. */
+function Marked({ text }: { text: string }) {
   return (
-    <section id="tailor" className="relative scroll-mt-24 py-20 sm:py-28">
-      <div className={CONTAINER}>
-        <SectionHead
+    <>
+      {text.split(/\*\*(.+?)\*\*/).map((part, k) =>
+        k % 2 ? <mark key={k} className="rounded-[5px] bg-lp-accent-soft px-1 py-px font-medium text-lp-text">{part}</mark> : part)}
+    </>
+  );
+}
+
+/* Match ring: the faint arc is the score before tailoring, the green arc fills to the score after. */
+function MatchRing({ from, to, run }: { from: number; to: number; run: boolean }) {
+  const [n, setN] = useState(from);
+  useEffect(() => {
+    if (!run) return;
+    const c = animate(from, to, { duration: 1.6, delay: 0.5, ease, onUpdate: (v) => setN(Math.round(v)) });
+    return () => c.stop();
+  }, [from, to, run]);
+  const C = 97.4;
+  return (
+    <div className="relative h-[104px] w-[104px] shrink-0">
+      <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--lp-border)" strokeWidth="2.6" />
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--lp-border-strong)" strokeWidth="2.6" strokeLinecap="round"
+          strokeDasharray={C} strokeDashoffset={C * (1 - from / 100)} />
+        <motion.circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--lp-green)" strokeWidth="2.6" strokeLinecap="round"
+          strokeDasharray={C} initial={{ strokeDashoffset: C * (1 - from / 100) }}
+          animate={{ strokeDashoffset: C * (1 - (run ? to : from) / 100) }}
+          transition={{ duration: 1.6, delay: 0.5, ease }} />
+      </svg>
+      <span className="absolute inset-0 grid place-items-center">
+        <span className="text-center leading-none">
+          <span className="block text-2xl font-semibold tracking-tight">{n}%</span>
+          <span className="mt-1 block text-[10px] text-lp-muted">match</span>
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function Tailor() {
+  const [i, setI] = useState(0);
+  const [auto, setAuto] = useState(true);
+  const demo = useRef<HTMLDivElement>(null);
+  const inView = useInView(demo, { amount: 0.35 });
+  const shown = useInView(demo, { amount: 0.35, once: true });
+  const job = TAILOR_JOBS[i];
+  const cycling = auto && inView;
+
+  // Rotate through the sample jobs while the demo is on screen, until the visitor picks one.
+  useEffect(() => {
+    if (!cycling) return;
+    const t = setTimeout(() => setI((n) => (n + 1) % TAILOR_JOBS.length), TAILOR_CYCLE_MS);
+    return () => clearTimeout(t);
+  }, [i, cycling]);
+
+  const steps = [
+    { icon: ClipboardPaste, t: "Paste the job post", d: "Any role, copied from LinkedIn, Naukri or a careers page." },
+    { icon: ScanSearch, t: "See where you stand", d: "Your match score, plus the keywords the job wants that your resume is missing." },
+    { icon: Download, t: "Download a resume for that job", d: "Bullets rewritten in the job's language and a tailored summary. Keep what you like, export an ATS-ready PDF." },
+  ];
+  const swap = {
+    initial: { opacity: 0, y: 10, filter: "blur(6px)" },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    exit: { opacity: 0, y: -10, filter: "blur(6px)" },
+    transition: { duration: 0.4, ease },
+  };
+
+  return (
+    <section id="tailor" className="relative scroll-mt-24 overflow-hidden py-20 sm:py-28">
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-40 h-[560px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)] opacity-70" />
+      <div className={`${CONTAINER} relative`}>
+        <SectionHead center
           eyebrow="resume tailoring"
           title={<>A resume made for <span className="lp-serif lp-gradient-text">every job</span> you apply to.</>}
-          sub="Recruiters and ATS filters look for the job's own words. Paste a job description and Portxz rewrites your resume to match it in seconds, so you stop sending one generic PDF everywhere."
+          sub="Recruiters and ATS filters look for the job's own words. Paste a job description and Portxz rewrites your resume to match it in seconds — no more one generic PDF for everything."
         />
 
-        <motion.div {...delayed(0.1)}
-          className="lp-card relative mt-14 overflow-hidden rounded-3xl p-6 sm:p-8">
-          <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,var(--lp-glow),transparent)]" />
-          <div className="relative grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div>
-              <div className="flex items-center gap-2">
-                <Target className="h-[18px] w-[18px] text-lp-accent" />
-                <p className="text-sm font-medium">How it works</p>
-                <span className="rounded-full bg-lp-accent-soft px-2 py-0.5 text-[11px] font-semibold text-lp-accent">Pro</span>
-              </div>
-              <ol className="mt-6 space-y-5">
-                {steps.map((s, k) => (
-                  <li key={s.t} className="flex gap-4">
-                    <span className="lp-mono grid h-7 w-7 shrink-0 place-items-center rounded-full bg-lp-text text-xs font-semibold text-lp-bg">{k + 1}</span>
-                    <div>
-                      <p className="font-medium">{s.t}</p>
-                      <p className="mt-0.5 text-sm leading-relaxed text-lp-muted">{s.d}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              <p className="mt-6 flex items-start gap-2 text-sm text-lp-muted">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-lp-green" />
-                Your saved profile, main resume and public portfolio stay exactly as they are.
-              </p>
+        {/* product demo */}
+        <motion.div ref={demo} {...delayed(0.1)}
+          className="lp-gradient-border relative mx-auto mt-14 max-w-5xl overflow-hidden rounded-3xl shadow-[0_40px_120px_-40px_rgba(79,110,255,0.5)]">
+          {/* window bar */}
+          <div className="flex items-center gap-3 border-b border-lp-border bg-lp-surface-2/60 px-4 py-3 sm:px-5">
+            <span className="flex gap-1.5" aria-hidden>
+              <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" /><span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" /><span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+            </span>
+            <span className="lp-mono hidden flex-1 truncate rounded-md border border-lp-border bg-lp-bg/60 px-3 py-1 text-center text-[11px] text-lp-subtle sm:block">
+              portxz.xyz/dashboard/tailor
+            </span>
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-lp-accent-soft px-2.5 py-1 text-[11px] font-semibold text-lp-accent sm:ml-0">
+              <Sparkles className="h-3 w-3" /> Pro
+            </span>
+          </div>
+
+          {/* sample jobs */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-lp-border px-4 py-3 sm:px-5">
+            <span className="mr-1 text-xs text-lp-subtle">Try a job:</span>
+            {TAILOR_JOBS.map((j, k) => (
+              <button key={j.id} onClick={() => { setI(k); setAuto(false); }} aria-pressed={k === i}
+                className={`relative isolate overflow-hidden rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${k === i ? "text-lp-text" : "text-lp-muted hover:text-lp-text"}`}>
+                {k === i && (
+                  <motion.span layoutId="tailor-job" transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                    className="absolute inset-0 -z-10 rounded-full border border-lp-accent/40 bg-lp-accent-soft" />
+                )}
+                {k === i && cycling && (
+                  <motion.span key={`bar-${i}`} aria-hidden className="absolute bottom-0 left-0 h-[2px] bg-lp-accent"
+                    initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: TAILOR_CYCLE_MS / 1000, ease: "linear" }} />
+                )}
+                {j.role}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid bg-lp-surface lg:grid-cols-[1fr_auto_1.15fr]">
+            {/* job post */}
+            <div className="relative overflow-hidden p-5 sm:p-7">
+              <p className="lp-mono text-[10px] uppercase tracking-widest text-lp-subtle">1 · job description</p>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div key={job.id} {...swap}>
+                  <p className="mt-4 text-lg font-semibold tracking-tight">{job.role}</p>
+                  <p className="text-xs text-lp-muted">{job.where}</p>
+                  <p className="mt-4 text-[14px] leading-[1.75] text-lp-muted"><Marked text={job.post} /></p>
+                </motion.div>
+              </AnimatePresence>
+              {/* scan sweep each time a job loads */}
+              <motion.div key={`scan-${job.id}`} aria-hidden
+                className="pointer-events-none absolute inset-x-0 h-16 bg-gradient-to-b from-transparent via-lp-accent/15 to-transparent"
+                initial={{ top: "-15%", opacity: 0 }} animate={shown ? { top: "105%", opacity: [0, 1, 1, 0] } : {}}
+                transition={{ duration: 1.3, ease: "easeInOut" }} />
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-              <div className="space-y-3">
-                <div className="rounded-xl border border-lp-border bg-lp-surface-2 p-4">
-                  <p className="lp-mono text-[10px] uppercase tracking-widest text-lp-subtle">job description</p>
-                  <p className="mt-2 text-[13px] leading-relaxed text-lp-muted">
-                    Frontend Engineer · We&apos;re looking for strong <b className="font-semibold text-lp-text">React</b> and{" "}
-                    <b className="font-semibold text-lp-text">TypeScript</b> skills, experience with <b className="font-semibold text-lp-text">GraphQL</b>…
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {keywords.map(([k, have]) => (
-                    <span key={k} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                      have ? "bg-lp-green/10 text-lp-green" : "bg-lp-warning/10 text-lp-warning"}`}>
-                      {have ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}{k}
-                    </span>
-                  ))}
-                </div>
-                <div className="relative rounded-xl border border-lp-accent/30 bg-lp-accent-soft p-4 text-[13px] leading-relaxed">
-                  <Sparkles className="absolute -top-2 right-4 h-4 w-4 text-lp-accent" />
-                  Built <b className="font-semibold">React + TypeScript</b> dashboards consuming <b className="font-semibold">REST APIs</b> for 12k monthly users.
-                </div>
-              </div>
+            {/* connector */}
+            <div className="relative flex items-center justify-center py-1 lg:py-0">
+              <div aria-hidden className="absolute inset-x-6 top-1/2 h-px bg-lp-border lg:inset-x-auto lg:inset-y-6 lg:left-1/2 lg:top-auto lg:h-auto lg:w-px" />
+              <span className="relative grid h-11 w-11 place-items-center rounded-full border border-lp-accent/40 bg-lp-surface text-lp-accent shadow-[0_0_0_6px_var(--lp-surface),0_0_30px_var(--lp-glow)]">
+                <WandSparkles className="h-[18px] w-[18px]" />
+              </span>
+            </div>
 
-              <div className="flex items-center justify-center gap-4 rounded-xl border border-lp-border bg-lp-surface-2 p-4 sm:flex-col">
-                {[["Before", 54, "var(--lp-subtle)"], ["After", 91, "var(--lp-green)"]].map(([label, v, color]) => (
-                  <div key={label as string} className="text-center">
-                    <div className="relative h-16 w-16">
-                      <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
-                        <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--lp-border-strong)" strokeWidth="3" />
-                        <motion.circle cx="18" cy="18" r="15.5" fill="none" stroke={color as string} strokeWidth="3" strokeLinecap="round"
-                          strokeDasharray="97.4" initial={{ strokeDashoffset: 97.4 }}
-                          whileInView={{ strokeDashoffset: 97.4 * (1 - (v as number) / 100) }}
-                          viewport={{ once: true }} transition={{ duration: 1.2, ease }} />
-                      </svg>
-                      <span className="absolute inset-0 grid place-items-center text-sm font-semibold">{v}%</span>
+            {/* tailored result */}
+            <div className="border-t border-lp-border bg-lp-surface-2/40 p-5 sm:p-7 lg:border-l lg:border-t-0">
+              <p className="lp-mono text-[10px] uppercase tracking-widest text-lp-subtle">2 · your tailored resume</p>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div key={job.id} {...swap}>
+                  <div className="mt-4 flex items-center gap-5">
+                    <MatchRing from={job.from} to={job.to} run={shown} />
+                    <div>
+                      <p className="text-sm font-medium">Match score</p>
+                      <p className="mt-1 text-xs text-lp-muted">
+                        <span className="line-through">{job.from}%</span> before ·{" "}
+                        <span className="font-semibold text-lp-green">+{job.to - job.from} points</span> after tailoring
+                      </p>
                     </div>
-                    <p className="mt-1 text-[11px] text-lp-muted">{label} match</p>
                   </div>
-                ))}
+
+                  <div className="mt-6 flex flex-wrap gap-1.5">
+                    {job.keywords.map(([k, have], n) => (
+                      <motion.span key={k}
+                        initial={have ? false : { opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.4, delay: 0.7 + n * 0.12, ease }}
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                          have ? "bg-lp-green/10 text-lp-green" : "border border-lp-accent/30 bg-lp-accent-soft text-lp-accent"}`}>
+                        {have ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}{k}
+                      </motion.span>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[11px] text-lp-subtle">
+                    <span className="text-lp-green">✓</span> already on your resume · <span className="text-lp-accent">+</span> added for this job
+                  </p>
+
+                  <div className="mt-5 space-y-2">
+                    <p className="rounded-xl border border-lp-border px-4 py-3 text-[13px] text-lp-subtle line-through decoration-lp-subtle/60">
+                      {job.before}
+                    </p>
+                    <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 1.1, ease }}
+                      className="relative rounded-xl border border-lp-accent/30 bg-lp-surface px-4 py-3 text-[13px] leading-relaxed shadow-sm">
+                      <Sparkles className="absolute -top-2 right-4 h-4 w-4 text-lp-accent" />
+                      <Marked text={job.after} />
+                    </motion.p>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Link href="/sign-up" className="lp-btn-primary lp-shine inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium">
+                  <Download className="h-4 w-4" /> Download tailored PDF
+                </Link>
+                <span className="inline-flex items-center gap-1.5 text-xs text-lp-muted"><ShieldCheck className="h-3.5 w-3.5 text-lp-green" /> ATS-ready</span>
               </div>
             </div>
           </div>
         </motion.div>
+
+        {/* steps */}
+        <div className="relative mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3">
+          {steps.map((s, k) => (
+            <motion.div key={s.t} {...delayed(0.1 + k * 0.08)} {...spot} className="lp-card lp-spot rounded-2xl p-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-9 w-9 place-items-center rounded-lg border border-lp-border bg-lp-surface-2 text-lp-accent">
+                  <s.icon className="h-[18px] w-[18px]" />
+                </span>
+                <span className="lp-mono text-[11px] text-lp-subtle">step {k + 1}</span>
+              </div>
+              <p className="mt-4 font-medium">{s.t}</p>
+              <p className="mt-1 text-sm leading-relaxed text-lp-muted">{s.d}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.p {...delayed(0.2)} className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-lp-muted">
+          <ShieldCheck className="h-4 w-4 shrink-0 text-lp-green" />
+          Your saved profile, main resume and public portfolio stay exactly as they are.
+        </motion.p>
       </div>
     </section>
   );
