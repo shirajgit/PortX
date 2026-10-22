@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ClipboardCheck, CreditCard, Crown, Globe, Rocket, Users } from "lucide-react";
+import { ArrowRight, CreditCard, Crown, Globe, Rocket, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { LAUNCH_HOLD_MS, LAUNCH_OFFER_LIMIT, PASSES, type PassId } from "@/lib/plans";
 import { ago, dayKey, lastDays, money, num } from "@/lib/format";
@@ -16,13 +16,12 @@ export default async function Overview() {
   const since30 = new Date(now.getTime() - 30 * DAY);
   const since7 = new Date(now.getTime() - 7 * DAY);
 
-  const [users, new7, new30, published, pro, pending, revenue, revenue30, launchTaken, signups, recentUsers, recentPayments] = await Promise.all([
+  const [users, new7, new30, published, pro, revenue, revenue30, launchTaken, signups, recentUsers, recentPayments] = await Promise.all([
     db.profile.count(),
     db.profile.count({ where: { createdAt: { gte: since7 } } }),
     db.profile.count({ where: { createdAt: { gte: since30 } } }),
     db.profile.count({ where: { isPublished: true } }),
     db.profile.count({ where: { plan: "pro", planExpiresAt: { gt: now } } }),
-    db.paymentRequest.count({ where: { status: "pending" } }),
     db.paymentRequest.groupBy({ by: ["currency"], where: { status: "approved" }, _sum: { amount: true }, _count: { _all: true } }),
     db.paymentRequest.groupBy({ by: ["currency"], where: { status: "approved", createdAt: { gte: since30 } }, _sum: { amount: true } }),
     // Same count as the main app's launchSlotsLeft: paid passes plus checkouts still holding a slot.
@@ -57,10 +56,9 @@ export default async function Overview() {
         <Stat label="Launch offer slots left" value={`${slotsLeft} / ${LAUNCH_OFFER_LIMIT}`} hint={`${launchTaken} taken or held`} icon={Rocket} tone={slotsLeft < 10 ? "warning" : "accent"} />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Stat label="Revenue, all time" value={<span className="text-xl">{sum(revenue)}</span>} hint={`${num(paidCount)} paid passes`} icon={CreditCard} tone="green" />
         <Stat label="Revenue, last 30 days" value={<span className="text-xl">{sum(revenue30)}</span>} icon={CreditCard} tone="green" />
-        <Stat label="Payments to review" value={num(pending)} hint={pending ? <Link href="/payments?status=pending" className="text-warning hover:underline">Review now →</Link> : "All caught up"} icon={ClipboardCheck} tone={pending ? "warning" : "green"} />
       </div>
 
       <Card title="Signups, last 30 days" action={<Legend series={SIGNUP_SERIES} />} className="mt-4">

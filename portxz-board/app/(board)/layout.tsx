@@ -1,6 +1,5 @@
 import { SignOutButton } from "@clerk/nextjs";
 import { ShieldAlert } from "lucide-react";
-import { db } from "@/lib/db";
 import { isAdmin } from "@/lib/admin";
 import { Sidebar } from "@/components/Sidebar";
 
@@ -23,10 +22,9 @@ export default async function BoardLayout({ children }: { children: React.ReactN
     );
   }
 
-  const pending = await db.paymentRequest.count({ where: { status: "pending" } });
   return (
     <div className="lg:flex">
-      <Sidebar pending={pending} />
+      <Sidebar />
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:py-10">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>

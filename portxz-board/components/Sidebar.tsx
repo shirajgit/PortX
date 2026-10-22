@@ -12,7 +12,7 @@ const NAV = [
   { href: "/traffic", label: "Traffic & waitlist", icon: BarChart3 },
 ];
 
-export function Sidebar({ pending }: { pending: number }) {
+export function Sidebar() {
   const path = usePathname();
   const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
@@ -33,9 +33,6 @@ export function Sidebar({ pending }: { pending: number }) {
               active(href) ? "bg-surface-2 text-text" : "text-muted hover:bg-surface hover:text-text"}`}>
             <Icon className="h-4 w-4" />
             {label}
-            {href === "/payments" && pending > 0 && (
-              <span className="ml-auto rounded-full bg-warning/15 px-1.5 text-[11px] font-semibold text-warning">{pending}</span>
-            )}
           </Link>
         ))}
       </nav>
