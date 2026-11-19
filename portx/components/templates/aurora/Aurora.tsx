@@ -15,6 +15,8 @@ import {
   CountUp,
   Parallax,
   Avatar3D,
+  BorderBeam,
+  Sheen,
 } from "../tem_comps/Motion";
 import {
   FloatingChips,
@@ -208,8 +210,9 @@ export function Aurora({ data, username }: TemplateProps) {
                 {projects.length > 0 && (
                   <Magnetic as="span" strength={0.3}>
                     <a href="#projects" onClick={(e) => jumpTo(e, "projects")}
-                      className={`block rounded-full bg-gradient-to-r from-[#22D3EE] via-[#8B5CF6] to-[#EC4899] px-7 py-3 text-sm font-semibold text-white shadow-[0_0_40px_rgba(139,92,246,0.45)] transition hover:shadow-[0_0_60px_rgba(236,72,153,0.55)] ${ring}`}>
+                      className={`relative block overflow-hidden rounded-full bg-gradient-to-r from-[#22D3EE] via-[#8B5CF6] to-[#EC4899] px-7 py-3 text-sm font-semibold text-white shadow-[0_0_40px_rgba(139,92,246,0.45)] transition hover:shadow-[0_0_60px_rgba(236,72,153,0.55)] ${ring}`}>
                       View my work →
+                      <Sheen color="rgba(255,255,255,0.5)" />
                     </a>
                   </Magnetic>
                 )}
@@ -297,7 +300,8 @@ export function Aurora({ data, username }: TemplateProps) {
                 return (
                   <Item key={p.name} as="article" className={lead ? "md:col-span-2" : ""}>
                     <TiltCard max={lead ? 3 : 6} glareColor="rgba(103,232,249,0.12)" className="h-full rounded-3xl">
-                      <div className={`group flex h-full flex-col overflow-hidden rounded-3xl border bg-white/[0.03] backdrop-blur-xl transition duration-500 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.3)] ${lead ? "border-[#67E8F9]/25 ring-1 ring-[#67E8F9]/15" : "border-white/[0.08] hover:border-[#67E8F9]/30"}`}>
+                      <div className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-white/[0.03] backdrop-blur-xl transition duration-500 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.3)] ${lead ? "border-[#67E8F9]/25 ring-1 ring-[#67E8F9]/15" : "border-white/[0.08] hover:border-[#67E8F9]/30"}`}>
+                        {lead && <BorderBeam color="#67E8F9" duration={8} />}
                         <ProjectCover
                           name={p.name}
                           imageUrl={p.imageUrl}

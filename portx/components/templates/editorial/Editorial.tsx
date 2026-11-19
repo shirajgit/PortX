@@ -10,6 +10,7 @@ import {
   ScrollProgress,
   CountUp,
   SplitText,
+  Sheen,
 } from "../tem_comps/Motion";
 import { FloatingNav, ProjectCover, jumpTo, resumeHref, type NavItem } from "../tem_comps/Premium";
 import { getInsights } from "../insights";
@@ -112,9 +113,10 @@ export function Editorial({ data, username }: TemplateProps) {
                 {projects.length > 0 && (
                   <Magnetic as="span" strength={0.25}>
                     <a href="#work" onClick={(e) => jumpTo(e, "work")}
-                      className="inline-flex items-center gap-3 px-7 py-4 transition-colors duration-300 hover:bg-[#6E2436]"
+                      className="relative inline-flex items-center gap-3 overflow-hidden px-7 py-4 transition-colors duration-300 hover:bg-[#6E2436]"
                       style={{ background: INK, color: PAPER }}>
                       Read the work <span aria-hidden>→</span>
+                      <Sheen color="rgba(245,240,230,0.22)" every={6} />
                     </a>
                   </Magnetic>
                 )}

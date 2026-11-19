@@ -12,6 +12,7 @@ import {
   ScrollProgress,
   CountUp,
   Avatar3D,
+  BorderBeam,
 } from "../tem_comps/Motion";
 import {
   FloatingNav,
@@ -324,7 +325,8 @@ export function Executive({ data, username }: TemplateProps) {
                 return (
                   <Item as="article" key={p.name} className={`h-full ${lead ? "sm:col-span-2" : ""}`}>
                     <TiltCard max={lead ? 2 : 4} glareColor="rgba(37,99,235,0.08)" className="h-full rounded-2xl">
-                      <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-xs transition-all duration-200 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-900/10">
+                      <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-xs transition-all duration-200 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-900/10">
+                        {lead && <BorderBeam color="#2563EB" duration={10} />}
                         <ProjectCover
                           name={p.name}
                           imageUrl={p.imageUrl}

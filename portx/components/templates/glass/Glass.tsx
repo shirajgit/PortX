@@ -13,6 +13,8 @@ import {
   CountUp,
   Float,
   Avatar3D,
+  BorderBeam,
+  Sheen,
 } from "../tem_comps/Motion";
 import {
   FloatingChips,
@@ -138,6 +140,7 @@ export function Glass({ data, username }: TemplateProps) {
                     <a href="#projects" onClick={(e) => jumpTo(e, "projects")}
                       className={`group/cta relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-indigo-300 via-fuchsia-300 to-cyan-200 px-7 py-3.5 text-sm font-bold text-[#0B0B1A] shadow-[0_10px_40px_-10px_rgba(240,171,252,0.8)] transition hover:shadow-[0_10px_50px_-6px_rgba(240,171,252,0.95)] ${ring}`}>
                       View my work <span aria-hidden className="transition-transform group-hover/cta:translate-x-0.5">→</span>
+                      <Sheen color="rgba(255,255,255,0.7)" />
                     </a>
                   </Magnetic>
                 )}
@@ -238,6 +241,7 @@ export function Glass({ data, username }: TemplateProps) {
                   <Item as="article" key={p.name} className={lead ? "md:col-span-2" : ""}>
                     <TiltCard max={lead ? 3 : 6} glareColor="rgba(255,255,255,0.16)" className="h-full rounded-[1.75rem]">
                       <div className={`group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border bg-white/[0.055] shadow-[0_18px_60px_-30px_rgba(0,0,0,0.9)] backdrop-blur-2xl transition-colors ${lead ? "border-white/20 ring-1 ring-fuchsia-300/15" : "border-white/12 hover:border-white/22"}`}>
+                        {lead && <BorderBeam color="#F0ABFC" duration={9} />}
                         <ProjectCover
                           name={p.name}
                           imageUrl={p.imageUrl}

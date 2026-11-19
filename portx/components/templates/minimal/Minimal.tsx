@@ -15,6 +15,8 @@ import {
   ScrollProgress,
   CountUp,
   Avatar3D,
+  BorderBeam,
+  Sheen,
 } from "../tem_comps/Motion";
 import { FloatingNav, ProjectCover, StatusPill, jumpTo, resumeHref, type NavItem } from "../tem_comps/Premium";
 import { getInsights } from "../insights";
@@ -219,8 +221,9 @@ export function Minimal({ data, username }: TemplateProps) {
                     {projects.length > 0 && (
                       <Magnetic strength={0.3}>
                         <a href="#projects" onClick={(e) => jumpTo(e, "projects")}
-                          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 outline-none transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/50">
+                          className="relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 outline-none transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/50">
                           View projects <ArrowUpRight className="h-4 w-4" />
+                          <Sheen color="rgba(255,255,255,0.35)" />
                         </a>
                       </Magnetic>
                     )}
@@ -317,7 +320,8 @@ export function Minimal({ data, username }: TemplateProps) {
                     return (
                       <Item key={p.name} as="article" y={22} className={`h-full ${lead ? "sm:col-span-2" : ""}`}>
                         <TiltCard max={lead ? 3 : 5} glareColor="rgba(37,99,235,0.10)" className="h-full rounded-2xl">
-                          <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-colors duration-300 hover:border-blue-500/40 hover:shadow-md dark:border-slate-800/80 dark:bg-[#090F1C]/60 dark:hover:border-blue-500/40">
+                          <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-colors duration-300 hover:border-blue-500/40 hover:shadow-md dark:border-slate-800/80 dark:bg-[#090F1C]/60 dark:hover:border-blue-500/40">
+                            {lead && <BorderBeam color="#3B82F6" duration={8} />}
                             <ProjectCover
                               name={p.name}
                               imageUrl={p.imageUrl}

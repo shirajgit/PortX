@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { PortfolioData, TemplateProps } from "../types";
 import { useSoundEffects } from "../tem_comps/useSoundEffects";
 import { MatrixRain } from "../tem_comps/MatrixRain";
-import { TiltCard } from "../tem_comps/Motion";
+import { BorderBeam, Sheen, TiltCard } from "../tem_comps/Motion";
 import { HeroBackdrop, StatusPill, resumeHref } from "../tem_comps/Premium";
 import { getInsights } from "../insights";
 
@@ -576,8 +576,9 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
           <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
             {resumeHref(usernameProp) && (
               <a href={resumeHref(usernameProp)!}
-                className="rounded-xl bg-sky-400 px-4 py-2 text-xs font-bold tracking-wider text-[#030712] shadow-[0_0_24px_rgba(56,189,248,0.35)] transition hover:bg-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+                className="relative overflow-hidden rounded-xl bg-sky-400 px-4 py-2 text-xs font-bold tracking-wider text-[#030712] shadow-[0_0_24px_rgba(56,189,248,0.35)] transition hover:bg-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
                 ↓ resume.pdf
+                <Sheen color="rgba(255,255,255,0.6)" />
               </a>
             )}
             {data.profile.email && (
@@ -592,7 +593,8 @@ export function Cli({ data, username: usernameProp }: TemplateProps) {
         {/* terminal window — swings up into place in 3D, then leans toward the cursor */}
         <div className="pxz-cli-rise">
         <TiltCard max={2.5} glareColor="rgba(56,189,248,0.07)" className="rounded-2xl">
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#070C1E]/80 shadow-[0_0_60px_rgba(56,189,248,0.15),0_40px_80px_-30px_rgba(0,0,0,0.9)] backdrop-blur-2xl transition-colors duration-300 hover:border-sky-500/30">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#070C1E]/80 shadow-[0_0_60px_rgba(56,189,248,0.15),0_40px_80px_-30px_rgba(0,0,0,0.9)] backdrop-blur-2xl transition-colors duration-300 hover:border-sky-500/30">
+          <BorderBeam color="#38BDF8" width={1} duration={10} />
           {/* top glow line */}
           <div aria-hidden className="pxz-cli-topglow h-px w-full bg-gradient-to-r from-transparent via-sky-400/70 to-transparent" />
 

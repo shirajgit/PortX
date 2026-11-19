@@ -12,6 +12,8 @@ import {
   ScrollProgress,
   CountUp,
   Avatar3D,
+  BorderBeam,
+  Sheen,
 } from "../tem_comps/Motion";
 import {
   FloatingChips,
@@ -42,13 +44,17 @@ function Tile({
   children,
   className,
   glow = "rgba(129,140,248,0.16)",
+  beam,
 }: {
   children: React.ReactNode;
   className?: string;
   glow?: string;
+  /** Colour of a light travelling round the tile's border. */
+  beam?: string;
 }) {
   return (
-    <Spotlight color={glow} className={`${tileBase} ${className ?? ""}`}>
+    <Spotlight color={glow} className={`${tileBase} ${className ?? ""}`}
+      decor={beam ? <BorderBeam color={beam} duration={9} /> : null}>
       {children}
     </Spotlight>
   );
@@ -195,8 +201,9 @@ export function Bento({ data, username }: TemplateProps) {
                   {projects.length > 0 && (
                     <Magnetic as="span" strength={0.3}>
                       <a href="#work" onClick={(e) => jumpTo(e, "work")}
-                        className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0B0D16] shadow-[0_10px_30px_-10px_rgba(125,211,252,0.6)] transition hover:bg-[#7DD3FC]">
+                        className="relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0B0D16] shadow-[0_10px_30px_-10px_rgba(125,211,252,0.6)] transition hover:bg-[#7DD3FC]">
                         View my work →
+                        <Sheen color="rgba(125,211,252,0.55)" />
                       </a>
                     </Magnetic>
                   )}
@@ -301,6 +308,7 @@ export function Bento({ data, username }: TemplateProps) {
           >
             <TiltCard className="h-full" max={6}>
               <Tile
+                beam={i === 0 ? "#7DD3FC" : undefined}
                 glow={i % 2 === 0 ? "rgba(125,211,252,0.18)" : "rgba(240,171,252,0.18)"}
                 className={
                   i % 2 === 0

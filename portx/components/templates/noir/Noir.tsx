@@ -12,6 +12,8 @@ import {
   ScrollProgress,
   CountUp,
   Avatar3D,
+  BorderBeam,
+  Sheen,
 } from "../tem_comps/Motion";
 import {
   FloatingChips,
@@ -283,9 +285,10 @@ export function Noir({ data, username }: TemplateProps) {
               {projects.length > 0 && (
                 <Magnetic strength={0.25}>
                   <a href="#work" onClick={(e) => jumpTo(e, "work")}
-                    className={`inline-flex items-center gap-2 rounded-sm px-7 py-3.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#0B0B0D] shadow-[0_10px_40px_-10px_rgba(212,179,106,0.55)] transition-all duration-500 hover:shadow-[0_10px_50px_-6px_rgba(212,179,106,0.75)] ${focusRing}`}
+                    className={`relative inline-flex items-center gap-2 overflow-hidden rounded-sm px-7 py-3.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#0B0B0D] shadow-[0_10px_40px_-10px_rgba(212,179,106,0.55)] transition-all duration-500 hover:shadow-[0_10px_50px_-6px_rgba(212,179,106,0.75)] ${focusRing}`}
                     style={{ background: `linear-gradient(120deg, #B8935A, ${GOLD_LT} 55%, ${GOLD})` }}>
                     View the work →
+                    <Sheen color="rgba(255,250,235,0.6)" every={5.5} />
                   </a>
                 </Magnetic>
               )}
@@ -369,8 +372,9 @@ export function Noir({ data, username }: TemplateProps) {
                       <TiltCard
                         max={lead ? 2 : 4}
                         glareColor={`${GOLD}1F`}
-                        className="group flex h-full flex-col overflow-hidden rounded-sm border border-[#1A1915] bg-[#0E0E10]/60 transition-colors duration-500 hover:border-[#D4B36A]/30"
+                        className="group relative flex h-full flex-col overflow-hidden rounded-sm border border-[#1A1915] bg-[#0E0E10]/60 transition-colors duration-500 hover:border-[#D4B36A]/30"
                       >
+                        {lead && <BorderBeam color="#D4B36A" width={1} duration={10} />}
                         <ProjectCover
                           name={p.name}
                           imageUrl={p.imageUrl}

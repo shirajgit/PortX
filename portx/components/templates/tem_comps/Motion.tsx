@@ -20,6 +20,8 @@
      <Parallax>      layer that drifts with page scroll
      <SplitText>     words rise out of a mask one by one
      <Avatar3D>      portrait / monogram inside orbiting 3D rings
+     <BorderBeam>    a point of light travelling around a card's border
+     <Sheen>         a glint that sweeps across a button now and then
    ------------------------------------------------------------------------ */
 
 import { useEffect, useRef, useState } from "react";
@@ -59,8 +61,10 @@ export function Reveal({
   return (
     <M
       className={className}
-      initial={reduce ? { opacity: 0 } : { opacity: 0, y }}
-      whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      initial={reduce ? { opacity: 0 } : { opacity: 0, y, filter: "blur(6px)" }}
+      // Ends on filter "none", not blur(0): a filter left on an ancestor breaks the
+      // backdrop-blur of glass cards inside it and re-anchors fixed children.
+      whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
       viewport={{ once, margin: "-60px" }}
       transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
     >
@@ -118,12 +122,16 @@ export function Item({
   const reduce = useReducedMotion();
   const M = motion[as] as typeof motion.div;
   const variants: Variants = {
-    hidden: reduce ? { opacity: 0 } : { opacity: 0, y },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-    },
+    hidden: reduce ? { opacity: 0 } : { opacity: 0, y, filter: "blur(6px)" },
+    show: reduce
+      ? { opacity: 1, transition: { duration: 0.55 } }
+      : {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          transitionEnd: { filter: "none" }, // see Reveal
+          transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+        },
   };
   return (
     <M id={id} className={className} variants={variants}>
@@ -266,11 +274,14 @@ export function Spotlight({
   className,
   color = "rgba(120,160,255,0.12)",
   size = 460,
+  decor,
 }: {
   children: React.ReactNode;
   className?: string;
   color?: string;
   size?: number;
+  /** Absolutely positioned layer over the whole container, padding included (e.g. a <BorderBeam>). */
+  decor?: React.ReactNode;
 }) {
   const reduce = useReducedMotion();
   const [on, setOn] = useState(false);
@@ -297,6 +308,7 @@ export function Spotlight({
           style={{ background: bg, opacity: on ? 1 : 0 }}
         />
       )}
+      {decor}
       <div className="relative z-10">{children}</div>
     </div>
   );
@@ -607,5 +619,71 @@ export function Avatar3D({
         @media (prefers-reduced-motion:reduce){.pxz-a3d,.pxz-a3d-ring{animation:none!important}}
       `}</style>
     </div>
+  );
+}
+
+/* ---------- BorderBeam: a point of light travelling around a card's border ----------
+   Drop inside any `relative` element with rounded corners; it takes the same radius.
+   Decorative only, and hidden when the visitor prefers reduced motion.              */
+export function BorderBeam({
+  color = "#60A5FA",
+  width = 1.5,
+  duration = 7,
+  delay = 0,
+  className,
+}: {
+  color?: string;
+  width?: number;
+  duration?: number;
+  delay?: number;
+  className?: string;
+}) {
+  return (
+    <span
+      aria-hidden
+      className={`pxz-beam pointer-events-none absolute inset-0 z-20 rounded-[inherit] ${className ?? ""}`}
+      style={{
+        padding: width,
+        background: `conic-gradient(from var(--pxz-beam-a), transparent 0deg 270deg, ${color} 335deg, #fff 350deg, transparent 360deg)`,
+        animation: `pxz-beam ${duration}s linear ${delay}s infinite`,
+      }}
+    >
+      <style>{`
+        @property --pxz-beam-a{syntax:"<angle>";inherits:false;initial-value:0deg}
+        @keyframes pxz-beam{to{--pxz-beam-a:360deg}}
+        .pxz-beam{-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+        @media (prefers-reduced-motion:reduce){.pxz-beam{display:none}}
+      `}</style>
+    </span>
+  );
+}
+
+/* ---------- Sheen: a glint that sweeps across a button every few seconds ----------
+   Put it as the last child of a `relative overflow-hidden` button or link.          */
+export function Sheen({
+  color = "rgba(255,255,255,0.45)",
+  every = 4.5,
+  delay = 1.2,
+}: {
+  color?: string;
+  /** Seconds from one sweep to the next. */
+  every?: number;
+  delay?: number;
+}) {
+  return (
+    <span aria-hidden className="pxz-sheen pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+      <span
+        className="absolute inset-y-0 left-0 w-1/2"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+          transform: "translateX(-120%) skewX(-18deg)",
+          animation: `pxz-sheen ${every}s ease-in-out ${delay}s infinite`,
+        }}
+      />
+      <style>{`
+        @keyframes pxz-sheen{0%{transform:translateX(-120%) skewX(-18deg)}30%,100%{transform:translateX(260%) skewX(-18deg)}}
+        @media (prefers-reduced-motion:reduce){.pxz-sheen{display:none}}
+      `}</style>
+    </span>
   );
 }
