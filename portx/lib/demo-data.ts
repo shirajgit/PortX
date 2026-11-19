@@ -11,7 +11,7 @@ export const DEMO_DATA: PortfolioData = {
     fullName: "Aarav Mehta",
     headline: "Product Designer & Frontend Developer",
     summary:
-      "I design and build digital products end-to-end — from research and wireframes to shipped, measurable features. 4+ years across fintech and SaaS, working with founders and cross-functional teams of 2 to 20. I care about interfaces that feel obvious, numbers that prove they work, and shipping every single week.",
+      "I design and build digital products end-to-end — from research and wireframes to shipped, measurable features. 5+ years across fintech, SaaS and consumer apps, working with founders and cross-functional teams of 2 to 20. I care about interfaces that feel obvious, numbers that prove they work, and shipping every single week.",
     location: "Bengaluru, India",
     email: "hello@aarav.design",
     avatarUrl: "/demo/avatar.svg",
@@ -37,6 +37,7 @@ export const DEMO_DATA: PortfolioData = {
         "Built and maintain the design system used by 3 product squads (50+ components, tokens, docs)",
         "Run monthly usability tests and turn findings into a prioritized fix pipeline",
         "Partner with engineering on a shared component library — design-to-dev handoff time cut in half",
+        "Mentor 2 junior designers through weekly critiques and a shared growth plan",
       ],
     },
     {
@@ -49,6 +50,7 @@ export const DEMO_DATA: PortfolioData = {
         "Shipped 20+ client projects across SaaS dashboards, marketing sites, and mobile apps",
         "Introduced component-driven handoff, cutting dev rework by ~30%",
         "Ran discovery workshops with founders to turn vague briefs into scoped, testable MVPs",
+        "Built the studio's Framer site template, reused on 12 client launches",
       ],
     },
     {
@@ -60,6 +62,17 @@ export const DEMO_DATA: PortfolioData = {
       bullets: [
         "Redesigned the settings and billing screens of the flagship app (2M+ downloads)",
         "Created 40+ production-ready screens and a mini style guide adopted by the full-time team",
+      ],
+    },
+    {
+      title: "Freelance UI Designer",
+      organization: "Self-employed",
+      location: "Remote",
+      startDate: "Jul 2021",
+      endDate: "Dec 2021",
+      bullets: [
+        "Designed landing pages and brand kits for 8 early-stage startups",
+        "Two clients raised seed rounds with the decks and sites delivered",
       ],
     },
   ],
@@ -132,12 +145,39 @@ export const DEMO_DATA: PortfolioData = {
       imageUrl: null,
       featured: false,
     },
+    {
+      name: "Habitloop",
+      tagline: "A calm habit tracker with streaks that forgive a bad day",
+      description: "",
+      bullets: [
+        "Designed the iOS app end-to-end; 4.8★ from 600+ ratings",
+        "Featured in the App Store's \"New Apps We Love\" in India",
+      ],
+      tech: ["Figma", "React Native", "Expo"],
+      liveUrl: "https://example.com",
+      repoUrl: null,
+      imageUrl: null,
+      featured: false,
+    },
+    {
+      name: "Figma Tokens Sync",
+      tagline: "Open-source plugin: Figma variables → Tailwind config in one click",
+      description: "",
+      bullets: [
+        "2.1k installs and 340 GitHub stars; used by two design-system teams in production",
+      ],
+      tech: ["TypeScript", "Figma API", "Tailwind CSS"],
+      liveUrl: null,
+      repoUrl: "https://github.com/aarav/tokens-sync",
+      imageUrl: null,
+      featured: false,
+    },
   ],
   skills: [
-    { category: "Design", items: ["Product Design", "Design Systems", "Prototyping", "User Research", "Interaction Design"] },
-    { category: "Frontend", items: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"] },
-    { category: "Product", items: ["A/B Testing", "Analytics", "Roadmapping", "Stakeholder Workshops"] },
-    { category: "Tools", items: ["Figma", "Framer", "Storybook", "Notion", "Linear"] },
+    { category: "Design", items: ["Product Design", "Design Systems", "Prototyping", "User Research", "Interaction Design", "Accessibility", "Motion Design"] },
+    { category: "Frontend", items: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "React Native", "Storybook"] },
+    { category: "Product", items: ["A/B Testing", "Analytics", "Roadmapping", "Stakeholder Workshops", "Copywriting"] },
+    { category: "Tools", items: ["Figma", "Framer", "Notion", "Linear", "Mixpanel", "Maze"] },
   ],
   educations: [
     {
@@ -162,6 +202,8 @@ export const DEMO_DATA: PortfolioData = {
       items: [
         { title: "Google UX Design Certificate", subtitle: "Coursera", date: "2024", url: "", description: "" },
         { title: "Accessibility for Designers", subtitle: "Interaction Design Foundation", date: "2023", url: "", description: "" },
+        { title: "Meta Front-End Developer", subtitle: "Coursera", date: "2023", url: "", description: "" },
+        { title: "Product Analytics Certification", subtitle: "Mixpanel", date: "2022", url: "", description: "" },
       ],
     },
     {
@@ -169,6 +211,31 @@ export const DEMO_DATA: PortfolioData = {
       kind: "awards",
       items: [
         { title: "Best Fintech UX — Product Hunt", subtitle: "Ledgerly", date: "2025", url: "", description: "Top 3 product of the day with 1,200+ upvotes." },
+        { title: "Design Hackathon Winner", subtitle: "Figma Config India", date: "2023", url: "", description: "First place out of 140 teams for an accessible transit-ticketing flow." },
+      ],
+    },
+    {
+      title: "Talks & Writing",
+      kind: "publications",
+      items: [
+        { title: "Design systems for teams of three", subtitle: "Talk · UX Bangalore", date: "2025", url: "", description: "How small teams get 80% of a design system for 20% of the effort." },
+        { title: "Onboarding that doesn't feel like a form", subtitle: "Article · UX Collective", date: "2024", url: "", description: "Read 25k+ times; the Ledgerly onboarding case study." },
+      ],
+    },
+    {
+      title: "Volunteering",
+      kind: "volunteering",
+      items: [
+        { title: "Design mentor", subtitle: "ADPList", date: "2023 — now", url: "", description: "100+ free mentoring sessions with early-career designers." },
+      ],
+    },
+    {
+      title: "Languages",
+      kind: "languages",
+      items: [
+        { title: "English", subtitle: "Professional", date: "", url: "", description: "" },
+        { title: "Hindi", subtitle: "Native", date: "", url: "", description: "" },
+        { title: "Kannada", subtitle: "Conversational", date: "", url: "", description: "" },
       ],
     },
   ],
