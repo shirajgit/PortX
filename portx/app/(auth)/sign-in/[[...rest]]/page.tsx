@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SignIn } from "@clerk/nextjs";
+import { InAppBrowserNotice } from "@/components/InAppBrowserNotice";
 import { Logo } from "@/components/Logo";
 import { NO_INDEX } from "@/lib/site";
 
@@ -12,6 +13,7 @@ export default function Page() {
       <Link href="/">
         <Logo size="lg" />
       </Link>
+      <InAppBrowserNotice />
       <SignIn fallbackRedirectUrl="/dashboard" />
     </main>
   );
